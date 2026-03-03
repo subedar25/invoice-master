@@ -1,0 +1,12 @@
+# Alternative docker-compose file for SSL setup
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.ssl.yml up -d
+
+version: '3.8'
+
+services:
+  nginx:
+    environment:
+      - DOMAIN=${DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"

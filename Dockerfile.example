@@ -1,0 +1,41 @@
+# Use official PHP 8.3 + Apache image
+FROM php:8.3-apache
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git zip unzip curl libpng-dev libjpeg-dev libfreetype6-dev libonig-dev libxml2-dev libzip-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql gd mbstring zip exif pcntl bcmath opcache \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
+
+# Configure Apache DocumentRoot
+ARG APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/000-default.conf /etc/apache2/apache2.conf
+
+# Copy Composer from official image
+COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy all project files into the container
+COPY . .
+
+# Install Composer dependencies (without interaction)
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader || true
+
+# Ensure storage and bootstrap cache directories are writable
+RUN chmod -R 777 storage bootstrap/cache
+
+# Create .env if not exists and generate key
+RUN if [ ! -f .env ]; then cp .env.example .env; fi && \
+    php artisan key:generate || true
+
+# Expose Apache HTTP port
+EXPOSE 80
+
+# Start Apache in foreground
+CMD ["apache2-foreground"]

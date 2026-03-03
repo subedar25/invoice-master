@@ -1,0 +1,33 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pulse-app
+    volumes:
+       - ./:/var/www/html:cached
+       - vendor:/var/www/html/vendor
+    ports:
+      - "8082:80"
+    depends_on:
+      - db
+    environment:
+      APACHE_DOCUMENT_ROOT: /var/www/html/public
+
+  db:
+    image: mysql:8.0
+    container_name: pulse-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pulse-data
+      MYSQL_USER: pulse
+      MYSQL_PASSWORD: publication
+    ports:
+      - "3307:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+
+volumes:
+  dbdata:
+  vendor:

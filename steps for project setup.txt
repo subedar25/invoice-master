@@ -1,0 +1,85 @@
+Theme - Admin LTE 3
+Laravel - vite
+Livewire
+
+
+git clone  <url of git>
+
+git checkout staging
+ git checkout -b  <new branch Name>
+
+
+#.env file 
+#copy .env file
+cp .env.example .env
+
+#copy docker composer file
+
+cp docker-compose.yml.example  docker-compose.yml
+
+#copy docker file
+cp Dockerfile.example Dockerfile
+
+
+#docker command
+
+# build container
+docker-compose up -d --build
+
+# for docker bash terminal
+
+docker-compose exec app bash
+
+# Install PHP dependencies
+composer install
+
+npm install
+npm run build
+
+php artisan key:generate
+
+php artisan migrate
+
+
+
+#env file setting
+
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=pulse-data
+DB_USERNAME=root
+DB_PASSWORD=root
+
+
+// for  roles and permission run this seeder command
+php artisan db:seed --class=ModuleAndPermissionSeeder
+
+php artisan db:seed --class=SuperAdminSeeder
+
+
+// command for create controller
+php artisan make:controller MasterApp/PermissionController
+
+
+DB baseline
+
+method 1 (only with paperboy db structure)
+
+php artisan migrate:fresh
+php artisan db:seed
+
+
+Method 2 (with paper boy data )
+
+Dump latest data set with structure
+
+Comment code
+0001_01_01_000000_baseline_schema.php
+line no. 15  - DB::unprepared(file_get_contents(database_path('/schema/doorPulsePaperBoyBaseline.sql')));
+
+Run Migration
+
+php artisan migrate
+php artisan db:seed
+

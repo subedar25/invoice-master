@@ -1,0 +1,504 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Livewire global loader: transparent background, centered spinner */
+.livewire-global-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.15s ease;
+}
+.livewire-global-loader--hidden {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
+.livewire-global-loader__spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(13, 110, 253, 0.25);
+    border-top-color: #0d6efd;
+    border-radius: 50%;
+    animation: livewire-loader-spin 0.8s linear infinite;
+}
+@keyframes livewire-loader-spin {
+    to { transform: rotate(360deg); }
+}
+
+
+/* Sub Settings Panel - hidden by default */
+/* .sidebar {
+    width: 250px !important;
+    height: 100vh;
+    background: #26323b;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    z-index: 1049;
+}  */
+
+
+ .sidebar.active {
+    width: 250px !important;
+}
+
+
+
+/* RIGHT SETTINGS PANEL */
+.right-settings-panel {
+    position: fixed;
+    top: 0;
+    right: -350px;
+    width: 350px;
+    height: 100vh;
+    background: #1c2831;
+    z-index: 9999 !important;
+    padding: 20px;
+    transition: left 3.9s ease-in-out;
+}
+
+.right-settings-panel.active {
+    left: 13%;
+}
+
+.panel-overlay {
+    z-index: 9998 !important;
+}
+
+/* Overlay */
+.panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    z-index: 9998 !important;
+    display: none;
+}
+
+.panel-overlay.active {
+    display: block;
+}
+
+/* Close Button */
+.close-btn {
+    cursor: pointer;
+    font-size: 26px;
+    color: #fff;
+    float: right;
+}
+
+.settings-list li {
+    padding: 12px 0;
+}
+
+.settings-list li a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+}
+.row-selected {
+    background-color: #ade99bd7 !important;
+}
+.main-title h1 {
+    font-size: 2.5rem !important;
+    margin-left: 28px;
+}
+.inline-edit,
+.inline-edit * {
+    user-select: text !important;
+    cursor: pointer;
+}
+.entity-link {
+    user-select: text;
+    cursor: pointer;
+}
+.fc-event {
+    cursor: pointer;
+}
+#running-timer {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: .6; }
+    100% { opacity: 1; }
+}
+/* Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+}
+
+input:checked + .slider {
+    background-color: #28a745; /* green */
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* Rounded */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+
+
+
+
+/* .select2-container .select2-selection--multiple {
+    min-height: 45px;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+.select2-container
+.select2-selection--multiple
+.select2-selection__choice {
+    background-color: #0d6efd;
+    border: none;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 14px;
+    font-size: 15px;
+
+}
+
+.select2-container
+.select2-selection__choice__remove {
+    color: #fff;
+    margin-right: 6px;
+} */
+
+/*********** BK ******************/
+
+/* .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    background-color: transparent !important;
+    border: none !important;
+    border-right:none !important;
+    border-top-left-radius: 4px !important;
+    border-bottom-left-radius: 4px !important;
+    color: #999 !important;
+    cursor: pointer !important;
+    font-size: 1em !important;
+    font-weight: bold !important;
+    padding: 0px 4px !important;
+    position: relative !important;
+    left: 0 !important;
+    top: -1px !important;
+    float: left !important;
+    padding-right: 3px !important;
+    padding-left: 3px !important;
+    margin-right: 1px !important;
+    margin-left: 3px !important;
+    font-weight: 700 !important;
+    color: #bdc6d0 !important;
+}
+.select2-container--default .select2-search--inline .select2-search__field:focus {
+    width: 2px !important; margin-top: 0 !important;
+}
+.select2-container--default .select2-selection--multiple {
+    min-height: 55px;
+    padding: 4px 6px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 1px;
+} */
+
+
+/*********** DS ******************/
+
+
+/* Main selection box */
+.select2-container--default .select2-selection--multiple {
+    min-height: 38px;
+    padding: 6px;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    background-color: #fff;
+}
+
+/* Rendered list (tags wrapper) */
+.select2-container--default
+.select2-selection--multiple
+.select2-selection__rendered {
+    display: flex !important;
+    flex-wrap: wrap !important;      /* MULTI-LINE */
+    gap: 6px;                        /* SPACE BETWEEN ROLES */
+    padding-left: 0;
+    margin: 0;
+}
+
+/* Role tag (rectangle style) */
+.select2-container--default
+.select2-selection--multiple
+.select2-selection__choice {
+    height: 28px;
+    line-height: 28px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 10px;
+    background-color: #0d6efd;
+    color: #fff;
+    font-size: 0.875rem;
+    border-radius: 4px;
+    border: none;
+    white-space: nowrap;
+    margin: 0;
+}
+
+/* Remove (×) icon */
+.select2-selection__choice__remove {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 6px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1;
+}
+.select2-selection__choice__remove:hover {
+    color: #fff;
+}
+
+/*  Cursor ALWAYS on new line (stable & bug-free) */
+.select2-search--inline {
+    width: 100%;
+    margin-top: 6px;
+}
+
+.select2-search--inline .select2-search__field {
+    width: 100% !important;
+    min-width: 100% !important;
+    height: 28px;
+    line-height: 28px;
+    padding: 0;
+    border: 0 !important;
+    outline: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Focus state (AdminLTE / Bootstrap) */
+.select2-container--default.select2-container--focus
+.select2-selection--multiple {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Disabled state */
+.select2-container--default.select2-container--disabled
+.select2-selection--multiple {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+/* Selected option in dropdown */
+.select2-container--default
+.select2-results__option--selected {
+    background-color: #0d6efd !important;
+    color: #fff !important;
+}
+
+/* Hover on selected dropdown option */
+.select2-container--default
+.select2-results__option--selected.select2-results__option--highlighted {
+    background-color: #0b5ed7 !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: rgba(255, 255, 255, .7);
+    float: right;
+    margin-left: -1px;
+    margin-right: -1px;
+    padding: 8px 4px;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__display
+ {
+    cursor: default;
+    padding-left: 14px;
+    padding-right: 3px;
+ }
+ /* Notification css */
+/*  FIX AdminLTE notification wrapping */
+.dropdown-menu .dropdown-item {
+    white-space: normal !important;
+    display: flex !important;
+    align-items: flex-start;
+    gap: 8px;
+
+}
+
+/* Bell icon */
+.dropdown-menu .dropdown-item i {
+    margin-top: 3px;
+    flex-shrink: 0;
+}
+
+/* Message text */
+.dropdown-menu .dropdown-item .notif-text,
+.dropdown-menu .dropdown-item:not(.dropdown-header) {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Time on right */
+.dropdown-menu .dropdown-item span.float-right {
+    white-space: nowrap;
+    margin-left: auto;
+    padding-left: 8px;
+    font-size: 12px;
+    color: #888;
+}
+
+/* Search Tab */
+.search-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.search-input {
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+
+}
+
+.search-input-wrapper .fa-search {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Master data layout */
+.master-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.master-toolbar__filters {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.master-filter-input {
+    max-width: 220px;
+}
+
+.master-filter-select {
+    max-width: 140px;
+}
+
+.master-table-actions {
+    width: 120px;
+}
+
+.master-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.action-div .action-icon {
+    padding: 2px 6px;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.master-modal-backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.master-modal-dialog {
+    position: relative;
+    z-index: 1056;
+    margin: 1.75rem auto;
+}
+.dataTables_filter {
+    position: relative;
+}
+
+.dataTables_filter label {
+    display: block;
+    width: 100%;
+}
+  #example2_wrapper .search-input-wrapper {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  #example2_wrapper .search-input-wrapper .fa-search {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+  }
+
+  #example2_wrapper .dataTables_filter input.search-input {
+    width: min(455px, 100%) !important;
+    max-width: 100%;
+    padding-left: 34px !important;
+    box-sizing: border-box;
+  }
+
+
+
+
+
+

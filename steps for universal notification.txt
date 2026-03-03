@@ -1,0 +1,88 @@
+# Universal Notification System - Complete Guide
+
+## How It Works
+
+The Universal Notification System consists of three main components:
+
+1. **Events**: Predefined notification events with message templates stored in `notification_events` table
+2. **Rules**: Configuration rules in `notification_rules` table that determine who gets notified
+3. **Engine**: `NotificationEngine` service that processes events and sends notifications via Laravel's notification system
+
+
+## Key Recipient Logic Rules
+
+1. **Admin Users**: All users with "Admin User" role receive notifications for most events
+2. **Actor Exclusion**: The person who performed the action is NEVER notified (notify_creator = false)
+3. **Owner Notification**: Timesheet owners get notified about their own timesheet changes
+4. **Requestor Notification**: Time-off requestors get notified only about approval/rejection status changes
+5. **Affected User**: For role changes, only the user whose role changed gets notified
+
+## Adding New Events
+
+### Step 1: Add Event Definition
+Update `database/seeders/NotificationEventSeeder.php`:
+
+```php
+use App\Helpers\AppNotification;
+
+// Example: Notify when a user is created
+AppNotification::notify_event('user.created', $user, auth()->user());
+```
+
+### Step 2: Add Notification Rule
+Update `database/seeders/NotificationRuleSeeder.php`:
+
+```php
+['event_key' => 'your.new.event'],
+```
+
+### Step 3: Update NotificationEngine (if needed)
+If your event needs special recipient logic, add it to `NotificationEngine::notify()` method.
+
+### Step 4: Call the Notification
+In your controller/service:
+
+```php
+use App\Helpers\AppNotification;
+
+
+UniversalNotification::notify_event('your.new.event', $model, auth()->user());
+
+
+// Example: Notify when a user is created
+AppNotification::notify_event('user.created', $user, auth()->user());
+
+
+## Template Placeholders
+
+Available placeholders for dynamic content:
+
+- `{actor.name}`: Full name of the user who performed the action
+- `{actor.first_name}`: First name of the actor
+- `{actor.last_name}`: Last name of the actor
+- `{model.*}`: Any field from the model (e.g., `{model.id}`, `{model.date}`, `{model.start_date}`)
+
+## Database Setup
+
+Run these commands to set up notifications:
+
+```bash
+php artisan db:seed --class=NotificationEventSeeder
+php artisan db:seed --class=NotificationRuleSeeder
+```
+
+
+## Future Module Integration
+
+When adding notifications for new modules:
+
+1. Define event keys following the pattern: `module.action` (e.g., `vehicle.created`)
+2. Determine appropriate recipients based on existing patterns
+3. Add event to NotificationEventSeeder with proper templates
+4. Add rule to NotificationRuleSeeder
+5. Update NotificationEngine if special recipient logic needed
+6. Call `UniversalNotification::notify_event()` in your module's controller
+
+
+
+
