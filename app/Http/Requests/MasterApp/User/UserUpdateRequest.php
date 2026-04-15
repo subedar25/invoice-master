@@ -25,15 +25,19 @@ class UserUpdateRequest extends FormRequest
             'phone'        => 'nullable|string|regex:/^[0-9]+$/',
             'roles'   => ['required', 'array', 'min:1'],
             'roles.*' => ['exists:roles,id'],
-            // 'contributor_status' => ['nullable',Rule::in(['No', 'Current', 'Past']),],
-            'contributor_status' => 'nullable|in:no,current,past',
-            'publications'   => ['nullable', 'array'],
-            'publications.*' => ['exists:publications,id'],
             'department_id' => ['nullable', 'exists:departments,id'],
             'active' => ['required', Rule::in(['0', '1'])],
-            'driver' => ['required', Rule::in(['0', '1'])],
-            'status_id'     => 'nullable|exists:user_statuses,id',
             'status_notes'  => 'nullable|string|max:200',
+            'organization_ids' => ['nullable', 'array'],
+            'organization_ids.*' => ['exists:organizations,id'],
+            'reporting_manager_id' => ['nullable', 'exists:users,id'],
+            'address' => ['nullable', 'string', 'max:1000'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'state' => ['nullable', 'string', 'max:255'],
+            'pincode' => ['nullable', 'string', 'max:20'],
+            'photo' => ['nullable', 'image', 'max:2048'],
+            'other_documents' => ['nullable', 'array'],
+            'other_documents.*' => ['file', 'max:10240'],
             'is_wordpress_user' => 'sometimes|boolean',
 
         ];
@@ -47,22 +51,24 @@ class UserUpdateRequest extends FormRequest
             ]);
         }
     
-      if ($this->has('publications')) {
-        $this->merge([
-            'publications' => array_map('intval', $this->input('publications', [])),
-        ]);
-    }
     if ($this->filled('department_id')) {
         $this->merge([
             'department_id' => (int) $this->input('department_id'),
         ]);
     }
 
-    if ($this->filled('status_id')) {
+    if ($this->has('organization_ids')) {
         $this->merge([
-            'status_id' => (int) $this->input('status_id'),
+            'organization_ids' => array_filter(array_map('intval', $this->input('organization_ids', []))),
         ]);
     }
+
+    if ($this->filled('reporting_manager_id')) {
+        $this->merge([
+            'reporting_manager_id' => (int) $this->input('reporting_manager_id'),
+        ]);
+    }
+
     if ($this->has('is_wordpress_user')) {
         $this->merge([
             'is_wordpress_user' => (int) $this->input('is_wordpress_user'),

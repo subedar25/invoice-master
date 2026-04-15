@@ -3,7 +3,6 @@ namespace App\Infrastructure\Persistence\User;
 
 use App\Core\User\Contracts\UserRepository;
 use App\Models\User;
-use App\Models\Publication;
 use Spatie\Permission\Models\Role;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -15,12 +14,8 @@ class EloquentUserRepository implements UserRepository
     }
     public function find(int $id): User
     {
-        return User::with('roles')->findOrFail($id);
+        return User::with(['roles', 'organizations', 'reportingManager', 'userDocuments', 'department'])->findOrFail($id);
     }
-    // public function find(int $id): User
-    // {
-    //     return user::with('publications')->findOrFail($id);
-    // }
     public function create(array $data): User
     {
         $user = User::create([
@@ -28,29 +23,31 @@ class EloquentUserRepository implements UserRepository
             'last_name'     => $data['last_name'],
             'email'         => $data['email'],
             'phone'         => $data['phone'] ?? null,
-            // 'password'      => Hash::make($data['password']),
             'password'     => $data['password'],
             'active'        => $data['active'],
-            'driver'        => $data['driver'],
+            'driver' => false,
             'department_id' => $data['department_id'] ?? null,
+            'reporting_manager_id' => $data['reporting_manager_id'] ?? null,
+            'address' => $data['address'] ?? null,
+            'city' => $data['city'] ?? null,
+            'state' => $data['state'] ?? null,
+            'pincode' => $data['pincode'] ?? null,
+            'photo' => $data['photo'] ?? null,
             'is_wordpress_user' => $data['is_wordpress_user'],
-            'publications' =>$data['publications'] ?? 0,
-            'departments' =>$data['departments'] ?? 0,        
-            'status_id'    => $data['status_id'] ?? null, 
-            'department_id'=> $data['department_id'] ?? null,
-           'contributor_status' => $data['contributor_status'] ?? null,
+            'contributor_status' => null,
             'status_notes' => $data['status_notes'] ?? null,
-
-            
         ]);
-        // Sync roles
+
         if (!empty($data['roles'])) {
             $user->roles()->sync($data['roles']);
         }
 
-        // Sync publications
-        if (!empty($data['publications'])) {
-            $user->publications()->sync($data['publications']);
+        if (!empty($data['organization_ids'])) {
+            $user->organizations()->sync($data['organization_ids']);
+        }
+
+        if (!empty($data['other_documents_data'])) {
+            $user->userDocuments()->createMany($data['other_documents_data']);
         }
 
         return $user;
@@ -58,29 +55,26 @@ class EloquentUserRepository implements UserRepository
 
     public function update(int $id, array $data): User
     {
-    $roles = $data['roles'] ?? [];
-    unset($data['roles']);
+        $roles = $data['roles'] ?? [];
+        $organizationIds = $data['organization_ids'] ?? [];
+        $otherDocumentsData = $data['other_documents_data'] ?? [];
 
-    $publications = $data['publications'] ?? [];
-    unset($data['publications']);
+        unset($data['roles'], $data['organization_ids'], $data['other_documents_data'], $data['other_documents']);
 
-    $user = User::findOrFail($id);
-    $user->update($data);
+        $user = User::findOrFail($id);
+        $user->update($data);
 
-    // if (!empty($roles)) {
-    //     $user->syncRoles(Role::find($roles));
-    // }
-    
-    if ($roles) {
+        if ($roles) {
             $user->syncRoles(Role::find($roles));
         }
 
-    //  FIX IS HERE
-    if (!empty($publications)) {
-        $user->publications()->sync($publications);
-    }
+        $user->organizations()->sync($organizationIds);
 
-    return $user;
+        if (!empty($otherDocumentsData)) {
+            $user->userDocuments()->createMany($otherDocumentsData);
+        }
+
+        return $user;
     }
 
     public function delete(int $id): void
@@ -90,6 +84,6 @@ class EloquentUserRepository implements UserRepository
 
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
-        return User::all();
+        return User::with(['roles', 'department', 'organizations', 'reportingManager'])->get();
     }
 }

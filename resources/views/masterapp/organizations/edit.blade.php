@@ -40,7 +40,6 @@
                                     <button type="button" class="list-group-item list-group-item-action org-section-btn" data-target="section-contact">Contact Information</button>
                                     <button type="button" class="list-group-item list-group-item-action org-section-btn" data-target="section-communication">Communication Channels</button>
                                     <button type="button" class="list-group-item list-group-item-action org-section-btn" data-target="section-social">Social Media</button>
-                                    <button type="button" class="list-group-item list-group-item-action org-section-btn font-weight-normal" data-target="section-publication">Advertiser</button>
                                     <button type="button" class="list-group-item list-group-item-action org-section-btn" data-target="section-marketing-preferences">Marketing Preferences</button>
                                     <button type="button" class="list-group-item list-group-item-action org-section-btn" data-target="section-legal-extra">Legal / Extra Info</button>
                                 </div>
@@ -259,27 +258,6 @@
                                         <div class="form-group mb-0">
                                             <label>Pinterest</label>
                                             <input type="text" name="pinterest" value="{{ old('pinterest', $organization->pinterest) }}" class="form-control" placeholder="Pinterest URL or handle">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div id="section-publication" class="org-section-panel d-none">
-                                    <div class="border rounded p-3">
-                                        <h6 class="mb-3">Advertiser</h6>
-                                        <div class="form-group mb-0">
-                                            <div class="pl-0">
-                                                @php
-                                                    $advertiserOld = old('advertiser', $organization->advertiser ?? []);
-                                                    if (is_string($advertiserOld)) { $advertiserOld = $advertiserOld ? [$advertiserOld] : []; }
-                                                    $advertiserValues = array_map('intval', is_array($advertiserOld) ? $advertiserOld : []);
-                                                @endphp
-                                                @foreach($publications as $publication)
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" name="advertiser[]" id="advertiser_{{ $publication->id }}" value="{{ $publication->id }}" @checked(in_array((int) $publication->id, $advertiserValues, true))>
-                                                    <label class="custom-control-label font-weight-normal" for="advertiser_{{ $publication->id }}">{{ $publication->name }}</label>
-                                                </div>
-                                                @endforeach
-                                            </div>
                                         </div>
                                     </div>
                                 </div>

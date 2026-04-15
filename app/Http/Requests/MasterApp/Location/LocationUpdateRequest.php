@@ -23,16 +23,14 @@ class LocationUpdateRequest extends FormRequest
                     ->whereNull('deleted_at')
                     ->ignore($this->route('location')),
             ],
-            'address' => ['required', 'string'],
-            'city' => ['required', 'string', 'max:255'],
-            'state' => ['required', 'string'],
-            'country' => ['required', 'string', 'max:255'],
-            'postal_code' => ['required', 'string', 'max:10'],
+            'address' => ['nullable', 'string'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'state' => ['nullable', 'string'],
+            'country' => ['nullable', 'string', 'max:255'],
+            'postal_code' => ['nullable', 'string', 'max:10'],
             'phone' => ['nullable', 'string', 'regex:/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/'],
             'show_map' => ['boolean'],
             'show_map_link' => ['boolean'],
-            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ];
     }
 }

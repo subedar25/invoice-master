@@ -30,7 +30,7 @@ class SuperAdminSeeder extends Seeder
 
         // 4. Create or find the Super Admin user.
         $user = User::firstOrCreate(
-            ['email' => 'superadmin@pulsepublication.com'], // Search by email to prevent duplicates
+            ['email' => 'superadmin@gmail.com'], // Search by email to prevent duplicates
             [
                 'first_name' => 'Super',
                 'last_name' => 'Admin',
@@ -38,9 +38,6 @@ class SuperAdminSeeder extends Seeder
                 'email_verified_at' => now(), // Assume the admin's email is verified
                 'created_at' => now(),
                 'updated_at' => now(),
-                'is_wordpress_user' => 1,
-                'registered' => 1,
-                'driver' => 1,
                 'active' => 1,
                 // 'contributor_status' => 'no',
             ]

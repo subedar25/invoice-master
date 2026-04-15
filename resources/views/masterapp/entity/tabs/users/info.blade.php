@@ -31,11 +31,38 @@
                     <tr><th>Role</th><td>{{ $entity->roles->pluck('name')->implode(', ') ?: '—' }}</td></tr>
                     {{-- <tr><th>Permissions</th><td>{{ $entity->permissions->pluck('name')->implode(', ') ?: '—' }}</td></tr> --}}
                     <tr><th>Added Timestamp</th><td>{{ optional($entity->created_at)->format('d M Y, h:i A') ?? '—' }}</td></tr>
-                    <tr><th>Driver</th><td>{{ $entity->driver ? 'Yes' : 'No' }}</td></tr>
                     <tr><th>Department</th><td>{{ optional($entity->department)->name ?? '—' }}</td></tr>
-                    <tr><th>Publications</th><td>{{ $entity->publications->pluck('name')->implode(', ') ?: '—' }}</td></tr>
-                    <tr><th>Contributor Status</th><td>{{ $entity->contributor_status ?? '—' }}</td></tr>
-                    <tr><th>Status</th><td>{{ optional($displayStatus)->label ?? optional($entity->status)->label ?? '—' }}</td></tr>
+                    <tr><th>Organizations</th><td>{{ $entity->organizations->pluck('name')->implode(', ') ?: '—' }}</td></tr>
+                    <tr><th>Reporting Manager</th><td>{{ optional($entity->reportingManager)->name ?? '—' }}</td></tr>
+                    <tr><th>Address</th><td>{{ $entity->address ?? '—' }}</td></tr>
+                    <tr><th>City</th><td>{{ $entity->city ?? '—' }}</td></tr>
+                    <tr><th>State</th><td>{{ $entity->state ?? '—' }}</td></tr>
+                    <tr><th>Pincode</th><td>{{ $entity->pincode ?? '—' }}</td></tr>
+                    <tr>
+                        <th>Photo</th>
+                        <td>
+                            @if($entity->photo)
+                                <img src="{{ asset($entity->photo) }}" alt="User Photo" style="max-height: 100px;">
+                            @else
+                                —
+                            @endif
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Other Documents</th>
+                        <td>
+                            @if($entity->userDocuments->isNotEmpty())
+                                @foreach($entity->userDocuments as $document)
+                                    <div>
+                                        <a href="{{ asset($document->file_path) }}" target="_blank">{{ $document->file_name }}</a>
+                                    </div>
+                                @endforeach
+                            @else
+                                —
+                            @endif
+                        </td>
+                    </tr>
+                    <tr><th>Status</th><td>{{ $displayStatusLabel ?? 'Not Available' }}</td></tr>
                     <tr><th>Notes</th><td>{!! $entity->status_notes ?: '—' !!}</td></tr>
                 </tbody>
             </table>

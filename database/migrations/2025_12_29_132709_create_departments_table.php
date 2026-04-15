@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('departments', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
-            // Parent Department (self-referencing)
             $table->foreignId('parent_id')
                   ->nullable()
                   ->constrained('departments')

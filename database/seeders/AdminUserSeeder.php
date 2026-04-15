@@ -25,12 +25,12 @@ class AdminUserSeeder extends Seeder
 
         // Create or get the user
         $user = User::firstOrCreate(
-            ['email' => 'admin@pulsepublication.com'], // unique identifier
+            ['email' => 'admin@gmail.com'], // unique identifier
             [
                 'first_name' => 'Admin',
                 'last_name' => 'User',
                 'password' => bcrypt('password'),
-                'driver'     => 1,
+               
                 'active'     => 1,
             ]
         );

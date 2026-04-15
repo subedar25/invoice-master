@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\DropPoint;
-use App\Models\ClientTypes;
 use App\Models\Client;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -51,7 +50,7 @@ class DropPointController extends Controller
      */
     public function create()
     {
-         $ClientTypes = ClientTypes::all();
+         $ClientTypes = collect();
          $Clients = Client::all();
 
         return view('droppoints.create', compact('ClientTypes','Clients'));
@@ -86,7 +85,7 @@ class DropPointController extends Controller
      */
     public function edit(DropPoint $droppoint)
     {
-         $ClientTypes = ClientTypes::all();
+         $ClientTypes = collect();
          $Clients = Client::all();
         return view('droppoints.edit', compact('droppoint','ClientTypes','Clients'));
     }

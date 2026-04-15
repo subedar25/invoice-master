@@ -110,10 +110,8 @@
                                   <th>Role</th>
                                   {{-- <th>Permissions</th> --}}
                                   <th>Added Timestamp</th>
-                                  <th>Driver</th>
                                   <th>Department</th>
-                                  <th>Publications</th>
-                                  <th>Contributor Status</th>
+                                  <th>Organizations</th>
                                   <th>Status</th>
                                   <th>Notes</th>
                                   @can('active-deactive')
@@ -154,71 +152,31 @@
                                   </td> --}}
                                   <td>{{ $user->created_at->format('m/d/Y h:i A') }}</td>
 
-                                  {{-- DRIVER (boolean) --}}
-                                  <td data-field="driver">
-                                      {{ $user->driver ? "Yes" : "No" }}
-                                  </td>
-                                    <td data-field="department_id">
+                                  <td data-field="department_id">
                                       {{ $user->department->name ?? "N/A" }}
                                   </td>
-                                  {{-- <td data-field="publications">
-                                    {{ $user->publication_users->publication_id ?? "N/A" }} --}}
-                                    <td data-field="publications">
-                                    @forelse ($user->publications as $publication)
-                                        {{-- <span class="badge badge-info mr-1"> --}}
-                                            {{ $publication->name }}
 
-                                        {{-- </span> --}}
-                                    @empty
-                                        <span class="text-muted">N/A</span>
-                                    @endforelse
-                                </td>
-
-                                  <td data-field="contributor_status">
-                                      {{ $user->contributor_status }}
+                                  <td data-field="organizations">
+                                      {{ $user->organizations->pluck('name')->implode(', ') ?: 'N/A' }}
                                   </td>
                                   {{-- STATUS (select) --}}
                                     <td data-field="status_id">
-                                        <div class="status-container d-inline-block"
-                                            data-id="{{ $user->id }}"
-                                            data-status-id="{{ $user->status_id ?? '' }}">
-
-                                            {{-- Status badge: from current timesheet when active; when not clocked in show "Not Available" --}}
-                                            @php
-                                                $shift = $currentShifts[$user->id] ?? null;
-                                                if ($shift && isset($clockInModeToStatusLabel[$shift->clock_in_mode ?? ''])) {
-                                                    $displayStatus = $statusesList->firstWhere('label', $clockInModeToStatusLabel[$shift->clock_in_mode]);
-                                                } else {
-                                                    $displayStatus = $statusesList->firstWhere('label', 'Not Available');
-                                                }
-                                                $displayStatus = $displayStatus ?? $statusesList->firstWhere('label', 'Not Available');
-                                            @endphp
-                                            <span
-                                                class="badge {{ $displayStatus->badge_class ?? 'badge-secondary' }} status-badge"
-                                                title="{{ $shift ? 'From current shift (click to override)' : 'Click to change status' }}"
-                                                style="cursor: pointer;"
-                                            >
-                                                {{ $displayStatus->label ?? 'N/A' }}
-                                            </span>
-
-                                            {{-- Hidden select (inline edit): show currently displayed status as selected --}}
-                                            <div class="status-select-wrapper mt-1" style="display: none;">
-                                                <select class="form-control form-control-sm status-change-select">
-                                                    @foreach ($statusesList as $status)
-                                                        <option
-                                                            value="{{ $status->id }}"
-                                                            {{ (int) ($displayStatus->id ?? 0) === (int) $status->id ? 'selected' : '' }}
-                                                        >
-                                                            {{ $status->label }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <div class="status-spinner d-none ml-2">
-                                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                                </div>
-                                            </div>
-
-                                        </div>
+                                        @php
+                                            $shift = $currentShifts[$user->id] ?? null;
+                                            $statusLabel = ($shift && isset($clockInModeToStatusLabel[$shift->clock_in_mode ?? '']))
+                                                ? $clockInModeToStatusLabel[$shift->clock_in_mode]
+                                                : 'Not Available';
+                                            $statusBadgeClass = match ($statusLabel) {
+                                                'Available', 'Available - Remote' => 'badge-success',
+                                                'Available - Out of Office' => 'badge-warning',
+                                                'Available - Lunch', 'Lunch' => 'badge-info',
+                                                'Do Not Disturb' => 'badge-danger',
+                                                default => 'badge-secondary',
+                                            };
+                                        @endphp
+                                        <span class="badge {{ $statusBadgeClass }}">
+                                            {{ $statusLabel }}
+                                        </span>
                                     </td>
 
                                   {{-- STATUS NOTES (textarea) --}}
@@ -698,132 +656,6 @@ $(function () {
     });
 
 });
-
-
-$(function () {
-
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 5000,
-        timerProgressBar: true,
-        showClass: {
-            popup: 'animate__animated animate__fadeInUp'
-        },
-        hideClass: {
-            popup: 'animate__animated animate__fadeOutDown'
-        }
-    });
-
-    $(document).on('click', '.status-badge', function () {
-        const $badge = $(this);
-        const $container = $badge.closest('.status-container');
-
-        $badge.hide();
-        $container
-            .find('.status-select-wrapper')
-            .show()
-            .find('.status-change-select')
-            .focus();
-    });
-
-    function runStatusUpdate($container, statusId) {
-        const userId = $container.data('id');
-        const $select = $container.find('.status-change-select');
-
-        $container.data('status-updating', true);
-        $container.find('.status-spinner').removeClass('d-none');
-
-        let url = "{{ route('masterapp.users.updateStatus', ':id') }}";
-        url = url.replace(':id', userId);
-
-        $.ajax({
-            url: url,
-            type: 'PATCH',
-            data: {
-                _token: '{{ csrf_token() }}',
-                status_id: statusId
-            },
-
-            success: function (response) {
-                $container.find('.status-spinner').addClass('d-none');
-                $container.data('status-updating', false);
-
-                if (response.success) {
-                    const newLabel = $select.find('option[value="' + statusId + '"]').text();
-                    const newClass = response.badge_class || 'badge-secondary';
-
-                    const $badge = $container.find('.status-badge');
-
-                    $badge
-                        .removeClass(function (_, cls) {
-                            return (cls.match(/badge-\S+/g) || []).join(' ');
-                        })
-                        .addClass(newClass)
-                        .text(newLabel)
-                        .show();
-
-                    $container.find('.status-select-wrapper').hide();
-                    $container.data('status-id', statusId);
-
-                    Toast.fire({
-                        icon: 'success',
-                        title: 'User status updated successfully'
-                    });
-                }
-            },
-
-            error: function () {
-                $container.find('.status-spinner').addClass('d-none');
-                $container.data('status-updating', false);
-
-                alert('Failed to update status. Please try again.');
-                resetStatusUI($container);
-            }
-        });
-    }
-
-    // Update status on change
-    $(document).on('change', '.status-change-select', function () {
-        const $select = $(this);
-        const $container = $select.closest('.status-container');
-        const statusId = $select.val();
-
-        if ($container.data('status-updating')) return;
-
-        runStatusUpdate($container, statusId);
-    });
-
-    // Blur: if value changed but change didn't fire (e.g. selecting first option when none was selected), run update
-    $(document).on('blur', '.status-change-select', function () {
-        const $select = $(this);
-        const $container = $select.closest('.status-container');
-
-        setTimeout(() => {
-            if ($container.data('status-updating')) return;
-            if (!$container.find('.status-select-wrapper').is(':visible')) return;
-
-            const currentVal = String($select.val() || '');
-            const initialVal = String($container.data('status-id') || '');
-
-            if (currentVal !== initialVal) {
-                runStatusUpdate($container, currentVal);
-            } else {
-                resetStatusUI($container);
-            }
-        }, 200);
-    });
-
-    // Helper: Reset UI
-    function resetStatusUI($container) {
-        $container.find('.status-select-wrapper').hide();
-        $container.find('.status-badge').show();
-    }
-
-});
-
-
 
 
 </script>

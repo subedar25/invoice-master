@@ -45,7 +45,6 @@
                                 <button type="button" class="list-group-item list-group-item-action org-section-btn" data-target="section-contact">Contact Information</button>
                                 <button type="button" class="list-group-item list-group-item-action org-section-btn" data-target="section-communication">Communication Channels</button>
                                 <button type="button" class="list-group-item list-group-item-action org-section-btn" data-target="section-social">Social Media</button>
-                                <button type="button" class="list-group-item list-group-item-action org-section-btn font-weight-normal" data-target="section-publication">Advertiser</button>
                                 <button type="button" class="list-group-item list-group-item-action org-section-btn" data-target="section-marketing-preferences">Marketing Preferences</button>
                                 <button type="button" class="list-group-item list-group-item-action org-section-btn" data-target="section-legal-extra">Legal / Extra Info</button>
                             </div>
@@ -185,25 +184,6 @@
                                         <label class="text-muted small">Pinterest</label>
                                         <p class="mb-0">{{ $organization->pinterest ?: '—' }}</p>
                                     </div>
-                                </div>
-                            </div>
-
-                            <div id="section-publication" class="org-section-panel d-none">
-                                <div class="border rounded p-3">
-                                    <h6 class="mb-3">Advertiser</h6>
-                                    @php
-                                        $advertiserIds = $organization->advertiser ?? [];
-                                        $advertiserNames = $publications->whereIn('id', $advertiserIds)->pluck('name');
-                                    @endphp
-                                    @if($advertiserNames->isNotEmpty())
-                                        <ul class="list-unstyled mb-0 pl-0">
-                                            @foreach($advertiserNames as $name)
-                                                <li class="mb-1 d-flex align-items-center"><span class="list-bullet-circle mr-2"></span>{{ $name }}</li>
-                                            @endforeach
-                                        </ul>
-                                    @else
-                                        <p class="mb-0 text-muted">—</p>
-                                    @endif
                                 </div>
                             </div>
 

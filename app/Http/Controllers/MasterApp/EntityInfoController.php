@@ -11,7 +11,6 @@ use App\Models\Vehicle;
 use App\Models\VehicleExpense;
 use App\Models\File;
 use App\Models\Timesheet;
-use App\Models\UserStatus;
 use Illuminate\Support\Collection;
 class EntityInfoController extends Controller
 {
@@ -25,7 +24,7 @@ class EntityInfoController extends Controller
         $modelClass = $config['model'];
         $entity = $modelClass::findOrFail($id);
 
-        $displayStatus = null;
+        $displayStatusLabel = null;
         if ($type === 'users') {
             $currentShift = Timesheet::currentShiftForUser($entity->id);
             $clockInModeToStatusLabel = [
@@ -35,13 +34,11 @@ class EntityInfoController extends Controller
                 'do_not_disturb' => 'Do Not Disturb',
                 'lunch'          => 'Lunch',
             ];
-            $statusesList = UserStatus::all();
             if ($currentShift && isset($clockInModeToStatusLabel[$currentShift->clock_in_mode ?? ''])) {
-                $displayStatus = $statusesList->firstWhere('label', $clockInModeToStatusLabel[$currentShift->clock_in_mode]);
+                $displayStatusLabel = $clockInModeToStatusLabel[$currentShift->clock_in_mode];
             } else {
-                $displayStatus = $statusesList->firstWhere('label', 'Not Available');
+                $displayStatusLabel = 'Not Available';
             }
-            $displayStatus = $displayStatus ?? $statusesList->firstWhere('label', 'Not Available');
         }
 
         $currentTab = strtolower($request->query('tab', 'info'));
@@ -79,7 +76,7 @@ class EntityInfoController extends Controller
         'type'         => $type,
         'entity'       => $entity,
         'vehicle'      => $entity,
-        'displayStatus' => $displayStatus, 
+        'displayStatusLabel' => $displayStatusLabel, 
         // Tabs / Data
         'currentTab'   => $currentTab,
         'tabViewName'  => $tabViewName,

@@ -21,6 +21,8 @@
         }
         var orderCol = parseInt($table.data('order-col'), 10);
         if (isNaN(orderCol)) orderCol = 1;
+        var orderDir = (($table.data('order-dir') || 'desc') + '').toLowerCase();
+        if (orderDir !== 'asc' && orderDir !== 'desc') orderDir = 'desc';
         var nonOrderable = $table.data('non-orderable-targets');
         var targets = nonOrderable ? (typeof nonOrderable === 'string' ? nonOrderable.split(',').map(function (n) { return parseInt(n.trim(), 10); }) : nonOrderable) : [];
         if (!targets.length) {
@@ -41,7 +43,7 @@
                 },
                 search: ''
             },
-            order: [[orderCol, 'desc']],
+            order: [[orderCol, orderDir]],
             columnDefs: [{ orderable: false, targets: targets }],
             fixedColumns: { rightColumns: 1 },
             initComplete: function () {
@@ -59,6 +61,7 @@
                 $searchInput.wrap('<div class="search-input-wrapper"></div>');
                 $searchInput.addClass('search-input');
                 $searchInput.before('<i class="fa fa-search"></i>');
+
             }
         });
     }

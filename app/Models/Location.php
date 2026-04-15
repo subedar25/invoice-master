@@ -15,6 +15,7 @@ class Location extends Model implements AuditableContract
 
     protected $fillable = [
         'name',
+        'organization_id',
         'address',
         'city',
         'state',
@@ -43,6 +44,7 @@ class Location extends Model implements AuditableContract
      */
     protected $auditInclude = [
         'name',
+        'organization_id',
         'address',
         'city',
         'state',
@@ -58,6 +60,11 @@ class Location extends Model implements AuditableContract
         'updated_at',
     ];
 
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
 
     /**
      * Validation rules for the model

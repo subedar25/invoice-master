@@ -60,7 +60,7 @@
                     <tr>
                         <th>Status</th>
                         <td>
-                            {{ optional($entity->status)->label ?? '—' }}
+                            {{ $displayStatusLabel ?? 'Not Available' }}
                         </td>
                     </tr>
 

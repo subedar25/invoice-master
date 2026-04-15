@@ -145,6 +145,38 @@ class ModuleAndPermissionSeeder extends Seeder
                 'slug' => 'location-management'
             ],
 
+            'Outlet Management' => [
+                'permissions' => [
+                    ['name' => 'create-outlet', 'display_name' => 'Create Outlet', 'slug' => 'create-outlet'],
+                    ['name' => 'edit-outlet', 'display_name' => 'Edit Outlet', 'slug' => 'edit-outlet'],
+                    ['name' => 'toggle-outlet', 'display_name' => 'Active/Inactive Toggle (Outlets)', 'slug' => 'toggle-outlet'],
+                    ['name' => 'delete-outlet', 'display_name' => 'Delete Outlet', 'slug' => 'delete-outlet'],
+                    ['name' => 'list-outlets', 'display_name' => 'View Outlets', 'slug' => 'list-outlets'],
+                ],
+                'slug' => 'outlet-management'
+            ],
+
+            'Vendor Management' => [
+                'permissions' => [
+                    ['name' => 'create-vendor', 'display_name' => 'Create Vendor', 'slug' => 'create-vendor'],
+                    ['name' => 'edit-vendor', 'display_name' => 'Edit Vendor', 'slug' => 'edit-vendor'],
+                    ['name' => 'toggle-vendor', 'display_name' => 'Active/Inactive Toggle (Vendors)', 'slug' => 'toggle-vendor'],
+                    ['name' => 'delete-vendor', 'display_name' => 'Delete Vendor', 'slug' => 'delete-vendor'],
+                    ['name' => 'list-vendors', 'display_name' => 'View Vendors', 'slug' => 'list-vendors'],
+                ],
+                'slug' => 'vendor-management'
+            ],
+
+            'Invoice Management' => [
+                'permissions' => [
+                    ['name' => 'create-invoice', 'display_name' => 'Create Invoice', 'slug' => 'create-invoice'],
+                    ['name' => 'edit-invoice', 'display_name' => 'Edit Invoice', 'slug' => 'edit-invoice'],
+                    ['name' => 'delete-invoice', 'display_name' => 'Delete Invoice', 'slug' => 'delete-invoice'],
+                    ['name' => 'list-invoices', 'display_name' => 'View Invoices', 'slug' => 'list-invoices'],
+                ],
+                'slug' => 'invoice-management'
+            ],
+
             'Contact Management' => [
                 'permissions' => [
                     ['name' => 'create-contact', 'display_name' => 'Create contact','slug' => 'create-contact'],
@@ -213,8 +245,15 @@ class ModuleAndPermissionSeeder extends Seeder
                     ['name' => 'list-master', 'display_name' => 'View Masters','slug' => 'list-master'],
                     ['name' => 'organization_type', 'display_name' => 'Organization Type','slug' => 'organization_type'],
                     ['name' => 'seasons', 'display_name' => 'Seasons','slug' => 'seasons'],
-                    ['name' => 'publication', 'display_name' => 'Publications','slug' => 'publication'],
-                    ['name' => 'advertisers', 'display_name' => 'Advertisers','slug' => 'advertisers'],
+                    ['name' => 'country', 'display_name' => 'Country','slug' => 'country'],
+                    ['name' => 'state', 'display_name' => 'State','slug' => 'state'],
+                    ['name' => 'products', 'display_name' => 'Products','slug' => 'products'],
+                    ['name' => 'taxes', 'display_name' => 'Taxes','slug' => 'taxes'],
+                    ['name' => 'list-categories', 'display_name' => 'View Categories','slug' => 'list-categories'],
+                    ['name' => 'add-category', 'display_name' => 'Add Category', 'slug' => 'add-category'],
+                    ['name' => 'edit-category', 'display_name' => 'Edit Category', 'slug' => 'edit-category'],
+                    ['name' => 'delete-category', 'display_name' => 'Delete Category', 'slug' => 'delete-category'],
+                    ['name' => 'toggle-category', 'display_name' => 'Active/Inactive Toggle (Categories)', 'slug' => 'toggle-category'],
                 ],
                 'slug' => 'master-management'
             ]

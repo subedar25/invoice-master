@@ -3,6 +3,7 @@
     $addButtonText = $addButtonText ?? 'Add';
     $tableId = $tableId ?? 'masterTable';
     $orderCol = $orderCol ?? '1';
+    $orderDir = $orderDir ?? 'desc';
     $nonOrderableTargets = $nonOrderableTargets ?? '2,3';
 @endphp
 <div class="card">
@@ -19,7 +20,7 @@
             <div class="master-toolbar__filters"></div>
         </div>
         <div class="table-responsive">
-            <table id="{{ $tableId }}" class="table table-bordered table-hover table-sm js-master-datatable" data-order-col="{{ $orderCol }}" data-non-orderable-targets="{{ $nonOrderableTargets }}">
+            <table id="{{ $tableId }}" class="table table-bordered table-hover table-sm js-master-datatable" data-order-col="{{ $orderCol }}" data-order-dir="{{ $orderDir }}" data-non-orderable-targets="{{ $nonOrderableTargets }}">
                 {{ $slot }}
             </table>
         </div>

@@ -2,43 +2,83 @@
     <!-- Left Menu -->
     <div class="col-md-3 col-lg-2 settings-menu">
         <ul class="nav flex-column">
-            @can('organization_type')
+             @can('department')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('organization-type')"
-                    class="nav-link {{ $active == 'organization-type' ? 'active' : '' }}">Organization Type</a>
+                <a href="#" wire:click.prevent="setActive('department')"
+                    class="nav-link {{ $active == 'department' ? 'active' : '' }}">Departments</a>
             </li>
-            @endcan
-            @can('seasons')
+             @endcan
+             @can('list-organization')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('seasons')"
-                    class="nav-link {{ $active == 'seasons' ? 'active' : '' }}">Seasons</a>
+                <a href="#" wire:click.prevent="setActive('organization')"
+                    class="nav-link {{ $active == 'organization' ? 'active' : '' }}">Organizations</a>
             </li>
-            @endcan
-            @can('publication')
+             @endcan
+             @can('country')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('publication')"
-                    class="nav-link {{ $active == 'publication' ? 'active' : '' }}">Publications</a>
+                <a href="#" wire:click.prevent="setActive('country')"
+                    class="nav-link {{ $active == 'country' ? 'active' : '' }}">Country</a>
             </li>
-            @endcan
-            @can('advertisers')
+             @endcan
+             @can('state')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('advertisers')"
-                    class="nav-link {{ $active == 'advertisers' ? 'active' : '' }}">Advertisers</a>
+                <a href="#" wire:click.prevent="setActive('state')"
+                    class="nav-link {{ $active == 'state' ? 'active' : '' }}">State</a>
             </li>
-            @endcan
+             @endcan
+             @can('list-locations')
+            <li class="nav-item">
+                <a href="#" wire:click.prevent="setActive('location')"
+                    class="nav-link {{ $active == 'location' ? 'active' : '' }}">Locations</a>
+            </li>
+             @endcan
+             @can('list-vendors')
+            <li class="nav-item">
+                <a href="#" wire:click.prevent="setActive('vendor')"
+                    class="nav-link {{ $active == 'vendor' ? 'active' : '' }}">Vendors</a>
+            </li>
+             @endcan
+             @can('list-outlets')
+            <li class="nav-item">
+                <a href="#" wire:click.prevent="setActive('outlet')"
+                    class="nav-link {{ $active == 'outlet' ? 'active' : '' }}">Outlets</a>
+            </li>
+             @endcan
+             @can('products')
+            <li class="nav-item">
+                <a href="#" wire:click.prevent="setActive('product')"
+                    class="nav-link {{ $active == 'product' ? 'active' : '' }}">Products</a>
+            </li>
+             @endcan
+             @can('taxes')
+            <li class="nav-item">
+                <a href="#" wire:click.prevent="setActive('tax')"
+                    class="nav-link {{ $active == 'tax' ? 'active' : '' }}">Taxes</a>
+            </li>
+             @endcan
         </ul>
     </div>
 
     <!-- Right Content -->
     <div class="col-md-9 col-lg-10 settings-content">
-        @if($active == 'organization-type')
-            @livewire('master-app.masters.organization-type')
-        @elseif($active == 'seasons')
-            @livewire('master-app.masters.seasons')
-        @elseif($active == 'publication')
-            @livewire('master-app.masters.publication')
-        @elseif($active == 'advertisers')
-            @livewire('master-app.masters.advertisers')
+        @if($active == 'department')
+            @livewire('master-app.masters.department')
+        @elseif($active == 'organization')
+            @livewire('master-app.masters.organization')
+        @elseif($active == 'country')
+            @livewire('master-app.masters.country')
+        @elseif($active == 'state')
+            @livewire('master-app.masters.state')
+        @elseif($active == 'location')
+            @livewire('master-app.masters.location')
+        @elseif($active == 'vendor')
+            @livewire('master-app.masters.vendor')
+        @elseif($active == 'outlet')
+            @livewire('master-app.masters.outlet')
+        @elseif($active == 'product')
+            @livewire('master-app.masters.product')
+        @elseif($active == 'tax')
+            @livewire('master-app.masters.tax')
         @endif
     </div>
 </div>

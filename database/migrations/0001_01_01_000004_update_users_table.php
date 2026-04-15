@@ -26,27 +26,19 @@ return new class extends Migration
                 $table->string('password', 255)->nullable()->change();
             }
 
-            // Change 'id' column to unsigned integer
-            // if (Schema::hasColumn('users', 'id')) {
-            //     $table->unsignedInteger('id')->change();
-            // }
 
             // Add 'last_name' column
             if (!Schema::hasColumn('users', 'last_name')) {
                 $table->string('last_name', 255)->nullable()->after('first_name');
             }
 
+             if (!Schema::hasColumn('users', 'phone')) {
+               $table->string('last_phonename', 20)->nullable()->after('last_name');
+            }
+
             // Add other missing columns
             if (!Schema::hasColumn('users', 'email_verified_at')) {
                 $table->timestamp('email_verified_at')->nullable()->after('email');
-            }
-
-            if (!Schema::hasColumn('users', 'is_wordpress_user')) {
-                $table->boolean('is_wordpress_user')->default(0)->after('password');
-            }
-
-            if (!Schema::hasColumn('users', 'contributor_status')) {
-                $table->enum('contributor_status', ['current','past','no'])->default('no')->after('is_wordpress_user');
             }
 
             if (!Schema::hasColumn('users', 'remember_token')) {
@@ -64,27 +56,7 @@ return new class extends Migration
             if (!Schema::hasColumn('users', 'department_id')) {
                 $table->unsignedBigInteger('department_id')->nullable()->after('deleted_at');
             }
-
-            // Adjust other existing columns if needed
-            if (Schema::hasColumn('users', 'status_id')) {
-                $table->unsignedBigInteger('status_id')->nullable()->change();
-            }
-
-            if (Schema::hasColumn('users', 'status_notes')) {
-                $table->text('status_notes')->nullable()->change();
-            }
-
-            if (Schema::hasColumn('users', 'phone')) {
-                $table->text('phone')->nullable()->change();
-            }
-
-            if (Schema::hasColumn('users', 'permission_roles')) {
-                $table->text('permission_roles')->nullable()->change();
-            }
-
-            if (Schema::hasColumn('users', 'privileges')) {
-                $table->text('privileges')->nullable()->change();
-            }
+           
 
             if (Schema::hasColumn('users', 'salt')) {
                 $table->string('salt')->nullable()->change();
@@ -116,16 +88,12 @@ return new class extends Migration
                 $table->bigInteger('id')->unsigned()->change();
             }
 
-             if (Schema::hasColumn('users', 'privileges')) {
-                $table->text('privileges')->nullable(false)->change();
-            }
+           
 
             if (Schema::hasColumn('users', 'salt')) {
                 $table->string('salt')->nullable(false)->change();
             }
-             Schema::table('users', function (Blueprint $table) {
-                $table->boolean('is_wordpress_user')->default(0)->nullable()->change();
-            });
+           
 
             // Drop newly added columns
             $table->dropColumn([

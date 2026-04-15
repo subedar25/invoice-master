@@ -119,12 +119,7 @@
                                     <th>Country</th>
                                     <th>State</th>
                                     <th>City</th>
-                                    <th>Postal Code</th>
-                                    {{-- <th>Phone</th> --}}
-                                    {{-- <th>Show Map</th>
-                                    <th>Show Map Link</th> --}}
-                                    <th>Latitude</th>
-                                    <th>Longitude</th>
+                                    <th>PIN Code</th>
                                     <th class="no-export no-vis">Actions</th>
                                 </tr>
                             </thead>
@@ -179,28 +174,36 @@
 
                     {{-- ADDRESS --}}
                     <div class="form-group">
-                        <label>Address<span class="text-danger">*</span></label>
-                        <textarea name="address" class="form-control" rows="3" required></textarea>
+                        <label>Address</label>
+                        <textarea name="address" class="form-control" rows="3"></textarea>
                     </div>
 
                     <div class="row">
                         {{-- COUNTRY --}}
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Country<span class="text-danger">*</span></label>
-                                <input type="text" name="country" class="form-control" placeholder="US" required>
+                                <label>Country</label>
+                                <select name="country" id="add_country" class="form-control">
+                                    <option value="">Select Country</option>
+                                    @foreach($countries as $country)
+                                        <option
+                                            value="{{ $country->name }}"
+                                            data-id="{{ $country->id }}"
+                                            {{ (int) $country->id === (int) $defaultCountryId ? 'selected' : '' }}
+                                        >
+                                            {{ $country->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
                         {{-- STATE --}}
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>State<span class="text-danger">*</span></label>
-                                <select name="state" class="form-control" required>
+                                <label>State</label>
+                                <select name="state" id="add_state" class="form-control">
                                     <option value="">Select State</option>
-                                    @foreach(config('states') as $state)
-                                        <option value="{{ $state }}">{{ $state }}</option>
-                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -210,32 +213,15 @@
                         {{-- CITY --}}
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>City<span class="text-danger">*</span></label>
-                                <input type="text" name="city" class="form-control" required>
+                                <label>City</label>
+                                <input type="text" name="city" class="form-control">
                             </div>
                         </div>
                         {{-- POSTAL CODE --}}
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Postal Code<span class="text-danger">*</span></label>
-                                <input type="text" name="postal_code" class="form-control" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        {{-- LATITUDE --}}
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Latitude</label>
-                                <input type="number" step="any" name="latitude" class="form-control" min="-90" max="90" placeholder="e.g. 37.7749">
-                            </div>
-                        </div>
-
-                        {{-- LONGITUDE --}}
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Longitude</label>
-                                <input type="number" step="any" name="longitude" class="form-control" min="-180" max="180" placeholder="e.g. -122.4194">
+                                <label>PIN Code</label>
+                                <input type="text" name="postal_code" class="form-control">
                             </div>
                         </div>
                     </div>
@@ -316,28 +302,30 @@
 
             {{-- ADDRESS --}}
             <div class="form-group">
-                <label>Address<span class="text-danger">*</span></label>
-                <textarea name="address" id="edit_address" class="form-control" rows="3" required></textarea>
+                <label>Address</label>
+                <textarea name="address" id="edit_address" class="form-control" rows="3"></textarea>
             </div>
 
             <div class="row">
                   {{-- COUNTRY --}}
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Country<span class="text-danger">*</span></label>
-                        <input type="text" name="country" id="edit_country" class="form-control" placeholder="US" required>
+                        <label>Country</label>
+                        <select name="country" id="edit_country" class="form-control">
+                            <option value="">Select Country</option>
+                            @foreach($countries as $country)
+                                <option value="{{ $country->name }}" data-id="{{ $country->id }}">{{ $country->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
 
                 {{-- STATE --}}
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>State<span class="text-danger">*</span></label>
-                        <select name="state" id="edit_state" class="form-control" required>
+                        <label>State</label>
+                        <select name="state" id="edit_state" class="form-control">
                             <option value="">Select State</option>
-                            @foreach(config('states') as $state)
-                                <option value="{{ $state }}">{{ $state }}</option>
-                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -346,35 +334,18 @@
                 {{-- CITY --}}
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>City<span class="text-danger">*</span></label>
-                        <input type="text" name="city" id="edit_city" class="form-control" required>
+                        <label>City</label>
+                        <input type="text" name="city" id="edit_city" class="form-control">
                     </div>
                 </div>
                 {{-- POSTAL CODE --}}
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Postal Code<span class="text-danger">*</span></label>
-                        <input type="text" name="postal_code" id="edit_postal_code" class="form-control" required>
+                        <label>PIN Code</label>
+                        <input type="text" name="postal_code" id="edit_postal_code" class="form-control">
                     </div>
                 </div>
             </div>
-            <div class="row">
-                {{-- LATITUDE --}}
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label>Latitude</label>
-                        <input type="number" step="any" name="latitude" id="edit_latitude" class="form-control" min="-90" max="90" placeholder="e.g. 37.7749">
-                    </div>
-                </div>
-
-                {{-- LONGITUDE --}}
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label>Longitude</label>
-                        <input type="number" step="any" name="longitude" id="edit_longitude" class="form-control" min="-180" max="180" placeholder="e.g. -122.4194">
-                    </div>
-                </div>
-        </div>
             {{-- SHOW MAP --}}
             {{-- <div class="row">
                 <div class="col-md-6">
@@ -460,6 +431,46 @@ $(function () {
 });
 
 $(function () {
+     const statesByCountry = @json($statesByCountry ?? []);
+     const defaultCountryId = @json((int) ($defaultCountryId ?? 0));
+
+     function getSelectedCountryId($countrySelect) {
+         return parseInt($countrySelect.find(':selected').data('id'), 10) || null;
+     }
+
+     function populateStateOptions($stateSelect, countryId, selectedStateName = '') {
+         $stateSelect.empty().append('<option value="">Select State</option>');
+
+         if (!countryId) {
+             return;
+         }
+
+         const states = statesByCountry[countryId] || [];
+         states.forEach(function (state) {
+             const isSelected = selectedStateName && selectedStateName === state.name;
+             $stateSelect.append(
+                 $('<option>', {
+                     value: state.name,
+                     text: state.name,
+                     selected: isSelected
+                 })
+             );
+         });
+     }
+
+     // Initialize Add modal with default country = India and linked states.
+     if (defaultCountryId) {
+         populateStateOptions($('#add_state'), defaultCountryId);
+     }
+
+     $('#add_country').on('change', function () {
+         populateStateOptions($('#add_state'), getSelectedCountryId($(this)));
+     });
+
+     $('#edit_country').on('change', function () {
+         populateStateOptions($('#edit_state'), getSelectedCountryId($(this)));
+     });
+
      // --- URL Param Handling ---
      var urlParams = new URLSearchParams(window.location.search);
 
@@ -549,7 +560,7 @@ $(function () {
         autoWidth: false,
         pageLength: 10,
         displayStart: initialStart, // Key for initial pagination
-        order: [[0, 'desc']], // Newest first (column 0 = created_at, hidden)
+        order: [[0, 'asc']],
 
         ajax: {
             url: "{{ route('masterapp.locations.data') }}",
@@ -562,18 +573,12 @@ $(function () {
         },
 
         columns: [
-            { data: 'created_at', name: 'created_at', visible: false },
             { data: 'name', name: 'name' },
             { data: 'address', name: 'address' },
             { data: 'country', name: 'country' },
             { data: 'state', name: 'state' },
             { data: 'city', name: 'city' },
             { data: 'postal_code', name: 'postal_code' },
-            // { data: 'phone', name: 'phone' },
-            // { data: 'show_map', name: 'show_map' },
-            // { data: 'show_map_link', name: 'show_map_link' },
-            { data: 'latitude', name: 'latitude' },
-            { data: 'longitude', name: 'longitude' },
             { data: 'actions', name: 'actions', orderable: false, searchable: false }
         ],
 
@@ -743,15 +748,15 @@ $(function () {
         const modal = $('#editLocationModal');
 
         $.get(url, function (data) {
+            modal.find('#edit_id').val(data.id);
             modal.find('#edit_name').val(data.name);
             modal.find('#edit_address').val(data.address);
             modal.find('#edit_city').val(data.city);
-            modal.find('#edit_state').val(data.state);
             modal.find('#edit_country').val(data.country);
+            const selectedCountryId = getSelectedCountryId(modal.find('#edit_country'));
+            populateStateOptions(modal.find('#edit_state'), selectedCountryId, data.state);
             modal.find('#edit_postal_code').val(data.postal_code);
             modal.find('#edit_phone').val(data.phone);
-            modal.find('#edit_latitude').val(data.latitude);
-            modal.find('#edit_longitude').val(data.longitude);
             // modal.find('#edit_show_map').prop('checked', data.show_map);
             // modal.find('#edit_show_map_link').prop('checked', data.show_map_link);
 
@@ -843,41 +848,25 @@ $(function () {
                 }
             },
             address: {
-                required: true,
                 minlength: 5,
                 maxlength: 1000
             },
             city: {
-                required: true,
                 lettersOnly: true,
                 minlength: 2,
                 maxlength: 100
             },
-            state: {
-                required: true,
-            },
             country: {
-                required: true,
-                lettersOnly: true,
                 minlength: 2,
                 maxlength: 100
             },
             postal_code: {
-                required: true,
                 alphanumeric: true,
                 minlength: 3,
                 maxlength: 20
             },
             phone: {
                 maxlength: 17
-            },
-            latitude: {
-                number: true,
-                range: [-90, 90]
-            },
-            longitude: {
-                number: true,
-                range: [-180, 180]
             }
         },
 
@@ -889,41 +878,25 @@ $(function () {
                 remote: "This location name is already in use"
             },
             address: {
-                required: "Please enter an address",
                 minlength: "Address must be at least 5 characters",
                 maxlength: "Address cannot exceed 1000 characters"
             },
             city: {
-                required: "Please enter a city",
                 lettersOnly: "City name cannot contain numbers or symbols",
                 minlength: "City name must be at least 2 characters",
                 maxlength: "City name cannot exceed 100 characters"
             },
-            state: {
-                required: "Please Select state",
-            },
             country: {
-                required: "Please enter a country",
-                lettersOnly: "Country name cannot contain numbers or symbols",
                 minlength: "Country name must be at least 2 characters",
                 maxlength: "Country name cannot exceed 100 characters"
             },
             postal_code: {
-                required: "Please enter a postal code",
                 alphanumeric: "Postal code can only contain letters and numbers",
                 minlength: "Postal code must be at least 3 characters",
                 maxlength: "Postal code cannot exceed 20 characters"
             },
             phone: {
             maxlength: "Phone number cannot exceed +1 (123) 456-7890"
-            },
-            latitude: {
-                number: "Latitude must be a valid number",
-                range: "Latitude must be between -90 and 90 degrees"
-            },
-            longitude: {
-                number: "Longitude must be a valid number",
-                range: "Longitude must be between -180 and 180 degrees"
             }
         },
 
@@ -948,6 +921,21 @@ $(function () {
     $('#addLocationModal').on('hidden.bs.modal', function () {
         var $form = $('#addLocationForm');
         $form[0].reset();
+        const $addCountry = $('#add_country');
+        const $addState = $('#add_state');
+        const defaultCountryId = parseInt(@json((int) ($defaultCountryId ?? 0)), 10) || null;
+        if (defaultCountryId) {
+            $addCountry.find('option').prop('selected', false);
+            $addCountry.find('option[data-id="' + defaultCountryId + '"]').prop('selected', true);
+
+            const statesByCountry = @json($statesByCountry ?? []);
+            $addState.empty().append('<option value="">Select State</option>');
+            (statesByCountry[defaultCountryId] || []).forEach(function (state) {
+                $addState.append($('<option>', { value: state.name, text: state.name }));
+            });
+        } else {
+            $addState.empty().append('<option value="">Select State</option>');
+        }
         var validator = $form.data('validator');
         if (validator) {
             validator.resetForm();
@@ -1035,41 +1023,25 @@ $(function () {
             }
         },
         address: {
-            required: true,
             minlength: 5,
             maxlength: 1000
         },
         city: {
-            required: true,
             lettersOnly: true,
             minlength: 2,
             maxlength: 100
         },
-        state: {
-            required: true,
-        },
         country: {
-            required: true,
-            lettersOnly: true,
             minlength: 2,
             maxlength: 100
         },
         postal_code: {
-            required: true,
             alphanumeric: true,
             minlength: 3,
             maxlength: 20
         },
         phone: {
             maxlength: 17
-        },
-        latitude: {
-            number: true,
-            range: [-90, 90]
-        },
-        longitude: {
-            number: true,
-            range: [-180, 180]
         }
     },
 
@@ -1081,41 +1053,25 @@ $(function () {
             remote: "This location name is already in use"
         },
         address: {
-            required: "Please enter an address",
             minlength: "Address must be at least 5 characters",
             maxlength: "Address cannot exceed 1000 characters"
         },
         city: {
-            required: "Please enter a city",
             lettersOnly: "City name cannot contain numbers or symbols",
             minlength: "City name must be at least 2 characters",
             maxlength: "City name cannot exceed 100 characters"
         },
-        state: {
-            required: "Please select state",
-        },
         country: {
-            required: "Please enter a country",
-            lettersOnly: "Country name cannot contain numbers or symbols",
             minlength: "Country name must be at least 2 characters",
             maxlength: "Country name cannot exceed 100 characters"
         },
         postal_code: {
-            required: "Please enter a postal code",
             alphanumeric: "Postal code can only contain letters and numbers",
             minlength: "Postal code must be at least 3 characters",
             maxlength: "Postal code cannot exceed 20 characters"
         },
         phone: {
             maxlength: "Phone number cannot exceed +1 (123) 456-7890"
-        },
-        latitude: {
-            number: "Latitude must be a valid number",
-            range: "Latitude must be between -90 and 90 degrees"
-        },
-        longitude: {
-            number: "Longitude must be a valid number",
-            range: "Longitude must be between -180 and 180 degrees"
         }
     },
 

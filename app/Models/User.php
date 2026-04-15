@@ -9,26 +9,21 @@ use Spatie\Permission\Traits\HasRoles;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Contracts\Role as RoleContract;
 use App\Notifications\NewUserNotification;
 use App\Notifications\RoleUpdatedNotification;
-use Illuminate\Support\Facades\Notification;
-use App\Models\UserStatus;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Department;
-use App\Models\Publication;
-use App\Models\Timesheet;
 use Laragear\TwoFactor\Contracts\TwoFactorAuthenticatable;
 use Laragear\TwoFactor\TwoFactorAuthentication;
 use Illuminate\Support\Collection;
 
 class User extends Authenticatable implements Auditable, TwoFactorAuthenticatable
 {
-    use HasFactory, Notifiable, HasRoles, AuditableTrait;
-    use Notifiable;
-    use SoftDeletes;
-    use TwoFactorAuthentication;
+    use HasFactory, Notifiable, HasRoles, AuditableTrait, SoftDeletes, TwoFactorAuthentication;
 
     protected $fillable = [
         'first_name',
@@ -38,14 +33,17 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
         'driver',
         'active',
         'change_password',
-        'status_id',
         'status_notes',
         'phone',
         'soft_delete',
         'department_id',
         'contributor_status',
-        'publication_id',
-        
+        'reporting_manager_id',
+        'address',
+        'city',
+        'state',
+        'pincode',
+        'photo',
     ];
 
     protected $hidden = [
@@ -59,7 +57,6 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
         'password' => 'hashed',
         'change_password' => 'boolean',
         'driver' => 'boolean',
-        'status_id' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -67,15 +64,10 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
         'last_logout_at' => 'datetime',
         'active' => 'boolean',
         'department_id' => 'integer',
-        'publication_id',
-        
-       
+        'reporting_manager_id' => 'integer',
     ];
     protected $dates = [
         'deleted_at'
-    ];
-    protected $attributes = [
-    'registered' => 0,
     ];
 
     /**
@@ -86,14 +78,16 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
         'last_name',
         'email',
         'phone',
-        'driver',
         'active',
         'change_password',
-        'status_id',
         'status_notes',
         'department_id',
-        'contributor_status',
-        'publication_id',
+        'reporting_manager_id',
+        'address',
+        'city',
+        'state',
+        'pincode',
+        'photo',
     ];
 
     /**
@@ -250,11 +244,6 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
         return true;
     }
     
-    public function status()
-    {
-    return $this->belongsTo(UserStatus::class, 'status_id');
-    }
-
     public function sendNewUserNotification($password)
     {
         $this->notify(new NewUserNotification($this, $password));
@@ -266,11 +255,7 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
     
     public function isActive()
     {
-        return $this->status && $this->status->label === 'Active';
-    }
-    public function isDriver()
-    {
-        return $this->driver == 1;
+        return (bool) $this->active;
     }
     public function isAdmin()
     {
@@ -310,38 +295,25 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
 //     return $this->belongsTo(Department::class);
 // }
 
-// public function publications()
-// {
-//     return $this->belongsToMany(Publication::class);
-// }
-
-// public function publications()
-// {
-//     return $this->belongsToMany(
-//         Publication::class,
-//         'publication_user',
-//         'user_id',
-//         'publication_id'
-//     )->withTimestamps();
-// }
-
     public function department()
     {
         return $this->belongsTo(Department::class, 'department_id');
     }
 
-    // Publications (pivot)
-    public function publications()
+    public function organizations(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Publication::class,
-            'publication_user',
-            'user_id',
-            'publication_id'
-        )->withTimestamps();
+        return $this->belongsToMany(Organization::class, 'organization_user')->withTimestamps();
     }
 
-    
+    public function reportingManager(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reporting_manager_id');
+    }
+
+    public function userDocuments(): HasMany
+    {
+        return $this->hasMany(UserDocument::class);
+    }
 
 
 }

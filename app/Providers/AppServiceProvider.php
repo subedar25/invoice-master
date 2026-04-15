@@ -36,16 +36,18 @@ use App\Core\Organization\Contracts\OrganizationRepository;
 use App\Infrastructure\Persistence\Organization\EloquentOrganizationRepository;
 use App\Core\OrganizationType\Contracts\OrganizationTypeRepository;
 use App\Infrastructure\Persistence\OrganizationType\EloquentOrganizationTypeRepository;
-use App\Core\Publication\Contracts\PublicationRepository;
-use App\Infrastructure\Persistence\Publication\EloquentPublicationRepository;
 use App\Core\Season\Contracts\SeasonRepository;
 use App\Infrastructure\Persistence\Season\EloquentSeasonRepository;
-use App\Core\Advertiser\Contracts\AdvertiserRepository;
-use App\Infrastructure\Persistence\Advertiser\EloquentAdvertiserRepository;
 use App\Http\Livewire\MasterApp\Masters\OrganizationType as OrganizationTypeComponent;
-use App\Http\Livewire\MasterApp\Masters\Publication as PublicationComponent;
 use App\Http\Livewire\MasterApp\Masters\Seasons as SeasonsComponent;
-use App\Http\Livewire\MasterApp\Masters\Advertisers as AdvertisersComponent;
+use App\Http\Livewire\MasterApp\Masters\Department as DepartmentComponent;
+use App\Http\Livewire\MasterApp\Masters\Country as CountryComponent;
+use App\Http\Livewire\MasterApp\Masters\Organization as OrganizationComponent;
+use App\Http\Livewire\MasterApp\Masters\State as StateComponent;
+use App\Http\Livewire\MasterApp\Masters\Location as LocationComponent;
+use App\Http\Livewire\MasterApp\Masters\Outlet as OutletComponent;
+use App\Http\Livewire\MasterApp\Masters\Product as ProductComponent;
+use App\Http\Livewire\MasterApp\Masters\Tax as TaxComponent;
 use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
@@ -73,9 +75,7 @@ class AppServiceProvider extends ServiceProvider
             TimeOffRequestRepository::class => EloquentTimeOffRequestRepository::class,
             TwoFactorRepository::class => EloquentTwoFactorRepository::class,
             OrganizationTypeRepository::class => EloquentOrganizationTypeRepository::class,
-            PublicationRepository::class => EloquentPublicationRepository::class,
             SeasonRepository::class => EloquentSeasonRepository::class,
-            AdvertiserRepository::class => EloquentAdvertiserRepository::class,
             OrganizationRepository::class => EloquentOrganizationRepository::class,
             LocationRepository::class => EloquentLocationRepository::class,
         ];
@@ -100,9 +100,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Livewire::component('master-app.masters.organization-type', OrganizationTypeComponent::class);
-        Livewire::component('master-app.masters.publication', PublicationComponent::class);
         Livewire::component('master-app.masters.seasons', SeasonsComponent::class);
-        Livewire::component('master-app.masters.advertisers', AdvertisersComponent::class);
+        Livewire::component('master-app.masters.department', DepartmentComponent::class);
+        Livewire::component('master-app.masters.organization', OrganizationComponent::class);
+        Livewire::component('master-app.masters.country', CountryComponent::class);
+        Livewire::component('master-app.masters.state', StateComponent::class);
+        Livewire::component('master-app.masters.location', LocationComponent::class);
+        Livewire::component('master-app.masters.outlet', OutletComponent::class);
+        Livewire::component('master-app.masters.product', ProductComponent::class);
+        Livewire::component('master-app.masters.tax', TaxComponent::class);
 
         Paginator::useBootstrap();
         View::composer('partials.notification', function ($view) {

@@ -11,6 +11,15 @@
         <p>Dashboard</p>
     </a>
 </li>
+<!-- Invoices -->
+@can('list-invoices')
+<li class="nav-item">
+    <a href="{{ route('invoice.index') }}" class="nav-link {{ request()->routeIs('invoice.*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-file-invoice-dollar"></i>
+        <p>Invoices</p>
+    </a>
+</li>
+@endcan
 <!-- Users -->
 @canany(['list-users'])
 <li class="nav-item has-treeview {{ request()->routeIs('masterapp.users.*', 'masterapp.entity.*') ? 'menu-open' : '' }}">
@@ -34,41 +43,23 @@
 </li>
 @endcanany
 @can('list-timesheets')
-<li class="nav-item">
+<!-- <li class="nav-item">
     <a href="{{ route('masterapp.timesheets.index') }}" class="nav-link {{ request()->routeIs('masterapp.timesheets.*') ? 'active' : '' }}">
         <i class="nav-icon fas fa-user-clock"></i>
         <p>Manage Timesheets</p>
     </a>
-</li>
+</li> -->
 @endcan
 @can('list-time-off-requests')
-<li class="nav-item">
+<!-- <li class="nav-item">
     <a href="{{ route('masterapp.time-off-requests.index') }}" class="nav-link {{ request()->routeIs('masterapp.time-off-requests.*') ? 'active' : '' }}">
         {{-- <i class="nav-icon fas fa-calendar-times-o"></i> --}}
         <i class="nav-icon fas fa-calendar-times"></i>
         <p>Manage Time-off</p>
     </a>
-</li>
+</li> -->
 @endcan
 
-{{-- Locations --}}
-@can('list-locations')
-<li class="nav-item">
-    <a href="{{ route('masterapp.locations.index') }}" class="nav-link" {{ request()->routeIs('masterapp.locations.*') ? 'active' : '' }}>
-        <i class="nav-icon fas fa-map-marker-alt"></i>
-        <p>Manage Locations</p>
-    </a>
-</li>
-@endcan
-
-@can('list-organization')
-<li class="nav-item">
-    <a href="{{ route('masterapp.organizations.index') }}" class="nav-link {{ request()->routeIs('masterapp.organizations.*') ? 'active' : '' }}">
-        <i class="nav-icon fas fa-building"></i>
-        <p>Manage Organizations</p>
-    </a>
-</li>
-@endcan
 
 
 @can('list-role')
@@ -106,5 +97,4 @@
 </li>
 @endcan
 @endauth
-
 

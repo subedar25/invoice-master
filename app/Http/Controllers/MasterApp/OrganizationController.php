@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers\MasterApp;
 
+use App\Core\File\Services\FileManagementService;
 use App\Core\Organization\Services\OrganizationService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MasterApp\Organization\OrganizationStoreRequest;
 use App\Http\Requests\MasterApp\Organization\OrganizationUpdateRequest;
 use App\Models\Client;
 use App\Models\ClientAmenity;
-use App\Models\ClientTypes;
 use App\Models\ClientContact;
 use App\Models\ClientLocationLink;
 use App\Models\Location;
-use App\Models\Publication;
 use App\Models\RestaurantMeal;
 use App\Models\RestaurantPriceRange;
 use App\Models\Season;
@@ -27,6 +26,13 @@ use Yajra\DataTables\Facades\DataTables;
 
 class OrganizationController extends Controller
 {
+    protected FileManagementService $fileService;
+
+    public function __construct(FileManagementService $fileService)
+    {
+        $this->fileService = $fileService;
+    }
+
     public function index(OrganizationService $service): View
     {
         return view('masterapp.organizations.index');
@@ -41,7 +47,7 @@ class OrganizationController extends Controller
             'active',
             'added_timestamp',
             'seasons_open',
-        ])->with('clientTypes');
+        ]);
 
         $search = trim((string) $request->get('organization_search', ''));
         if ($search !== '') {
@@ -55,8 +61,7 @@ class OrganizationController extends Controller
 
         return DataTables::of($query)
             ->addColumn('organization_types', function ($organization) {
-                $parentTypes = $organization->clientTypes->where('parent_id', null);
-                return $parentTypes->pluck('name')->implode(', ') ?: '—';
+                return '—';
             })
             ->addColumn('seasons', function ($organization) {
                 $ids = $organization->seasons_open ?? [];
@@ -126,16 +131,13 @@ class OrganizationController extends Controller
     {
         $users = User::select('id', 'first_name', 'last_name')->orderBy('first_name')->get();
         $seasons = Season::orderBy('name')->get();
-        $publications = Publication::orderBy('name')->get();
-        $parentClientTypes = ClientTypes::whereNull('parent_id')->where('status', 'active')->with(['children', 'amenities'])->orderBy('display_order')->orderBy('name')->get();
-        $allClientTypes = ClientTypes::where('status', 'active')->orderBy('display_order')->orderBy('name')->get(['id', 'name', 'parent_id']);
-        $selectedClientTypeIds = old('client_type_ids') !== null
-            ? array_map('intval', (array) old('client_type_ids'))
-            : [];
+        $parentClientTypes = collect();
+        $allClientTypes = collect();
+        $selectedClientTypeIds = [];
         $restaurantPriceRanges = RestaurantPriceRange::orderBy('name')->get();
         $restaurantMeals = RestaurantMeal::orderBy('name')->get();
 
-        return view('masterapp.organizations.create', compact('users', 'seasons', 'publications', 'parentClientTypes', 'allClientTypes', 'selectedClientTypeIds', 'restaurantPriceRanges', 'restaurantMeals'));
+        return view('masterapp.organizations.create', compact('users', 'seasons', 'parentClientTypes', 'allClientTypes', 'selectedClientTypeIds', 'restaurantPriceRanges', 'restaurantMeals'));
     }
 
     public function show(int $id, OrganizationService $service): View
@@ -159,15 +161,14 @@ class OrganizationController extends Controller
         $seasonsOpen = $organization->seasons_open ?? [];
         $selectedSeasonIds = $this->normalizeSeasonsOpenToIds($seasonsOpen);
         $selectedAmenityIds = $organization->amenities->pluck('id')->toArray();
-        $publications = Publication::orderBy('name')->get();
-        $parentClientTypes = ClientTypes::whereNull('parent_id')->where('status', 'active')->with(['children', 'amenities'])->orderBy('display_order')->orderBy('name')->get();
-        $allClientTypes = ClientTypes::where('status', 'active')->orderBy('display_order')->orderBy('name')->get(['id', 'name', 'parent_id']);
-        $selectedClientTypeIds = $organization->clientTypes->pluck('id')->toArray();
+        $parentClientTypes = collect();
+        $allClientTypes = collect();
+        $selectedClientTypeIds = [];
         $restaurantPriceRanges = RestaurantPriceRange::orderBy('name')->get();
         $restaurantMeals = RestaurantMeal::orderBy('name')->get();
         $selectedMealIds = $organization->restaurantMeals->pluck('id')->toArray();
 
-        return view('masterapp.organizations.show', compact('organization', 'linkedPhysicalLocation', 'linkedMailingLocation', 'seasons', 'selectedSeasonIds', 'selectedAmenityIds', 'publications', 'parentClientTypes', 'allClientTypes', 'selectedClientTypeIds', 'restaurantPriceRanges', 'restaurantMeals', 'selectedMealIds'));
+        return view('masterapp.organizations.show', compact('organization', 'linkedPhysicalLocation', 'linkedMailingLocation', 'seasons', 'selectedSeasonIds', 'selectedAmenityIds', 'parentClientTypes', 'allClientTypes', 'selectedClientTypeIds', 'restaurantPriceRanges', 'restaurantMeals', 'selectedMealIds'));
     }
 
     public function store(
@@ -178,12 +179,10 @@ class OrganizationController extends Controller
         $physicalLocationId = $request->input('physical_location_id') ?: $request->input('location_id');
         $mailingLocationId = $request->input('mailing_location_id');
         $amenityIds = array_values(array_map('intval', (array) $request->input('amenity_ids', [])));
-        $clientTypeIds = array_values(array_map('intval', (array) $request->input('client_type_ids', [])));
         $restaurantMealIds = array_values(array_map('intval', (array) $request->input('restaurant_meal_ids', [])));
         unset(
             $data['physical_location_id'], $data['mailing_location_id'], $data['location_id'],
             $data['amenity_ids'],
-            $data['client_type_ids'],
             $data['restaurant_meal_ids']
         );
 
@@ -194,12 +193,9 @@ class OrganizationController extends Controller
         }
 
         $data['seasons_open'] = array_values(array_map('intval', (array) ($data['seasons_open'] ?? [])));
-        $data['advertiser'] = array_values(array_map('intval', (array) ($data['advertiser'] ?? [])));
-
         $organization = $service->create($data);
         $this->syncLocationLinks($organization->id, $physicalLocationId, $mailingLocationId);
         $this->syncClientAmenities($organization->id, $amenityIds);
-        $this->syncClientTypes($organization->id, $clientTypeIds);
         $this->syncRestaurantMeals($organization->id, $restaurantMealIds);
 
         if ($request->expectsJson()) {
@@ -237,19 +233,16 @@ class OrganizationController extends Controller
         $selectedAmenityIds = old('amenity_ids') !== null
             ? array_map('intval', (array) old('amenity_ids'))
             : $organization->amenities->pluck('id')->toArray();
-        $publications = Publication::orderBy('name')->get();
-        $parentClientTypes = ClientTypes::whereNull('parent_id')->where('status', 'active')->with(['children', 'amenities'])->orderBy('display_order')->orderBy('name')->get();
-        $allClientTypes = ClientTypes::where('status', 'active')->orderBy('display_order')->orderBy('name')->get(['id', 'name', 'parent_id']);
-        $selectedClientTypeIds = old('client_type_ids') !== null
-            ? array_map('intval', (array) old('client_type_ids'))
-            : $organization->clientTypes->pluck('id')->toArray();
+        $parentClientTypes = collect();
+        $allClientTypes = collect();
+        $selectedClientTypeIds = [];
         $restaurantPriceRanges = RestaurantPriceRange::orderBy('name')->get();
         $restaurantMeals = RestaurantMeal::orderBy('name')->get();
         $selectedMealIds = old('restaurant_meal_ids') !== null
             ? array_map('intval', (array) old('restaurant_meal_ids'))
             : $organization->restaurantMeals->pluck('id')->toArray();
 
-        return view('masterapp.organizations.edit', compact('organization', 'users', 'linkedPhysicalLocation', 'linkedMailingLocation', 'seasons', 'selectedSeasonIds', 'selectedAmenityIds', 'publications', 'parentClientTypes', 'allClientTypes', 'selectedClientTypeIds', 'restaurantPriceRanges', 'restaurantMeals', 'selectedMealIds'));
+        return view('masterapp.organizations.edit', compact('organization', 'users', 'linkedPhysicalLocation', 'linkedMailingLocation', 'seasons', 'selectedSeasonIds', 'selectedAmenityIds', 'parentClientTypes', 'allClientTypes', 'selectedClientTypeIds', 'restaurantPriceRanges', 'restaurantMeals', 'selectedMealIds'));
     }
 
     public function update(
@@ -261,23 +254,21 @@ class OrganizationController extends Controller
         $physicalLocationId = $request->input('physical_location_id') ?: $request->input('location_id');
         $mailingLocationId = $request->input('mailing_location_id');
         $amenityIds = array_values(array_map('intval', (array) $request->input('amenity_ids', [])));
-        $clientTypeIds = array_values(array_map('intval', (array) $request->input('client_type_ids', [])));
         $restaurantMealIds = array_values(array_map('intval', (array) $request->input('restaurant_meal_ids', [])));
         unset(
             $data['physical_location_id'], $data['mailing_location_id'], $data['location_id'],
             $data['amenity_ids'],
-            $data['client_type_ids'],
             $data['restaurant_meal_ids'],
             $data['logo_remove']
         );
 
+        $client = Client::find($id);
         if ($request->boolean('logo_remove')) {
             $data['logo'] = null;
-            $this->deleteLogoFileIfExists(Client::find($id)?->logo);
+            $this->fileService->delete($client?->logo);
         } elseif ($request->hasFile('logo')) {
-            $client = Client::find($id);
-            $this->deleteLogoFileIfExists($client?->logo);
-            $data['logo'] = $this->storeLogoFile($request->file('logo'));
+            $this->fileService->delete($client?->logo);
+            $data['logo'] = $this->fileService->upload($request->file('logo'), 'organization');
         } else {
             unset($data['logo']);
         }
@@ -285,14 +276,9 @@ class OrganizationController extends Controller
         if (array_key_exists('seasons_open', $data)) {
             $data['seasons_open'] = array_values(array_map('intval', (array) $data['seasons_open']));
         }
-        if (array_key_exists('advertiser', $data)) {
-            $data['advertiser'] = array_values(array_map('intval', (array) $data['advertiser']));
-        }
-
         $service->update($id, $data);
         $this->syncLocationLinks($id, $physicalLocationId, $mailingLocationId);
         $this->syncClientAmenities($id, $amenityIds);
-        $this->syncClientTypes($id, $clientTypeIds);
         $this->syncRestaurantMeals($id, $restaurantMealIds);
 
         if ($request->expectsJson()) {
@@ -405,14 +391,6 @@ class OrganizationController extends Controller
         }
     }
 
-    private function syncClientTypes(int $clientId, array $clientTypeIds): void
-    {
-        $client = Client::find($clientId);
-        if ($client) {
-            $client->clientTypes()->sync(array_filter($clientTypeIds, fn ($id) => (int) $id > 0));
-        }
-    }
-
     private function syncRestaurantMeals(int $clientId, array $mealIds): void
     {
         $client = Client::find($clientId);
@@ -420,30 +398,6 @@ class OrganizationController extends Controller
             $client->restaurantMeals()->sync(array_filter($mealIds, fn ($id) => (int) $id > 0));
         }
     }
-
-    private function storeLogoFile(UploadedFile $file): string
-    {
-        $dir = public_path('clients');
-        File::ensureDirectoryExists($dir);
-
-        $ext = $file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'png';
-        $name = Str::random(40) . '.' . $ext;
-        $file->move($dir, $name);
-
-        return $name;
-    }
-
-    private function deleteLogoFileIfExists(?string $logo): void
-    {
-        if (! $logo) {
-            return;
-        }
-        $path = public_path('clients/' . $logo);
-        if (File::isFile($path)) {
-            File::delete($path);
-        }
-    }
-
     /**
      * Normalize seasons_open (may be legacy names or ids) to array of season ids.
      */

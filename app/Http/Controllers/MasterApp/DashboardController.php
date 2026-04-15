@@ -14,7 +14,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        $currentShift = Timesheet::currentShiftForUser($user->id);
+        $currentShift = array(); //Timesheet::currentShiftForUser($user->id);
 
         return view('masterapp.dashboard', compact('currentShift'));
     }

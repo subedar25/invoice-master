@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
+use App\Models\Organization;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 class Department extends Model implements AuditableContract
@@ -14,12 +15,14 @@ class Department extends Model implements AuditableContract
     protected $fillable = [
         'name',
         'parent_id',
+        'organization_id',
         'description',
     ];
 
     protected $auditInclude = [
         'name',
         'parent_id',
+        'organization_id',
         'description',
     ];
 
@@ -31,6 +34,16 @@ class Department extends Model implements AuditableContract
     public function parent()
     {
         return $this->belongsTo(Department::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Department::class, 'parent_id');
+    }
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class, 'organization_id');
     }
 
 

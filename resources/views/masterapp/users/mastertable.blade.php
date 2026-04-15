@@ -3,7 +3,6 @@
 <select id="master_type" class="form-control select2 mb-3">
   <option value="department">Department</option>
   <option value="status">Status</option>
-  <option value="publication">Publication</option>
 </select>
 
 <table id="master-table" class="table table-bordered table-striped nowrap" width="100%">

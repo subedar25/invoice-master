@@ -43,6 +43,11 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('masterapp.notifications.index');
     })->name('notifications.index');
 
+    Route::prefix('invoice')->name('invoice.')->group(function () {
+        Route::get('/', function () {
+            return view('invoice.index');
+        })->name('index')->middleware('can:list-invoices');
+    });
 
 });
 

@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\Models\User;
-use App\Models\UserStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 
@@ -139,7 +138,6 @@ public function test_edit_user_view_includes_roles_and_statuses()
         $response->assertStatus(200);
         $response->assertViewIs('users.edit');
         $response->assertViewHas('roles');
-        $response->assertViewHas('userStatuses');
     }
     
     

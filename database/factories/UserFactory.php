@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
-use App\Models\UserStatus;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Permission\Models\Permission;
 use App\Notifications\NewUserNotification;
@@ -39,7 +38,6 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'registered' => 0,
         ];
     }
 
@@ -64,12 +62,6 @@ class UserFactory extends Factory
             'change_password' => true,
         ]);
     }
-    public function status($statusId): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'status_id' => $statusId,
-        ]);
-    }
     public function phone($phoneNumber): static
     {
         return $this->state(fn (array $attributes) => [
@@ -86,20 +78,6 @@ class UserFactory extends Factory
     {
         return $this->afterCreating(function ($user) {
             $user->roles()->detach();
-        });
-    }
-    public function withStatus($statusId): static
-    {
-        return $this->afterCreating(function ($user) use ($statusId) {
-            $user->status_id = $statusId;
-            $user->save();
-        });
-    }
-    public function withoutStatus(): static
-    {
-        return $this->afterCreating(function ($user) {
-            $user->status_id = null;
-            $user->save();
         });
     }
     public function withDriver($isDriver = true): static
@@ -155,13 +133,13 @@ class UserFactory extends Factory
     public function inactive(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status_id' => 2, // assuming 2 represents 'Inactive'
+            'active' => false,
         ]);
     }
     public function active(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status_id' => 1, // assuming 1 represents 'Active'
+            'active' => true,
         ]);
     }
     public function admin(): static

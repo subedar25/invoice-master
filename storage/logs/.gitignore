@@ -1,6 +1,0 @@
-*
-!.gitignore
-/composer.lock
-fastclick.js
-sweetalert2.all.js
-sweetalert2.js

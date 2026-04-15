@@ -34,7 +34,29 @@ class LocationController extends Controller
         $locations = Location::latest('created_at')
             ->paginate(20);
 
-        return view('masterapp.locations.index', compact('locations'));
+        $countries = DB::table('countries')
+            ->select('id', 'name')
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
+
+        $defaultCountryId = optional($countries->firstWhere('name', 'India'))->id
+            ?? optional($countries->firstWhere('id', 101))->id
+            ?? optional($countries->first())->id;
+
+        $statesByCountry = DB::table('states')
+            ->select('id', 'country_id', 'name')
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get()
+            ->groupBy('country_id')
+            ->map(fn ($items) => $items->map(fn ($item) => [
+                'id' => $item->id,
+                'name' => $item->name,
+            ])->values())
+            ->toArray();
+
+        return view('masterapp.locations.index', compact('locations', 'countries', 'defaultCountryId', 'statesByCountry'));
     }
 
     public function getLocations(Request $request)
@@ -45,8 +67,7 @@ class LocationController extends Controller
         $search = $request->input('search.value');
 
         // Handle sorting mapping
-        // $columns = ['name', 'address', 'city', 'state', 'country', 'postal_code', 'phone', 'show_map', 'show_map_link', 'latitude', 'longitude', 'actions'];
-        $columns = ['name', 'address', 'country', 'state', 'city', 'postal_code', 'latitude', 'longitude', 'actions'];
+        $columns = ['name', 'address', 'country', 'state', 'city', 'postal_code', 'actions'];
         $orderInput = $request->input('order.0');
         $orderColumn = $columns[$orderInput['column'] ?? 0] ?? 'created_at';
         $orderDir = $orderInput['dir'] ?? 'desc';
@@ -63,15 +84,7 @@ class LocationController extends Controller
                 'state' => e($location->state),
                 'city' => e($location->city),
                 'postal_code' => e($location->postal_code),
-                // 'phone' => $location->phone ? e($location->phone) : 'N/A',
-                // 'show_map' => $location->show_map ? 'Yes' : 'No',
-                // 'show_map_link' => $location->show_map_link ? 'Yes' : 'No',
-                'latitude' => $location->latitude ?? 'N/A',
-                'longitude' => $location->longitude ?? 'N/A',
-                'actions' => '<div class="action-div d-flex gap-2">
-                    <a href="' . route('masterapp.entity.info', ['type' => 'locations', 'id' => $location->id, 'tab' => 'Info']) . '" title="View location" class="action-icon entity-link">
-                        <i class="fa fa-eye" aria-hidden="true"></i>
-                    </a>' .
+                'actions' => '<div class="action-div d-flex gap-2">' .
                     (auth()->user()->can('edit-location') ? '
                     <button class="btn btn-link p-0 action-icon js-edit-location" data-id="' . $location->id . '" data-url="' . route('masterapp.locations.json', $location->id) . '">
                         <i class="fa fa-edit"></i>
@@ -181,8 +194,6 @@ class LocationController extends Controller
             // 'phone' => $location->phone,
             // 'show_map' => $location->show_map,
             // 'show_map_link' => $location->show_map_link,
-            'latitude' => $location->latitude,
-            'longitude' => $location->longitude,
         ]);
     }
 

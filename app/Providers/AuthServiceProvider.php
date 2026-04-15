@@ -83,10 +83,6 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('seasons', function (User $user) {
             return $user->hasPermissionTo('seasons');
         });
-        Gate::define('advertisers', function (User $user) {
-            return $user->hasPermissionTo('advertisers');
-        });
-
         // Notification Gates
         Gate::define('view-notifications', [NotificationPolicy::class, 'view']);
         Gate::define('mark-notification-read', [NotificationPolicy::class, 'markAsRead']);

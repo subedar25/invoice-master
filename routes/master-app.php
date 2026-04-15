@@ -64,9 +64,6 @@ Route::prefix('master-app')
         Route::patch('/users/{id}/toggle-active', [UserController::class, 'toggleActive'])
             ->name('users.toggle-active')
             ->middleware('can:active-deactive');
-        Route::patch('/users/{id}/status', [UserController::class, 'updateStatus'])
-            ->name('users.updateStatus')
-            ->middleware('can:active-deactive');
         Route::post('/users/check-email', [UserController::class, 'checkEmail'])->name('users.check-email');
         Route::get('/entity/{type}/{id}', [EntityInfoController::class, 'show'])->name('entity.info');
         Route::get('/entity/{type}/{id}/tab/{tab}', [EntityInfoController::class, 'showTab'])->name('entity.info.tab');
@@ -88,9 +85,6 @@ Route::prefix('master-app')
            Route::get('/{id}/edit', [UserController::class, 'edit'])->name('edit')->middleware('can:edit-user');
            Route::patch('/{id}/toggle-active', [UserController::class, 'toggleActive'])
                ->name('toggle-active')
-               ->middleware('can:active-deactive');
-           Route::patch('/{id}/status', [UserController::class, 'updateStatus'])
-               ->name('updateStatus')
                ->middleware('can:active-deactive');
            Route::patch('/{id}/password', [UserController::class, 'updatePassword'])->name('password.update')->middleware('can:edit-user');
         });

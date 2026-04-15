@@ -42,18 +42,23 @@ class UserStoreRequest extends FormRequest
                 },
             ],
             // 'email' => ['required','email','max:255',Rule::unique('users', 'email'),],
-            'password'     => ['nullable', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()->symbols()],
+            'password'     => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()->symbols()],
             'phone' => 'nullable|string|max:10|regex:/^[0-9]+$/',
             'active' => 'required|boolean',
-            'driver' => 'required|boolean',
-            'status_id'     => 'nullable|exists:user_statuses,id',
             'status_notes'  => 'nullable|string|max:200',
-            'roles' => ['nullable', 'array'],
-            // 'roles.*'       => 'exists:roles,id',
-            'contributor_status' => 'nullable|in:no,current,past',
-            'publications'   => 'nullable|array',
-            'publications.*' => 'nullable|exists:publications,id',
+            'roles' => ['required', 'array', 'min:1'],
+            'roles.*' => ['exists:roles,id'],
             'department_id' => 'nullable|exists:departments,id',
+            'organization_ids' => ['nullable', 'array'],
+            'organization_ids.*' => ['exists:organizations,id'],
+            'reporting_manager_id' => ['nullable', 'exists:users,id'],
+            'address' => ['nullable', 'string', 'max:1000'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'state' => ['nullable', 'string', 'max:255'],
+            'pincode' => ['nullable', 'string', 'max:20'],
+            'photo' => ['nullable', 'image', 'max:2048'],
+            'other_documents' => ['nullable', 'array'],
+            'other_documents.*' => ['file', 'max:10240'],
             'is_wordpress_user' => 'sometimes|boolean',
         ];
     }
@@ -64,11 +69,6 @@ class UserStoreRequest extends FormRequest
                 'roles' => array_filter(array_map('intval', $this->input('roles', []))),
             ]);
         }
-         if ($this->has('publications')) {
-        $this->merge([
-            'publications' => array_map('intval', $this->input('publications', [])),
-        ]);
-    }
     //   if ($this->has('departments')) {
     //     $this->merge([
     //         'departments' => array_map('intval', $this->input('departments', [])),
@@ -80,11 +80,18 @@ class UserStoreRequest extends FormRequest
         ]);
     }
 
-    if ($this->filled('status_id')) {
+    if ($this->has('organization_ids')) {
         $this->merge([
-            'status_id' => (int) $this->input('status_id'),
+            'organization_ids' => array_filter(array_map('intval', $this->input('organization_ids', []))),
         ]);
     }
+
+    if ($this->filled('reporting_manager_id')) {
+        $this->merge([
+            'reporting_manager_id' => (int) $this->input('reporting_manager_id'),
+        ]);
+    }
+
     if ($this->has('is_wordpress_user')) {
         $this->merge([
             'is_wordpress_user' => (int) $this->input('is_wordpress_user'),

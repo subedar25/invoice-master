@@ -15,29 +15,13 @@ class DatabaseSeeder extends Seeder
         // seeder for create modules and permission
          $this->call([
             ModuleAndPermissionSeeder::class,
+             CountrySeeder::class,
+             StateSeeder::class,
              SuperAdminSeeder::class,
              AdminUserSeeder::class,
-             ClientTypeSeeder::class,
-        ]);
-        
-        // seeder for create users status
-        $this->call(UserStatusSeeder::class);
-
-        // Seeders for notifications
-        $this->call([
-            NotificationEventSeeder::class,
-            NotificationRuleSeeder::class,
         ]);
 
-        $this->call(RestaurantAmenitiesSeeder::class);
-        $this->call(RestaurantPriceRangeSeeder::class);
-        $this->call(RestaurantMealSeeder::class);
-        $this->call(LodgingAmenitiesSeeder::class);
 
-        // Seeders for publication type and publications
-        $this->call(PublicationTypeSeeder::class);
-        $this->call(PublicationSeeder::class);
-
-        $this->call(SeasonSeeder::class);
+       
     }
 }

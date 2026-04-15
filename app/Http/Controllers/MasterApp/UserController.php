@@ -3,7 +3,6 @@ namespace App\Http\Controllers\MasterApp;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\UserStatus;
 use Spatie\Permission\Models\Role;
 use App\Core\User\Services\UserService;
 use App\Http\Requests\MasterApp\User\UserStoreRequest;
@@ -13,24 +12,22 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use App\Models\Publication;
 use App\Models\Department;
-use App\Models\Timesheet;
-use App\Helpers\NotificationHelper;
+use App\Models\Organization;
 use App\Helpers\AppNotification;
 use App\Notifications\RoleUpdatedNotification;
 use App\Core\Email\Services\EmailService;
-
+use App\Core\File\Services\FileManagementService;
 
 class UserController extends Controller
 {
     private EmailService $emailService;
+    private FileManagementService $fileService;
 
-    public function __construct(EmailService $emailService)
+    public function __construct(EmailService $emailService, FileManagementService $fileService)
     {
         $this->emailService = $emailService;
+        $this->fileService = $fileService;
     }
 
     public function index(UserService $service): View
@@ -38,59 +35,32 @@ class UserController extends Controller
         // $users = User::latest()->paginate(10);
 
         // return view('masterapp.users.index', compact('users'));
-        $publications = Publication::select('id', 'name')->get();
-        $departments = Department::select('id', 'name')->get();
-        $statusesList = UserStatus::all();
-
         $users = $service->getAll();
-        $users->load('status');
 
-        // Current shift per user (clock_in_mode) → reflect in status badge (UserStatusSeeder labels)
-        $userIds = $users->pluck('id')->toArray();
-        $currentShifts = Timesheet::whereIn('user_id', $userIds)
-            ->whereNull('end_time')
-            ->orderByDesc('start_time')
-            ->get()
-            ->groupBy('user_id')
-            ->map->first();
 
-        $clockInModeToStatusLabel = [
-            'office'         => 'Available',
-            'remote'         => 'Available - Remote',
-            'out_of_office'  => 'Available - Out of Office',
-            'do_not_disturb' => 'Do Not Disturb',
-            'lunch'          => 'Lunch',
-        ];
-
-        return view('masterapp.users.index', compact('users', 'publications', 'departments', 'statusesList', 'currentShifts', 'clockInModeToStatusLabel'));
+        return view('masterapp.users.index', compact('users', ));
     }
 
     public function create()
     {
-        $publications = Publication::select('id', 'name')->get();
-        $departments = Department::select('id', 'name')->get();
-    //  $statusesList = UserStatus::all()->map(function ($s) {
-    //     return [
-    //         'id' => $s->id,
-    //         'label' => $s->label
-    //     ];
-    // });
-        $statusesList = UserStatus::select('id', 'label')->get();
         return view('masterapp.users.create', [
             'roles' => Role::where('is_active', true)->pluck('name', 'id'),
-            'userStatuses' => UserStatus::all(),
-            'publications' => Publication::all(),
             'departments' => Department::all(),
-            'statusesList' => UserStatus::all(),
-            // compact('publications')
+            'organizations' => Organization::orderBy('name')->get(['id', 'name']),
+            'reportingManagers' => User::orderBy('first_name')->get(['id', 'first_name', 'last_name']),
         ]);
     }
 
 
     public function store(UserStoreRequest $request, UserService $service): JsonResponse|RedirectResponse
     {
+        $data = $request->validated();
+        $data['photo'] = $request->hasFile('photo')
+            ? $this->fileService->upload($request->file('photo'), 'users/photos')
+            : null;
+        $data['other_documents_data'] = $this->storeUserDocuments($request);
 
-        $user = $service->create($request->validated());
+        $user = $service->create($data);
 
         // Send welcome email to the newly created user
         $this->sendWelcomeEmail($user);
@@ -115,32 +85,31 @@ class UserController extends Controller
     public function edit(int $id, UserService $service):View
     {
         $user = $service->get($id);
-        $publications = Publication::select('id', 'name')->get();
-        $departments = Department::select('id', 'name')->get();
-        $statusesList = UserStatus::select('id', 'label')->get();
-
-
-        // print_r($user->roles->pluck('name')->toArray());exit;
 
         return view('masterapp.users.edit', [
             'user' => $user,
             'roles' => Role::where('is_active', true)->pluck('name','id'),
             'userRoles' => $user->roles->pluck('name','id')->toArray(),
-            'publications' => Publication::pluck('name', 'id'),
-            'userPublications' => $user->publications->pluck('name', 'id')->toArray(),
             'departments' => Department::all(),
-            'statusesList' => UserStatus::all(),
+            'organizations' => Organization::orderBy('name')->get(['id', 'name']),
+            'reportingManagers' => User::where('id', '!=', $user->id)->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
         ]);
     }
 
-     public function update(UserUpdateRequest $request, int $id, UserService $service): JsonResponse|RedirectResponse
+    public function update(UserUpdateRequest $request, int $id, UserService $service): JsonResponse|RedirectResponse
     {
-        // $service->update($id, $request->validated());
-    // Get user before update to compare roles
+        $data = $request->validated();
         $user = $service->get($id);
         $oldRoles = $user->roles->pluck('name')->toArray();
 
-        $updatedUser = $service->update($id, $request->validated());
+        if ($request->hasFile('photo')) {
+            $this->fileService->delete($user->photo);
+            $data['photo'] = $this->fileService->upload($request->file('photo'), 'users/photos');
+        }
+
+        $data['other_documents_data'] = $this->storeUserDocuments($request);
+
+        $updatedUser = $service->update($id, $data);
 
         // Send universal notification for user update
         AppNotification::notify_event('user.updated', $updatedUser, auth()->user() ?? $updatedUser);
@@ -174,6 +143,11 @@ class UserController extends Controller
 
     public function destroy(int $id, UserService $service, User $user=null): JsonResponse {
         $user = $service->get($id);
+
+        $this->fileService->delete($user->photo);
+        foreach ($user->userDocuments as $document) {
+            $this->fileService->delete($document->file_path);
+        }
 
         // Send universal notification for user deletion
         AppNotification::notify_event('user.deleted', $user, auth()->user() ?? $user);
@@ -215,62 +189,10 @@ class UserController extends Controller
     ]);
     }
 
-    // Update user status via AJAX (two-way: also syncs dashboard/current timesheet)
-    public function updateStatus(Request $request, int $id)
-    {
-        $request->validate([
-            'status_id' => ['required', 'exists:user_statuses,id'],
-        ]);
-
-        $user = User::findOrFail($id);
-
-        $user->update([
-            'status_id' => $request->status_id,
-        ]);
-
-        $status = UserStatus::find($request->status_id);
-        $label = $status ? $status->label : null;
-
-        // Sync to current timesheet so dashboard reflects this status (two-way)
-        $currentShift = Timesheet::currentShiftForUser($user->id);
-        $statusLabelToClockInMode = [
-            'Available'               => 'office',
-            'Available - Remote'      => 'remote',
-            'Available - Out of Office' => 'out_of_office',
-            'Available - Lunch'       => 'lunch',
-            'Lunch'                  => 'lunch',
-            'Do Not Disturb'         => 'do_not_disturb',
-        ];
-
-        if ($currentShift) {
-            if ($label === 'Not Available') {
-                $currentShift->update(['end_time' => now()]);
-            } elseif ($label && isset($statusLabelToClockInMode[$label])) {
-                $currentShift->update(['clock_in_mode' => $statusLabelToClockInMode[$label]]);
-            }
-        } else {
-            // No active shift: setting to Available (or other clock-in status) = clock them in so dashboard shows it
-            if ($label && isset($statusLabelToClockInMode[$label])) {
-                Timesheet::create([
-                    'user_id'       => $user->id,
-                    'start_time'    => now(),
-                    'clock_in_mode' => $statusLabelToClockInMode[$label],
-                    'type'          => 'normal_paid',
-                ]);
-            }
-        }
-
-        return response()->json([
-            'success' => true,
-            'label' => $status ? $status->label : 'N/A',
-            'badge_class' => $status ? $status->badge_class : 'badge-secondary',
-        ]);
-    }
-
   // Show modal form (AJAX)
     public function changePasswordForm(User $user)
     {
-        $user->load('roles', 'status');
+        $user->load('roles');
         return view('users.partials.change-password-form', compact('user'));
     }
 
@@ -346,5 +268,23 @@ class UserController extends Controller
         $options = [];
 
         $this->emailService->send($user->email, $subject, $view, $data, $options);
+    }
+
+    private function storeUserDocuments(Request $request): array
+    {
+        $documents = [];
+
+        foreach ((array) $request->file('other_documents', []) as $file) {
+            if (! $file) {
+                continue;
+            }
+
+            $documents[] = [
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $this->fileService->upload($file, 'users/documents'),
+            ];
+        }
+
+        return $documents;
     }
 }
