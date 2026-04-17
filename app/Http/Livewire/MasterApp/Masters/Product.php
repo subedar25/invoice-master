@@ -38,8 +38,16 @@ class Product extends Component
 
     protected $queryString = [
         'search' => ['except' => ''],
-        'organizationFilter' => ['except' => ''],
     ];
+
+    public function mount(): void
+    {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organizationFilter = (string) $selectedOrganizationId;
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+    }
 
     protected function rules(): array
     {
@@ -117,9 +125,10 @@ class Product extends Component
     public function openEditModal(int $id): void
     {
         $record = ProductModel::withTrashed()->findOrFail($id);
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
 
         $this->editId = $id;
-        $this->organization_id = (string) ($record->organization_id ?? '');
+        $this->organization_id = (string) ($selectedOrganizationId ?: $record->organization_id);
         $this->name = $record->name;
         $this->unit_price = number_format((float) $record->unit_price, 2, '.', '');
         $this->hsn = $record->hsn ?? '';
@@ -160,6 +169,11 @@ class Product extends Component
 
     public function saveCreate(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+
         $this->recalculateTaxValues();
 
         try {
@@ -178,6 +192,11 @@ class Product extends Component
 
     public function saveEdit(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+
         $this->recalculateTaxValues();
 
         try {
@@ -301,7 +320,8 @@ class Product extends Component
 
     private function resetForm(): void
     {
-        $this->organization_id = '';
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        $this->organization_id = $selectedOrganizationId !== null ? (string) $selectedOrganizationId : '';
         $this->name = '';
         $this->unit_price = '0.00';
         $this->hsn = '';
@@ -311,5 +331,16 @@ class Product extends Component
         $this->final_price = '0.00';
         $this->status = true;
         $this->resetValidation();
+    }
+
+    private function resolveSelectedOrganizationId(): ?int
+    {
+        $organizationId = session('current_organization_id');
+        if (! empty($organizationId)) {
+            return (int) $organizationId;
+        }
+
+        $fallback = auth()->user()?->last_selected_organization_id;
+        return ! empty($fallback) ? (int) $fallback : null;
     }
 }

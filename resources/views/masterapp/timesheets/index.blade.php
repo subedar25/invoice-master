@@ -601,8 +601,8 @@ $(function () {
       buttons: [
           {
             extend: 'print',
-            title: 'Pulse Publication - Timesheets',
-            filename: 'Pulse Publication - Timesheets',
+            title: '{{ config('app.name', 'Invoice Masters') }} - Timesheets',
+            filename: '{{ config('app.name', 'Invoice Masters') }} - Timesheets',
             text: '<i class="fa fa-print"></i> Print',
             className: 'btn btn-secondary',
             exportOptions: {
@@ -633,8 +633,8 @@ $(function () {
         },
         {
             extend: 'copyHtml5',
-            title: 'Pulse Publication - Timesheets',
-            filename: 'Pulse Publication - Timesheets',
+            title: '{{ config('app.name', 'Invoice Masters') }} - Timesheets',
+            filename: '{{ config('app.name', 'Invoice Masters') }} - Timesheets',
             text: '<i class="fa fa-copy"></i> Copy Data',
             className: 'btn btn-primary',
             exportOptions: {
@@ -643,8 +643,8 @@ $(function () {
         },
         {
             extend: 'excelHtml5',
-            title: 'Pulse Publication - Timesheets',
-            filename: 'Pulse Publication - Timesheets',
+            title: '{{ config('app.name', 'Invoice Masters') }} - Timesheets',
+            filename: '{{ config('app.name', 'Invoice Masters') }} - Timesheets',
             text: '<i class="fa fa-download"></i> Excel',
             className: 'btn btn-success',
             exportOptions: {
@@ -662,8 +662,8 @@ $(function () {
           // },
         {
             extend: 'pdfHtml5',
-            title: 'Pulse Publication - Timesheets',
-            filename: 'Pulse Publication - Timesheets',
+            title: '{{ config('app.name', 'Invoice Masters') }} - Timesheets',
+            filename: '{{ config('app.name', 'Invoice Masters') }} - Timesheets',
             text: '<i class="fa fa-download"></i> PDF',
             className: 'btn btn-danger',
             orientation: 'landscape',

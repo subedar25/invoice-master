@@ -14,6 +14,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\File;
+use Illuminate\Database\Eloquent\Builder;
 
 class Invoices extends Component
 {
@@ -33,10 +34,12 @@ class Invoices extends Component
 
     public ?int $editId = null;
     public ?int $viewId = null;
+    public string $filterStatus = 'all';
+    public string $filterDepartment = '';
 
     // Form fields
     public $invoice_number, $organization_id, $vendor_id, $department_id, $outlet_id, $pay_term, $comp_date, $created_date, $year, $description, $total_amount, $paid_amount;
-    public $status = 'pending';
+    public $status = 'Pending';
     public $order_status = 'pending';
     public $task_status = 'pending';
     
@@ -76,6 +79,7 @@ class Invoices extends Component
             'outlet_id' => ['required', 'exists:outlets,id'],
             'total_amount' => ['required', 'numeric'],
             'priority' => ['required', 'string', 'in:High,Medium,Low'],
+            'status' => ['required', 'string', 'in:Approve,Pending,in_process,Complete'],
             'invoice_items' => ['required', 'array', 'min:1'],
             'invoice_items.*.product_desciption' => ['required', 'string'],
             'invoice_items.*.quantity' => ['required', 'numeric', 'min:1'],
@@ -87,7 +91,19 @@ class Invoices extends Component
 
     public function mount()
     {
+        $this->organization_id = $this->resolveDefaultOrganizationId();
         $this->resetLineItems();
+        $this->calculateGrandTotal();
+    }
+
+    public function updatedFilterStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterDepartment(): void
+    {
+        $this->resetPage();
     }
 
     public function resetLineItems()
@@ -113,6 +129,19 @@ class Invoices extends Component
         $this->vendor_id = null;
         $this->department_id = null;
         $this->outlet_id = null;
+
+        foreach ($this->invoice_items as $index => $item) {
+            $this->invoice_items[$index]['product_id'] = null;
+            $this->invoice_items[$index]['product_desciption'] = '';
+            $this->invoice_items[$index]['unit_price'] = 0;
+            $this->invoice_items[$index]['hsn'] = '';
+            $this->invoice_items[$index]['cgst'] = 0;
+            $this->invoice_items[$index]['sgst'] = 0;
+            $this->invoice_items[$index]['total_gst'] = 0;
+            $this->invoice_items[$index]['total_price'] = 0;
+        }
+
+        $this->calculateGrandTotal();
     }
 
     public function updatedInvoiceItems($value, $key)
@@ -127,7 +156,13 @@ class Invoices extends Component
 
     public function selectProduct($index, $productId)
     {
-        $product = \App\Models\Product::find($productId);
+        $product = Product::query()
+            ->where('id', $productId)
+            ->when($this->organization_id, function ($query) {
+                $query->where('organization_id', $this->organization_id);
+            })
+            ->first();
+
         if ($product) {
             $this->invoice_items[$index]['product_id'] = $product->id;
             $this->invoice_items[$index]['product_desciption'] = $product->name;
@@ -135,6 +170,7 @@ class Invoices extends Component
             $this->invoice_items[$index]['hsn'] = $product->hsn ?? '';
             $this->invoice_items[$index]['cgst'] = $product->cgst ?? 0;
             $this->invoice_items[$index]['sgst'] = $product->sgst ?? 0;
+            $this->invoice_items[$index]['show_dropdown'] = false;
 
             $this->calculateRowTotal($index);
         }
@@ -181,6 +217,7 @@ class Invoices extends Component
     public function openCreateModal()
     {
         $this->resetForm();
+        $this->organization_id = $this->resolveDefaultOrganizationId();
         $this->showCreateModal = true;
     }
 
@@ -203,7 +240,7 @@ class Invoices extends Component
         $this->description = $record->description;
         $this->total_amount = number_format((float)$record->total_amount, 2, '.', '');
         $this->paid_amount = $record->paid_amount;
-        $this->status = $record->status;
+        $this->status = $this->normalizeStatus($record->status);
         $this->priority = $record->priority ?? 'Medium';
         $this->invoice_items = $record->details->toArray();
         $this->existing_files = $record->files->toArray();
@@ -405,6 +442,7 @@ class Invoices extends Component
 
     public function saveCreate()
     {
+        $this->organization_id = $this->resolveDefaultOrganizationId();
         $this->validate();
 
         \Illuminate\Support\Facades\DB::transaction(function () {
@@ -441,6 +479,10 @@ class Invoices extends Component
 
     public function saveEdit()
     {
+        if (empty($this->organization_id) && $this->editId) {
+            $this->organization_id = (int) Invoice::query()->whereKey($this->editId)->value('organization_id');
+        }
+
         $this->validate();
         $invoice = Invoice::findOrFail($this->editId);
         $invoice->update([
@@ -491,10 +533,11 @@ class Invoices extends Component
     private function resetForm()
     {
         $this->resetValidation();
-        $this->reset(['invoice_number', 'organization_id', 'outlet_id', 'vendor_id', 'department_id', 'pay_term', 'comp_date', 'created_date', 'year', 'description', 'total_amount', 'paid_amount', 'editId', 'gross_total', 'tax_total', 'uploaded_files']);
-        $this->status = 'pending';
+        $this->reset(['invoice_number', 'outlet_id', 'vendor_id', 'department_id', 'pay_term', 'comp_date', 'created_date', 'year', 'description', 'total_amount', 'paid_amount', 'editId', 'gross_total', 'tax_total', 'uploaded_files']);
+        $this->status = 'Pending';
         $this->priority = 'Medium';
         $this->existing_files = [];
+        $this->organization_id = $this->resolveDefaultOrganizationId();
         $this->resetLineItems();
         $this->calculateGrandTotal();
     }
@@ -506,6 +549,7 @@ class Invoices extends Component
         $outlets = collect();
         $locations = collect();
         $products = collect();
+        $filterDepartments = Department::orderBy('name')->get(['id', 'name']);
 
         if ($this->organization_id) {
             $org = Organization::find($this->organization_id);
@@ -518,11 +562,45 @@ class Invoices extends Component
             }
         }
 
+        $invoiceQuery = Invoice::with(['vendor', 'organization', 'department', 'outlet']);
+
+        if ($this->organization_id) {
+            $invoiceQuery->where('organization_id', $this->organization_id);
+        }
+
+        if ($this->filterDepartment !== '') {
+            $invoiceQuery->where('department_id', (int) $this->filterDepartment);
+        }
+
+        if ($this->filterStatus !== 'all') {
+            $status = strtolower(trim($this->filterStatus));
+            $invoiceQuery->where(function (Builder $query) use ($status) {
+                if ($status === 'approve') {
+                    $query->whereIn('status', ['Approve', 'approved', 'Approved']);
+                    return;
+                }
+
+                if ($status === 'pending') {
+                    $query->whereIn('status', ['Pending', 'pending']);
+                    return;
+                }
+
+                if ($status === 'in_process') {
+                    $query->whereIn('status', ['in_process', 'In Process', 'in process', 'processing']);
+                    return;
+                }
+
+                if ($status === 'complete') {
+                    $query->whereIn('status', ['Complete', 'completed', 'Completed']);
+                }
+            });
+        }
+
         return view('invoice.livewire.invoices', [
-            'invoices' => Invoice::with(['vendor', 'organization', 'department', 'outlet'])->paginate(15),
+            'invoices' => $invoiceQuery->latest()->paginate(15),
             'vendors' => $vendors,
-            'organizations' => Organization::all(),
             'departments' => $departments,
+            'filterDepartments' => $filterDepartments,
             'outlets' => $outlets,
             'locations' => $locations,
             'products' => $products,
@@ -601,5 +679,32 @@ class Invoices extends Component
         }
 
         @chmod($path, 0775);
+    }
+
+    private function normalizeStatus(?string $status): string
+    {
+        $value = strtolower(trim((string) $status));
+
+        return match ($value) {
+            'approve', 'approved' => 'Approve',
+            'in process', 'in_process', 'processing' => 'in_process',
+            'complete', 'completed' => 'Complete',
+            default => 'Pending',
+        };
+    }
+
+    private function resolveDefaultOrganizationId(): ?int
+    {
+        $sessionOrganizationId = session('current_organization_id');
+        if (!empty($sessionOrganizationId)) {
+            return (int) $sessionOrganizationId;
+        }
+
+        $user = auth()->user();
+        if ($user && !empty($user->last_selected_organization_id)) {
+            return (int) $user->last_selected_organization_id;
+        }
+
+        return null;
     }
 }

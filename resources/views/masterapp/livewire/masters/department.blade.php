@@ -13,25 +13,11 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="master-toolbar">
-                        <div class="master-toolbar__filters">
-                            <div class="d-inline-flex align-items-center">
-                                <label for="dept_organization_filter" class="mr-2 mb-0">Organization</label>
-                                <select id="dept_organization_filter" class="form-control form-control-sm" style="min-width: 240px;" wire:model.live="organizationFilter">
-                                    <option value="">All Organizations</option>
-                                    @foreach($this->organizationOptions as $opt)
-                                        <option value="{{ $opt->id }}">{{ $opt->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
                     <div class="table-responsive">
-                        <table id="departmentMasterTable" class="table table-bordered table-hover table-sm js-master-datatable" data-order-col="2" data-non-orderable-targets="3">
+                        <table id="departmentMasterTable" class="table table-bordered table-hover table-sm js-master-datatable" data-order-col="1" data-non-orderable-targets="2">
                             <thead>
                                 <tr>
                                     <th>Name</th>
-                                    <th>Organization</th>
                                     <th>Created Date</th>
                                     <th class="master-table-actions">Actions</th>
                                 </tr>
@@ -40,7 +26,6 @@
                                 @foreach($items as $item)
                                     <tr>
                                         <td>{{ $item->name }}</td>
-                                        <td>{{ $item->organization?->name ?? '—' }}</td>
                                         <td>{{ $item->created_at?->format('M j, Y') ?? '—' }}</td>
                                         <td>
                                             <div class="action-div master-actions">
@@ -69,19 +54,6 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="master-toolbar">
-                        <div class="master-toolbar__filters">
-                            <div class="d-inline-flex align-items-center">
-                                <label for="dept_organization_filter_empty" class="mr-2 mb-0">Organization</label>
-                                <select id="dept_organization_filter_empty" class="form-control form-control-sm" style="min-width: 240px;" wire:model.live="organizationFilter">
-                                    <option value="">All Organizations</option>
-                                    @foreach($this->organizationOptions as $opt)
-                                        <option value="{{ $opt->id }}">{{ $opt->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
                     <p class="text-center text-muted mb-0">No departments found.</p>
                 </div>
             </div>
@@ -102,14 +74,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="dept_organization">Organization</label>
-                    <select id="dept_organization" class="form-control @error('organization_id') is-invalid @enderror" wire:model="organization_id">
-                        <option value="">— None —</option>
-                        @foreach($this->organizationOptions as $opt)
-                            <option value="{{ $opt->id }}">{{ $opt->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('organization_id') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                    <input type="hidden" wire:model="organization_id">
+                    @error('organization_id') <span class="text-danger small d-block">{{ $message }}</span> @enderror
                 </div>
 
                 <div class="form-group">

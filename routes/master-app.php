@@ -14,6 +14,7 @@ use App\Http\Controllers\MasterApp\NotificationController;
 use App\Http\Controllers\MasterApp\SettingsController;
 use App\Http\Controllers\MasterApp\LocationController;
 use App\Http\Controllers\MasterApp\OrganizationController;
+use App\Http\Controllers\MasterApp\OrganizationContextController;
 use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
@@ -37,6 +38,9 @@ Route::prefix('master-app')
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::put('/changepassword', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+        Route::post('/organization/switch', [OrganizationContextController::class, 'switch'])
+            ->name('organization.switch');
         Route::get('/users', [UserController::class, 'index'])
             ->name('users.index')
             ->middleware('can:list-users');
@@ -54,6 +58,14 @@ Route::prefix('master-app')
 
         Route::put('/users/{id}', [UserController::class, 'update'])
             ->name('users.update')
+            ->middleware('can:edit-user');
+
+        Route::delete('/users/{user}/photo', [UserController::class, 'destroyPhoto'])
+            ->name('users.photo.destroy')
+            ->middleware('can:edit-user');
+
+        Route::delete('/users/{user}/documents/{document}', [UserController::class, 'destroyDocument'])
+            ->name('users.documents.destroy')
             ->middleware('can:edit-user');
 
         Route::delete('/users/{id}', [UserController::class, 'destroy'])

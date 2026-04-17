@@ -4,27 +4,12 @@
             'title' => 'Products',
             'addButtonText' => 'Add Product',
             'tableId' => 'productMasterTable',
-            'orderCol' => '5',
-            'nonOrderableTargets' => '6,7',
+            'orderCol' => '4',
+            'nonOrderableTargets' => '5,6',
         ])
-            <div class="master-toolbar mb-3">
-                <div class="master-toolbar__filters">
-                    <div class="d-inline-flex align-items-center">
-                        <label for="product_organization_filter" class="mr-2 mb-0">Organization</label>
-                        <select id="product_organization_filter" class="form-control form-control-sm" style="min-width: 240px;" wire:model.live="organizationFilter">
-                            <option value="">All Organizations</option>
-                            @foreach($this->organizationOptions as $opt)
-                                <option value="{{ $opt->id }}">{{ $opt->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-            </div>
-
             <thead>
                 <tr>
                     <th>Product Name</th>
-                    <th>Organization</th>
                     <th>HSN</th>
                     <th>Unit Price</th>
                     <th>GST (%)</th>
@@ -37,7 +22,6 @@
                 @foreach($items as $item)
                     <tr>
                         <td>{{ $item->name }}</td>
-                        <td>{{ $item->organization?->name ?? '—' }}</td>
                         <td>{{ $item->hsn ?: '—' }}</td>
                         <td>{{ number_format((float) $item->unit_price, 2) }}</td>
                         <td>{{ number_format((float) $item->total_gst, 2) }}</td>
@@ -68,17 +52,6 @@
             'showEditModal' => $showEditModal,
         ])
             <form wire:submit.prevent="{{ $showEditModal ? 'saveEdit' : 'saveCreate' }}" class="w-75">
-                <div class="form-group">
-                    <label for="product_organization">Organization <span class="text-danger">*</span></label>
-                    <select id="product_organization" class="form-control @error('organization_id') is-invalid @enderror" wire:model="organization_id">
-                        <option value="">Select Organization</option>
-                        @foreach($this->organizationOptions as $opt)
-                            <option value="{{ $opt->id }}">{{ $opt->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('organization_id') <span class="invalid-feedback">{{ $message }}</span> @enderror
-                </div>
-
                 <div class="form-group">
                     <label for="product_name">Product Name <span class="text-danger">*</span></label>
                     <input type="text" id="product_name" class="form-control @error('name') is-invalid @enderror" wire:model.live="name">

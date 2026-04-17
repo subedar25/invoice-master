@@ -16,6 +16,19 @@ class Organization extends Model implements AuditableContract
 
     public $timestamps = false;
 
+    protected static function booted(): void
+    {
+        static::creating(function (Organization $organization) {
+            if ($organization->created_date === null) {
+                $organization->created_date = now();
+            }
+        });
+
+        static::updating(function (Organization $organization) {
+            $organization->edited_date = now();
+        });
+    }
+
     protected $fillable = [
         'name',
         'status',

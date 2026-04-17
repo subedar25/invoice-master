@@ -730,8 +730,8 @@
                   buttons: [
                       {
                           extend: 'print',
-                          title: 'Pulse Publication - Time-off Requests',
-                          filename: 'Pulse Publication - Time-off Requests',
+                          title: '{{ config('app.name', 'Invoice Masters') }} - Time-off Requests',
+                          filename: '{{ config('app.name', 'Invoice Masters') }} - Time-off Requests',
                           text: '<i class="fa fa-print"></i> Print',
                           className: 'btn btn-secondary',
                           exportOptions: {
@@ -756,8 +756,8 @@
                       },
                       {
                           extend: 'copyHtml5',
-                          title: 'Pulse Publication - Time-off Requests',
-                          filename: 'Pulse Publication - Time-off Requests',
+                          title: '{{ config('app.name', 'Invoice Masters') }} - Time-off Requests',
+                          filename: '{{ config('app.name', 'Invoice Masters') }} - Time-off Requests',
                           text: '<i class="fa fa-copy"></i> Copy Data',
                           className: 'btn btn-primary',
                           exportOptions: {
@@ -767,8 +767,8 @@
                       },
                       {
                           extend: 'excelHtml5',
-                          title: 'Pulse Publication - Time-off Requests',
-                          filename: 'Pulse Publication - Time-off Requests',
+                          title: '{{ config('app.name', 'Invoice Masters') }} - Time-off Requests',
+                          filename: '{{ config('app.name', 'Invoice Masters') }} - Time-off Requests',
                           text: '<i class="fa fa-download"></i> Excel',
                           className: 'btn btn-success',
                           exportOptions: {
@@ -783,8 +783,8 @@
                       },
                       {
                           extend: 'pdfHtml5',
-                          title: 'Pulse Publication - Time-off Requests',
-                          filename: 'Pulse Publication - Time-off Requests',
+                          title: '{{ config('app.name', 'Invoice Masters') }} - Time-off Requests',
+                          filename: '{{ config('app.name', 'Invoice Masters') }} - Time-off Requests',
                           text: '<i class="fa fa-download"></i> PDF',
                           className: 'btn btn-danger',
                           orientation: 'landscape',

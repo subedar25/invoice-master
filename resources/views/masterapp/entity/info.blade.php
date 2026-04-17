@@ -22,27 +22,28 @@
 
 
     {{-- Entity Tabs --}}
-
-    <ul class="nav nav-tabs justify-content-center">
-        @foreach ($tabs as $tab)
-            <li class="nav-item">
-                <a
-                    href="{{ route('masterapp.entity.info', [
-                        'type' => $type,
-                        'id'   => $entity->id,
-                        'tab'  => $tab
-                    ]) }}"
-                    class="nav-link border-0 border-bottom border-3
-                        {{ strtolower($tab) === $currentTab
-                            ? 'active border-primary fw-semibold'
-                            : 'border-transparent text-secondary'
-                        }}"
-                >
-                    {{ ucwords($tab) }}
-                </a>
-            </li>
-        @endforeach
-    </ul>
+    @if (count($tabs ?? []) > 1)
+        <ul class="nav nav-tabs justify-content-center">
+            @foreach ($tabs as $tab)
+                <li class="nav-item">
+                    <a
+                        href="{{ route('masterapp.entity.info', [
+                            'type' => $type,
+                            'id'   => $entity->id,
+                            'tab'  => $tab
+                        ]) }}"
+                        class="nav-link border-0 border-bottom border-3
+                            {{ strtolower($tab) === $currentTab
+                                ? 'active border-primary fw-semibold'
+                                : 'border-transparent text-secondary'
+                            }}"
+                    >
+                        {{ ucwords($tab) }}
+                    </a>
+                </li>
+            @endforeach
+        </ul>
+    @endif
 
     {{-- Entity Content --}}
     <div class="card" style="margin-left: 26px;">
@@ -55,4 +56,3 @@
     </div>
 
 @endsection
-

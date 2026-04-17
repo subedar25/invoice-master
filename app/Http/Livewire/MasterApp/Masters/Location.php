@@ -3,7 +3,6 @@
 namespace App\Http\Livewire\MasterApp\Masters;
 
 use App\Models\Country as CountryModel;
-use App\Models\Organization as OrganizationModel;
 use App\Models\Location as LocationModel;
 use App\Models\State as StateModel;
 use Illuminate\Validation\Rule;
@@ -38,8 +37,16 @@ class Location extends Component
 
     protected $queryString = [
         'search' => ['except' => ''],
-        'organizationFilter' => ['except' => ''],
     ];
+
+    public function mount(): void
+    {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organizationFilter = (string) $selectedOrganizationId;
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+    }
 
     protected function rules(): array
     {
@@ -52,7 +59,7 @@ class Location extends Component
             'name' => ['required', 'string', 'max:255', $nameRule],
             'address' => ['nullable', 'string', 'max:1000'],
             'country_id' => ['nullable', 'exists:countries,id'],
-            'organization_id' => ['nullable', 'exists:organizations,id'],
+            'organization_id' => ['required', 'exists:organizations,id'],
             'state' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'postal_code' => ['nullable', 'string', 'max:255'],
@@ -70,11 +77,6 @@ class Location extends Component
     ];
 
     public function updatingSearch(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatingOrganizationFilter(): void
     {
         $this->resetPage();
     }
@@ -103,6 +105,7 @@ class Location extends Component
     public function openEditModal(int $id): void
     {
         $record = LocationModel::withTrashed()->findOrFail($id);
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
 
         $this->editId = $id;
         $this->name = $record->name;
@@ -111,7 +114,7 @@ class Location extends Component
         $this->state = $record->state ?? '';
         $this->city = $record->city ?? '';
         $this->postal_code = $record->postal_code ?? '';
-        $this->organization_id = (string) ($record->organization_id ?? '');
+        $this->organization_id = (string) ($selectedOrganizationId ?: $record->organization_id);
 
         $this->country_id = (string) (CountryModel::query()->where('name', $this->country)->value('id') ?? '');
 
@@ -146,6 +149,11 @@ class Location extends Component
 
     public function saveCreate(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+
         try {
             $this->validate();
         } catch (ValidationException $e) {
@@ -170,6 +178,11 @@ class Location extends Component
 
     public function saveEdit(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+
         try {
             $this->validate();
         } catch (ValidationException $e) {
@@ -219,10 +232,7 @@ class Location extends Component
                 $q->where(function ($sub) use ($search) {
                     $sub->where('name', 'like', '%' . $search . '%')
                         ->orWhere('address', 'like', '%' . $search . '%')
-                        ->orWhere('city', 'like', '%' . $search . '%')
-                        ->orWhereHas('organization', function ($query) use ($search) {
-                            $query->where('name', 'like', '%' . $search . '%');
-                        });
+                        ->orWhere('city', 'like', '%' . $search . '%');
                 });
             })
             ->orderBy($this->sortField, $this->sortDirection)
@@ -259,13 +269,6 @@ class Location extends Component
             ->get(['name']);
     }
 
-    public function getOrganizationOptionsProperty()
-    {
-        return OrganizationModel::query()
-            ->orderBy('name')
-            ->get(['id', 'name']);
-    }
-
     public function render()
     {
         return view('masterapp.livewire.masters.location', [
@@ -275,14 +278,26 @@ class Location extends Component
 
     private function resetForm(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
         $this->name = '';
         $this->address = '';
         $this->country_id = '';
-        $this->organization_id = '';
+        $this->organization_id = $selectedOrganizationId !== null ? (string) $selectedOrganizationId : '';
         $this->country = '';
         $this->state = '';
         $this->city = '';
         $this->postal_code = '';
         $this->resetValidation();
+    }
+
+    private function resolveSelectedOrganizationId(): ?int
+    {
+        $organizationId = session('current_organization_id');
+        if (! empty($organizationId)) {
+            return (int) $organizationId;
+        }
+
+        $fallback = auth()->user()?->last_selected_organization_id;
+        return ! empty($fallback) ? (int) $fallback : null;
     }
 }

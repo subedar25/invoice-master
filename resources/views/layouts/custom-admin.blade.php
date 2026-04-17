@@ -6,7 +6,7 @@
 <meta http-equiv="x-ua-compatible" content="ie=edge">
 <meta name="csrf-token" content="{{ csrf_token() }}">
  
-    <title>{{ config('app.name', 'Pulse Publication') }} - @yield('title')</title>
+    <title>{{ config('app.name', 'Invoice Masters') }} - @yield('title')</title>
  
     <!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicon.ico') }}">

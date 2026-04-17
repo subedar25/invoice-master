@@ -29,6 +29,8 @@ class Menu extends Component
             $this->active = 'product';
         } elseif (auth()->user()?->can('taxes')) {
             $this->active = 'tax';
+        } elseif (auth()->user()?->can('list-master')) {
+            $this->active = 'designation';
         } elseif (auth()->user()?->can('seasons')) {
             $this->active = 'seasons';
         } elseif (auth()->user()?->can('organization_type')) {

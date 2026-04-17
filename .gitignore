@@ -38,6 +38,8 @@ routes.txt
 .package-lock.json
 .package.json
 
+public/users/
+public/invoice_files/
 public/images/
 public/uploads/
 storage/app/public/

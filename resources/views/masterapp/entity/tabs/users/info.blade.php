@@ -8,9 +8,11 @@
             <i class="fa fa-edit"></i> Edit
         </button>  --}}
         @can('edit-user')
-        <a href="{{ route('masterapp.users.edit', $entity->id) }}" title="Edit" class="btn btn-primary" type="button" style="margin-right: 10px;">
-            <i class="fa fa-edit" aria-hidden="true"> Edit</i>
-            </a>
+            @if(($entity->user_type ?? '') !== 'systemuser')
+                <a href="{{ route('masterapp.users.edit', $entity->id) }}" title="Edit" class="btn btn-primary" type="button" style="margin-right: 10px;">
+                    <i class="fa fa-edit" aria-hidden="true"> Edit</i>
+                </a>
+            @endif
         @endcan
         {{-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#passwordModal">
             <i class="fa fa-key"></i> Change Password
@@ -27,7 +29,7 @@
                     <tr><th>Email</th><td>{{ $entity->email ?? '—' }}</td></tr>
                     <tr><th>Phone</th><td>{{ $entity->phone ?? '—' }}</td></tr>
                     {{-- <tr><th>Change Password</th><td>{{ $entity->change_password ? 'Yes' : 'No' }}</td></tr> --}}
-                    <tr><th>Active</th><td>{{ $entity->active ? 'Yes' : 'No' }}</td></tr>
+                    <tr><th>Active</th><td>{{ $entity->active ? 'Active' : 'Inactive' }}</td></tr>
                     <tr><th>Role</th><td>{{ $entity->roles->pluck('name')->implode(', ') ?: '—' }}</td></tr>
                     {{-- <tr><th>Permissions</th><td>{{ $entity->permissions->pluck('name')->implode(', ') ?: '—' }}</td></tr> --}}
                     <tr><th>Added Timestamp</th><td>{{ optional($entity->created_at)->format('d M Y, h:i A') ?? '—' }}</td></tr>

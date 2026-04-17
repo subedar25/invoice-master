@@ -6,7 +6,6 @@ use App\Models\Vendor as VendorModel;
 use App\Models\VendorCategory;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Organization as OrganizationModel;
 use Illuminate\Validation\Rule;
 
 class Vendor extends Component
@@ -43,14 +42,22 @@ class Vendor extends Component
 
     protected $queryString = [
         'search' => ['except' => ''],
-        'organizationFilter' => ['except' => ''],
     ];
+
+    public function mount(): void
+    {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organizationFilter = (string) $selectedOrganizationId;
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+    }
 
     protected function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'organization_id' => ['nullable', 'exists:organizations,id'],
+            'organization_id' => ['required', 'exists:organizations,id'],
             'mobile' => ['nullable', 'string', 'max:20'],
             'email' => [
                 'nullable', 
@@ -78,11 +85,6 @@ class Vendor extends Component
         $this->resetPage();
     }
 
-    public function updatingOrganizationFilter(): void
-    {
-        $this->resetPage();
-    }
-
     public function openCreateModal(): void
     {
         $this->resetForm();
@@ -103,9 +105,10 @@ class Vendor extends Component
     public function openEditModal(int $id): void
     {
         $record = VendorModel::findOrFail($id);
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
         $this->editId = $id;
         $this->name = $record->name;
-        $this->organization_id = (string) ($record->organization_id ?? '');
+        $this->organization_id = (string) ($selectedOrganizationId ?: $record->organization_id);
         $this->mobile = $record->mobile ?? '';
         $this->email = $record->email;
         $this->companyname = $record->companyname ?? '';
@@ -141,6 +144,11 @@ class Vendor extends Component
 
     public function saveCreate(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+
         $this->validate();
         $data = $this->all();
         $data['category_id'] = $this->category_id ?: null;
@@ -155,6 +163,11 @@ class Vendor extends Component
 
     public function saveEdit(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+
         $this->validate();
         $record = VendorModel::findOrFail($this->editId);
         $data = $this->all();
@@ -183,7 +196,9 @@ class Vendor extends Component
 
     private function resetForm(): void
     {
-        $this->name = $this->organization_id = $this->mobile = $this->email = $this->companyname = '';
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        $this->name = $this->mobile = $this->email = $this->companyname = '';
+        $this->organization_id = $selectedOrganizationId !== null ? (string) $selectedOrganizationId : '';
         $this->category_id = $this->address = $this->state = $this->city = '';
         $this->pin = $this->PAN = $this->gst = '';
         $this->status = true;
@@ -200,9 +215,12 @@ class Vendor extends Component
                 $q->where('organization_id', $this->organizationFilter);
             })
             ->when($this->search, function($q) {
-                $q->where('name', 'like', '%'.$this->search.'%')
-                  ->orWhere('email', 'like', '%'.$this->search.'%')
-                  ->orWhere('companyname', 'like', '%'.$this->search.'%');
+                $search = $this->search;
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('companyname', 'like', '%' . $search . '%');
+                });
             })
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(15);
@@ -210,8 +228,18 @@ class Vendor extends Component
         return view('masterapp.livewire.masters.vendor', [
             'items' => $items,
             'categoryOptions' => VendorCategory::orderBy('name')->get(['id', 'name']),
-            'organizationOptions' => OrganizationModel::orderBy('name')->get(['id', 'name']),
             'viewRecord' => $this->viewId ? VendorModel::with(['category', 'organization'])->find($this->viewId) : null
         ]);
+    }
+
+    private function resolveSelectedOrganizationId(): ?int
+    {
+        $organizationId = session('current_organization_id');
+        if (! empty($organizationId)) {
+            return (int) $organizationId;
+        }
+
+        $fallback = auth()->user()?->last_selected_organization_id;
+        return ! empty($fallback) ? (int) $fallback : null;
     }
 }

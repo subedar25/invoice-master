@@ -43,9 +43,8 @@ class UserService
     $data['active']   = (bool) ($data['active'] ?? false);
     $data['is_wordpress_user'] = (bool) ($data['is_wordpress_user'] ?? 0);
     $data['department_id'] = $data['department_id'] ?? null;
+    $data['designation_id'] = $data['designation_id'] ?? null;
     $data['reporting_manager_id'] = $data['reporting_manager_id'] ?? null;
-    $data['status_notes']  = $data['status_notes'] ?? '';
-
     //  CREATE USER ONCE
     $user = $this->users->create($data);
 
@@ -73,7 +72,6 @@ class UserService
         $data['is_wordpress_user'] = (bool) ($data['is_wordpress_user'] ?? 0);
         $data['department_id'] = $data['department_id'] ?? null;
         $data['reporting_manager_id'] = $data['reporting_manager_id'] ?? null;
-        $data['status_notes'] ??= '';
         // print_r($data);exit;
 
         return $this->users->edit($data);
@@ -91,8 +89,8 @@ class UserService
         $data['active'] = (bool) ($data['active'] ?? false);
         $data['is_wordpress_user'] = (bool) ($data['is_wordpress_user'] ?? 0);
         $data['department_id'] = $data['department_id'] ?? null;
+        $data['designation_id'] = $data['designation_id'] ?? null;
         $data['reporting_manager_id'] = $data['reporting_manager_id'] ?? null;
-        $data['status_notes'] ??= '';
         // print_r($data);exit;
         return $this->users->update($id, $data);
     }

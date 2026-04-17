@@ -114,7 +114,7 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Department</label>
                                         <select name="department_id" class="form-control">
@@ -127,7 +127,20 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Designation</label>
+                                        <select name="designation_id" class="form-control">
+                                            <option value="">Select designation</option>
+                                            @foreach($designations as $designation)
+                                                <option value="{{ $designation->id }}" {{ old('designation_id') == $designation->id ? 'selected' : '' }}>
+                                                    {{ $designation->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Reporting Manager</label>
                                         <select name="reporting_manager_id" class="form-control select2" style="width: 100%;">
@@ -186,6 +199,18 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
+                                        <label>User Type <span class="text-danger">*</span></label>
+                                        <select name="user_type" class="form-control">
+                                            @php $userType = old('user_type', 'user'); @endphp
+                                            <option value="systemuser" {{ $userType === 'systemuser' ? 'selected' : '' }}>systemuser</option>
+                                            <option value="superadmin" {{ $userType === 'superadmin' ? 'selected' : '' }}>superadmin</option>
+                                            <option value="admin" {{ $userType === 'admin' ? 'selected' : '' }}>admin</option>
+                                            <option value="user" {{ $userType === 'user' ? 'selected' : '' }}>user</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
                                         <label>Active Status</label>
                                         <select name="active" class="form-control">
                                             <option value="1" {{ old('active', '1') == '1' ? 'selected' : '' }}>Active</option>
@@ -195,15 +220,6 @@
                                 </div>
                             </div>
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Notes</label>
-                                        <textarea id="status_notes" name="status_notes" class="form-control" rows="4" maxlength="200">{{ old('status_notes') }}</textarea>
-                                        <small class="text-muted"><span id="statusNotesCount">0</span> / 200 characters</small>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -235,8 +251,5 @@ $('select[name="reporting_manager_id"]').select2({
     allowClear: true
 });
 
-$('#status_notes').on('input', function () {
-    $('#statusNotesCount').text($(this).val().length);
-});
 </script>
 @endpush

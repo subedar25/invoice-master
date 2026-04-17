@@ -30,7 +30,7 @@ class FileManagementService
         if (!File::copy($file->getRealPath(), $destinationFile)) {
             throw new \RuntimeException("Could not move the file to destination: {$destinationFile}");
         }
-        @unlink($file->getRealPath());
+        // @unlink($file->getRealPath()); // Removing primitive unlink to prevent Ignition file not found errors when an exception is thrown. PHP/Livewire garbage collects automatically.
 
         return $path . '/' . $fileName;
     }

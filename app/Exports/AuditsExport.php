@@ -2,9 +2,20 @@
 
 namespace App\Exports;
 
+use App\Models\Department;
+use App\Models\Invoice;
+use App\Models\InvoiceDetail;
+use App\Models\InvoiceFile;
+use App\Models\Location;
+use App\Models\Organization;
+use App\Models\Outlet;
+use App\Models\Product;
+use App\Models\Timesheet;
+use App\Models\User;
 use OwenIt\Auditing\Models\Audit;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Illuminate\Support\Facades\DB;
 
 class AuditsExport implements FromCollection, WithHeadings
 {
@@ -18,6 +29,22 @@ class AuditsExport implements FromCollection, WithHeadings
     public function collection()
     {
         $query = Audit::query()->with('user');
+        $organizationId = isset($this->filters['__organization_id']) && $this->filters['__organization_id'] !== ''
+            ? (int) $this->filters['__organization_id']
+            : null;
+        $isSystemUser = !empty($this->filters['__is_system_user']);
+
+        if (! $isSystemUser) {
+            if ($organizationId === null) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $this->applyOrganizationScope($query, $organizationId);
+            }
+
+            $query->whereDoesntHave('user', function ($userQuery) {
+                $userQuery->where('user_type', 'systemuser');
+            });
+        }
 
         if (!empty($this->filters['event'])) {
             $query->where('event', $this->filters['event']);
@@ -67,6 +94,91 @@ class AuditsExport implements FromCollection, WithHeadings
         });
 
         return collect($export);
+    }
+
+    private function applyOrganizationScope($query, int $organizationId): void
+    {
+        $query->where(function ($scoped) use ($organizationId) {
+            $scoped->where(function ($q) use ($organizationId) {
+                $q->where('auditable_type', Organization::class)
+                    ->where('auditable_id', $organizationId);
+            })->orWhere(function ($q) use ($organizationId) {
+                $q->where('auditable_type', Department::class)
+                    ->whereExists(function ($sub) use ($organizationId) {
+                        $sub->select(DB::raw(1))
+                            ->from((new Department())->getTable())
+                            ->whereColumn((new Department())->getTable().'.id', 'audits.auditable_id')
+                            ->where((new Department())->getTable().'.organization_id', $organizationId);
+                    });
+            })->orWhere(function ($q) use ($organizationId) {
+                $q->where('auditable_type', Location::class)
+                    ->whereExists(function ($sub) use ($organizationId) {
+                        $sub->select(DB::raw(1))
+                            ->from((new Location())->getTable())
+                            ->whereColumn((new Location())->getTable().'.id', 'audits.auditable_id')
+                            ->where((new Location())->getTable().'.organization_id', $organizationId);
+                    });
+            })->orWhere(function ($q) use ($organizationId) {
+                $q->where('auditable_type', Outlet::class)
+                    ->whereExists(function ($sub) use ($organizationId) {
+                        $sub->select(DB::raw(1))
+                            ->from((new Outlet())->getTable())
+                            ->whereColumn((new Outlet())->getTable().'.id', 'audits.auditable_id')
+                            ->where((new Outlet())->getTable().'.organization_id', $organizationId);
+                    });
+            })->orWhere(function ($q) use ($organizationId) {
+                $q->where('auditable_type', Product::class)
+                    ->whereExists(function ($sub) use ($organizationId) {
+                        $sub->select(DB::raw(1))
+                            ->from((new Product())->getTable())
+                            ->whereColumn((new Product())->getTable().'.id', 'audits.auditable_id')
+                            ->where((new Product())->getTable().'.organization_id', $organizationId);
+                    });
+            })->orWhere(function ($q) use ($organizationId) {
+                $q->where('auditable_type', Invoice::class)
+                    ->whereExists(function ($sub) use ($organizationId) {
+                        $sub->select(DB::raw(1))
+                            ->from((new Invoice())->getTable())
+                            ->whereColumn((new Invoice())->getTable().'.id', 'audits.auditable_id')
+                            ->where((new Invoice())->getTable().'.organization_id', $organizationId);
+                    });
+            })->orWhere(function ($q) use ($organizationId) {
+                $q->where('auditable_type', InvoiceDetail::class)
+                    ->whereExists(function ($sub) use ($organizationId) {
+                        $sub->select(DB::raw(1))
+                            ->from((new InvoiceDetail())->getTable().' as invoice_details')
+                            ->join((new Invoice())->getTable().' as invoices', 'invoices.id', '=', 'invoice_details.invoice_id')
+                            ->whereColumn('invoice_details.id', 'audits.auditable_id')
+                            ->where('invoices.organization_id', $organizationId);
+                    });
+            })->orWhere(function ($q) use ($organizationId) {
+                $q->where('auditable_type', InvoiceFile::class)
+                    ->whereExists(function ($sub) use ($organizationId) {
+                        $sub->select(DB::raw(1))
+                            ->from((new InvoiceFile())->getTable().' as invoice_files')
+                            ->join((new Invoice())->getTable().' as invoices', 'invoices.id', '=', 'invoice_files.invoice_id')
+                            ->whereColumn('invoice_files.id', 'audits.auditable_id')
+                            ->where('invoices.organization_id', $organizationId);
+                    });
+            })->orWhere(function ($q) use ($organizationId) {
+                $q->where('auditable_type', User::class)
+                    ->whereExists(function ($sub) use ($organizationId) {
+                        $sub->select(DB::raw(1))
+                            ->from('organization_user')
+                            ->whereColumn('organization_user.user_id', 'audits.auditable_id')
+                            ->where('organization_user.organization_id', $organizationId);
+                    });
+            })->orWhere(function ($q) use ($organizationId) {
+                $q->where('auditable_type', Timesheet::class)
+                    ->whereExists(function ($sub) use ($organizationId) {
+                        $sub->select(DB::raw(1))
+                            ->from((new Timesheet())->getTable().' as timesheets')
+                            ->join('organization_user', 'organization_user.user_id', '=', 'timesheets.user_id')
+                            ->whereColumn('timesheets.id', 'audits.auditable_id')
+                            ->where('organization_user.organization_id', $organizationId);
+                    });
+            });
+        });
     }
 
     public function headings(): array

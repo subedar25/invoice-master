@@ -56,6 +56,12 @@
                     class="nav-link {{ $active == 'tax' ? 'active' : '' }}">Taxes</a>
             </li>
              @endcan
+            @can('list-master')
+            <li class="nav-item">
+                <a href="#" wire:click.prevent="setActive('designation')"
+                    class="nav-link {{ $active == 'designation' ? 'active' : '' }}">Designation</a>
+            </li>
+            @endcan
         </ul>
     </div>
 
@@ -79,6 +85,8 @@
             @livewire('master-app.masters.product')
         @elseif($active == 'tax')
             @livewire('master-app.masters.tax')
+        @elseif($active == 'designation')
+            @livewire('master-app.masters.designation')
         @endif
     </div>
 </div>

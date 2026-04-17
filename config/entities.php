@@ -26,7 +26,6 @@ return [
         'title' => 'User',
         'tabs' => [
             'Info',
-            'Timesheet'
         ],
         'label_field' => 'name',
     ],

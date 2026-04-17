@@ -5,27 +5,12 @@
             'addButtonText' => 'Add Vendor',
             'tableId' => 'vendorMasterTable',
             'orderCol' => '0',
-            'nonOrderableTargets' => '6,7',
+            'nonOrderableTargets' => '5,6',
         ])
-            <div class="master-toolbar mb-3">
-                <div class="master-toolbar__filters">
-                    <div class="d-inline-flex align-items-center">
-                        <label for="vendor_organization_filter" class="mr-2 mb-0">Organization</label>
-                        <select id="vendor_organization_filter" class="form-control form-control-sm" style="min-width: 240px;" wire:model.live="organizationFilter">
-                            <option value="">All Organizations</option>
-                            @foreach($organizationOptions as $opt)
-                                <option value="{{ $opt->id }}">{{ $opt->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-            </div>
-
             <thead>
                 <tr>
                     <th>Name</th>
                     <th>Company</th>
-                    <th>Organization</th>
                     <th>Email</th>
                     <th>Mobile</th>
                     <th>Category</th>
@@ -38,7 +23,6 @@
                     <tr>
                         <td>{{ $item->name }}</td>
                         <td>{{ $item->companyname ?: '—' }}</td>
-                        <td>{{ $item->organization?->name ?? '—' }}</td>
                         <td>{{ $item->email }}</td>
                         <td>{{ $item->mobile ?: '—' }}</td>
                         <td>{{ $item->category?->name ?? '—' }}</td>
@@ -83,12 +67,8 @@
                     <div class="col-md-6 form-group"><label>Mobile</label><input type="text" class="form-control" wire:model="mobile"></div>
                 </div>
                 <div class="form-group">
-                    <label>Organization</label>
-                    <select class="form-control @error('organization_id') is-invalid @enderror" wire:model="organization_id">
-                        <option value="">Select Organization</option>
-                        @foreach($organizationOptions as $opt) <option value="{{ $opt->id }}">{{ $opt->name }}</option> @endforeach
-                    </select>
-                    @error('organization_id') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                    <input type="hidden" wire:model="organization_id">
+                    @error('organization_id') <span class="text-danger small d-block">{{ $message }}</span> @enderror
                 </div>
                 <div class="form-group">
                     <label>Category</label>

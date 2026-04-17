@@ -10,6 +10,8 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 use OwenIt\Auditing\Auditable as AuditableTrait;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 
 
@@ -166,6 +168,10 @@ public function getDurationHoursAttribute(): float
      */
     public static function hasOpenShift(int $userId): bool
     {
+        if (!Schema::hasTable((new self())->getTable())) {
+            return false;
+        }
+
         return static::where('user_id', $userId)
             ->whereNull('end_time')
             ->exists();
@@ -176,6 +182,10 @@ public function getDurationHoursAttribute(): float
      */
     public static function openShiftFor(int $userId): ?self
     {
+        if (!Schema::hasTable((new self())->getTable())) {
+            return null;
+        }
+
         return static::where('user_id', $userId)
             ->whereNull('end_time')
             ->first();
@@ -196,11 +206,15 @@ public function getDurationHoursAttribute(): float
      */
    public static function autoCloseOpenShifts(): int
     {
-    return static::whereNull('end_time')
-        ->whereDate('start_time', '<', now()->toDateString())
-        ->update([
-            'end_time' => DB::raw("DATE_ADD(DATE(start_time), INTERVAL 23 HOUR 59 MINUTE 59 SECOND)")
-        ]);
+        if (!Schema::hasTable((new self())->getTable())) {
+            return 0;
+        }
+
+        return static::whereNull('end_time')
+            ->whereDate('start_time', '<', now()->toDateString())
+            ->update([
+                'end_time' => DB::raw("DATE_ADD(DATE(start_time), INTERVAL 23 HOUR 59 MINUTE 59 SECOND)")
+            ]);
     }
 
     protected static function booted()
@@ -220,6 +234,10 @@ public function getDurationHoursAttribute(): float
 
     public static function currentShiftForUser(int $userId): ?self
     {
+        if (!Schema::hasTable((new self())->getTable())) {
+            return null;
+        }
+
         return self::where('user_id', $userId)
             ->whereNull('end_time')
             ->latest('start_time')

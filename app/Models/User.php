@@ -32,11 +32,13 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
         'password',
         'driver',
         'active',
+        'user_type',
+        'last_selected_organization_id',
         'change_password',
-        'status_notes',
         'phone',
         'soft_delete',
         'department_id',
+        'designation_id',
         'contributor_status',
         'reporting_manager_id',
         'address',
@@ -64,7 +66,9 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
         'last_logout_at' => 'datetime',
         'active' => 'boolean',
         'department_id' => 'integer',
+        'designation_id' => 'integer',
         'reporting_manager_id' => 'integer',
+        'last_selected_organization_id' => 'integer',
     ];
     protected $dates = [
         'deleted_at'
@@ -79,9 +83,10 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
         'email',
         'phone',
         'active',
+        'user_type',
         'change_password',
-        'status_notes',
         'department_id',
+        'designation_id',
         'reporting_manager_id',
         'address',
         'city',
@@ -298,6 +303,11 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
     public function department()
     {
         return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    public function designation(): BelongsTo
+    {
+        return $this->belongsTo(UserDesignation::class, 'designation_id');
     }
 
     public function organizations(): BelongsToMany

@@ -1,61 +1,43 @@
-/* Hide the original logo text */
-.brand-text {
-    display: none;
-}
-
-/* Hide the original logo image */
-.brand-image {
-    display: none;
-}
-
-/* Add your own logo using a pseudo-element */
-.brand-link::before {
-    content: '';
-    display: inline-block;
-    background-image: url('/images/logo.png'); /* Put your logo in public/images/ */
-    background-size: contain;
-    background-repeat: no-repeat;
-    width: 35px;  /* Adjust size as needed */
-    height: 35px; /* Adjust size as needed */
-    margin-right: 10px;
-    vertical-align: middle;
-}
-
-/* Add your own brand name using a pseudo-element */
+/* Keep sidebar branding controlled by Blade markup (dynamic org logo/initials). */
+.brand-link::before,
 .brand-link::after {
-    content: 'Pulse Publication';
-    color: #fff;
-    font-weight: bold;
-    vertical-align: middle;
+    content: none !important;
 }
 
-/* When sidebar is collapsed: show only the logo; no text */
-.sidebar-collapse .brand-link::after,
-body.sidebar-collapse .brand-link::after {
-    content: none;
-    display: none;
-}
-.sidebar-collapse .brand-text,
-body.sidebar-collapse .brand-text {
-    display: none !important;
-}
-.sidebar-collapse .brand-link::before,
-body.sidebar-collapse .brand-link::before {
-    margin-right: 0;
+.main-sidebar .brand-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 57px;
+    padding: 0.7rem 0.85rem;
+    overflow: hidden;
 }
 
-/* When collapsed sidebar is hover-expanded: show brand text again */
-.sidebar-collapse .main-sidebar:hover .brand-link::after,
-body.sidebar-collapse .main-sidebar:hover .brand-link::after {
-    content: 'Pulse Publication';
-    display: inline-block;
-    color: #fff;
-    font-weight: bold;
-    vertical-align: middle;
+.main-sidebar .brand-link .organization-brand-logo {
+    float: none;
+    margin: 0;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #ffffff;
+    opacity: 1;
 }
-.sidebar-collapse .main-sidebar:hover .brand-link::before,
-body.sidebar-collapse .main-sidebar:hover .brand-link::before {
-    margin-right: 10px;
+
+.main-sidebar .brand-link .organization-brand-initials {
+    background-color: #6c757d;
+    font-size: 0.8rem;
+    border-radius: 999px;
+}
+
+.main-sidebar .brand-link .brand-text {
+    margin: 0;
+    font-size: 0.92rem;
+    max-width: calc(100% - 42px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 
@@ -145,10 +127,19 @@ select optgroup {
     background: #a8a8a8;
 }
 .role-perms-module {
-    padding: 2px 0;
+    padding: 6px 8px;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    background: #ffffff;
+    margin-bottom: 8px;
 }
 .role-module-toggle {
     text-decoration: none !important;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
 }
 .role-module-toggle:hover {
     text-decoration: none !important;
@@ -158,6 +149,37 @@ select optgroup {
 .role-perms-list {
     font-size: 0.8rem;
     word-break: break-word;
+    padding: 2px 0 0 0;
+}
+
+.role-perms-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 0 2px 0;
+}
+.role-perm-chip {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 2px 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 999px;
+    background: #f8f9fa;
+    color: #495057;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.role-module-icon {
+    font-size: 0.75rem;
+    width: 14px;
+    color: #6c757d;
+}
+.role-perm-count {
+    font-size: 0.68rem;
 }
 
 /* Organization create/edit form */
@@ -180,5 +202,4 @@ select optgroup {
 /* SweetAlert2 toasts above other content (e.g. organization edit) */
 body .swal2-container { z-index: 99999 !important; }
 body .swal2-popup.swal2-toast { z-index: 100000 !important; }
-
 

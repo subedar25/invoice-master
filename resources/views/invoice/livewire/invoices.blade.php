@@ -5,16 +5,41 @@
             'addButtonText' => 'Create Invoice',
             'tableId' => 'invoiceTable',
             'orderCol' => '0',
-            'nonOrderableTargets' => '5,6',
+            'nonOrderableTargets' => '8',
         ])
+            @slot('filters')
+                <div class="row w-100 mb-3 align-items-end gx-3 gy-2">
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label class="mb-1">Status</label>
+                        <select class="form-control w-100" wire:model.live="filterStatus">
+                            <option value="all">All</option>
+                            <option value="Approve">Approve</option>
+                            <option value="Pending">Pending</option>
+                            <option value="in_process">In Process</option>
+                            <option value="Complete">Complete</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label class="mb-1">Department</label>
+                        <select class="form-control w-100" wire:model.live="filterDepartment">
+                            <option value="">All</option>
+                            @foreach($filterDepartments as $department)
+                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            @endslot
             <thead>
                 <tr>
-                    <th>Invoice #</th>
-                    <th>Vendor</th>
-                    <th>Organization</th>
+                    <th>Invoice</th>
+                    <th>Brand Name</th>
+                    <th>Party Name</th>
                     <th>Amount</th>
-                    <th>Date</th>
+                    <th>Priority</th>
                     <th>Status</th>
+                    <th>Department Name</th>
+                    <th>Created Date</th>
                     <th class="master-table-actions">Actions</th>
                 </tr>
             </thead>
@@ -22,11 +47,34 @@
                 @foreach($invoices as $invoice)
                     <tr>
                         <td>{{ $invoice->invoice_number }}</td>
-                        <td>{{ $invoice->vendor?->name }}</td>
-                        <td>{{ $invoice->organization?->name }}</td>
+                        <td>{{ $invoice->outlet?->name ?? 'N/A' }}</td>
+                        <td>{{ $invoice->vendor?->name ?? 'N/A' }}</td>
                         <td>{{ number_format($invoice->total_amount, 2) }}</td>
-                        <td>{{ $invoice->created_date }}</td>
-                        <td><span class="badge badge-info">{{ strtoupper($invoice->status) }}</span></td>
+                        <td>
+                            @php
+                                $priority = ucfirst(strtolower((string) ($invoice->priority ?? 'Medium')));
+                                $priorityBadgeClass = match ($priority) {
+                                    'High' => 'badge-danger',
+                                    'Low' => 'badge-secondary',
+                                    default => 'badge-warning',
+                                };
+                            @endphp
+                            <span class="badge {{ $priorityBadgeClass }}">{{ $priority }}</span>
+                        </td>
+                        <td>
+                            @php
+                                $rawStatus = strtolower(trim((string) ($invoice->status ?? '')));
+                                $statusLabel = match ($rawStatus) {
+                                    'approve', 'approved' => 'Approve',
+                                    'in process', 'in_process', 'processing' => 'In Process',
+                                    'complete', 'completed' => 'Complete',
+                                    default => 'Pending',
+                                };
+                            @endphp
+                            <span class="badge badge-info">{{ $statusLabel }}</span>
+                        </td>
+                        <td>{{ $invoice->department?->name ?? 'N/A' }}</td>
+                        <td>{{ $invoice->created_date ?? optional($invoice->created_at)->format('Y-m-d') ?? 'N/A' }}</td>
                         <td>
                             <div class="action-div master-actions">
                                 <a href="#" wire:click.prevent="openViewModal({{ $invoice->id }})" class="action-icon"><i class="fa fa-eye"></i></a>
@@ -49,18 +97,10 @@
             <form wire:submit.prevent="{{ $showEditModal ? 'saveEdit' : 'saveCreate' }}">
                 <div class="row">
                     <div class="col-md-12 form-group">
-                        <label>Organization *</label>
-                        <select class="form-control @error('organization_id') is-invalid @enderror" wire:model.live="organization_id">
-                            <option value="">Select Organization</option>
-                            @foreach($organizations as $org) <option value="{{ $org->id }}">{{ $org->name }}</option> @endforeach
-                        </select>
-                        @error('organization_id') <span class="text-danger small">{{ $message }}</span> @enderror
-                    </div>
-                    <div class="col-md-12 form-group">
-                        <label>Select Outlet *</label>
+                        <label>Brand Name *</label>
                         <div class="input-group">
                             <select class="form-control @error('outlet_id') is-invalid @enderror" wire:model="outlet_id">
-                                <option value="">Select Outlet</option>
+                                <option value="">Select Brand Name</option>
                                 @foreach($outlets as $out) <option value="{{ $out->id }}">{{ $out->name }}</option> @endforeach
                             </select>
                             <div class="input-group-append">
@@ -103,8 +143,10 @@
                     <div class="col-md-4 form-group">
                         <label>Status</label>
                         <select class="form-control" wire:model="status">
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
+                        <option value="Pending">Pending</option>
+                            <option value="Approve">Approve</option>
+                            <option value="in_process">In Process</option>
+                            <option value="Complete">Complete</option>
                         </select>
                     </div>
                     @endif
@@ -205,7 +247,7 @@
                     <div class="card-body py-3">
                         <label class="font-weight-bold d-block">Supporting Files</label>
                         <input type="file" class="form-control-file @error('uploaded_files.*') is-invalid @enderror" wire:model="uploaded_files" multiple>
-                        <small class="text-muted d-block mt-1">Upload multiple files. Files are stored in `public/invoice_files/{invoice_id}`.</small>
+                        <small class="text-muted d-block mt-1">Upload multiple files.</small>
                         @error('uploaded_files') <span class="text-danger small d-block mt-1">{{ $message }}</span> @enderror
                         @error('uploaded_files.*') <span class="text-danger small d-block mt-1">{{ $message }}</span> @enderror
 
@@ -257,21 +299,144 @@
 
     @if($showViewModal && $viewRecord)
         @component('masterapp.livewire.masters.components.view-card', ['viewTitle' => 'Invoice Details'])
+            @php
+                $viewStatusRaw = strtolower(trim((string) ($viewRecord->status ?? '')));
+                $viewStatusLabel = match ($viewStatusRaw) {
+                    'approve', 'approved' => 'Approve',
+                    'in process', 'in_process', 'processing' => 'In Process',
+                    'complete', 'completed' => 'Complete',
+                    default => 'Pending',
+                };
+
+                $viewPriority = ucfirst(strtolower((string) ($viewRecord->priority ?? 'Medium')));
+                $viewPriorityBadgeClass = match ($viewPriority) {
+                    'High' => 'badge-danger',
+                    'Low' => 'badge-secondary',
+                    default => 'badge-warning',
+                };
+            @endphp
+
             <div class="row">
-                <div class="col-md-6">
-                    <p><strong>Invoice #:</strong> {{ $viewRecord->invoice_number }}</p>
-                    <p><strong>Vendor:</strong> {{ $viewRecord->vendor?->name }}</p>
+                <div class="col-md-12 mb-3">
+                    <strong>Invoice #:</strong> {{ $viewRecord->invoice_number ?? 'N/A' }}
                 </div>
-                <div class="col-md-6 text-right">
-                    <p><strong>Date:</strong> {{ $viewRecord->created_date }}</p>
-                    <p><strong>Total:</strong> {{ number_format($viewRecord->total_amount, 2) }}</p>
+                <div class="col-md-12 mb-3">
+                    <strong>Organization:</strong> {{ $viewRecord->organization?->name ?? 'N/A' }}
+                </div>
+                <div class="col-md-12 mb-3">
+                    <strong>Brand Name:</strong> {{ $viewRecord->outlet?->name ?? 'N/A' }}
+                </div>
+                <div class="col-md-12 mb-3">
+                    <strong>Party Name:</strong> {{ $viewRecord->vendor?->name ?? 'N/A' }}
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <strong>Department:</strong> {{ $viewRecord->department?->name ?? 'N/A' }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <strong>Priority:</strong>
+                    <span class="badge {{ $viewPriorityBadgeClass }}">{{ $viewPriority }}</span>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <strong>Status:</strong>
+                    <span class="badge badge-info">{{ $viewStatusLabel }}</span>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <strong>Task:</strong>
+                    <div class="mt-1">{{ $viewRecord->description ?: 'N/A' }}</div>
                 </div>
             </div>
-            <table class="table mt-3">
-                @foreach($viewRecord->details as $det)
-                    <tr><td>{{ $det->product_desciption }}</td><td>{{ $det->quantity }}</td><td>{{ number_format($det->total_amount, 2) }}</td></tr>
-                @endforeach
-            </table>
+
+            <div class="table-responsive mt-2">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>HSN</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            <th>CGST (%)</th>
+                            <th>SGST (%)</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($viewRecord->details as $det)
+                            @php
+                                $qty = (float) ($det->quantity ?? 0);
+                                $unitPrice = (float) ($det->unit_price ?? 0);
+                                $cgst = (float) ($det->cgst ?? 0);
+                                $sgst = (float) ($det->sgst ?? 0);
+                                $lineBase = $qty * $unitPrice;
+                                $lineTotal = $lineBase + ($lineBase * ($cgst + $sgst) / 100);
+                            @endphp
+                            <tr>
+                                <td>{{ $det->product_desciption ?? 'N/A' }}</td>
+                                <td>{{ $det->hsn ?? '-' }}</td>
+                                <td>{{ $qty }}</td>
+                                <td>{{ number_format($unitPrice, 2) }}</td>
+                                <td>{{ number_format($cgst, 2) }}</td>
+                                <td>{{ number_format($sgst, 2) }}</td>
+                                <td>{{ number_format($lineTotal, 2) }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">No line items found.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+                @php
+                    $viewGrossTotal = (float) $viewRecord->details->sum(function ($d) {
+                        return ((float) ($d->quantity ?? 0)) * ((float) ($d->unit_price ?? 0));
+                    });
+                    $viewTaxTotal = (float) $viewRecord->details->sum(function ($d) {
+                        $qty = (float) ($d->quantity ?? 0);
+                        $unit = (float) ($d->unit_price ?? 0);
+                        $cgst = (float) ($d->cgst ?? 0);
+                        $sgst = (float) ($d->sgst ?? 0);
+                        $base = $qty * $unit;
+                        return $base * ($cgst + $sgst) / 100;
+                    });
+                @endphp
+                <div class="text-right" style="width: 320px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                    <div class="d-flex justify-content-between">
+                        <strong>Gross Total:</strong>
+                        <span>{{ number_format($viewGrossTotal, 2) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between border-bottom pb-2 mt-2">
+                        <strong>Tax (Total GST):</strong>
+                        <span>{{ number_format($viewTaxTotal, 2) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between pt-2">
+                        <strong>Amount:</strong>
+                        <strong>{{ number_format((float) ($viewRecord->total_amount ?? 0), 2) }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            @php
+                $viewFiles = \App\Models\InvoiceFile::where('invoice_id', $viewRecord->id)->orderByDesc('id')->get();
+            @endphp
+
+            <div class="mt-3">
+                <label class="font-weight-bold d-block">Supporting Files</label>
+                @if($viewFiles->isEmpty())
+                    <div class="text-muted">No files uploaded.</div>
+                @else
+                    @foreach($viewFiles as $file)
+                        <div class="d-flex align-items-center justify-content-between border rounded bg-white px-3 py-2 mb-2">
+                            <a href="{{ asset('invoice_files/' . $file->invoice_id . '/' . $file->filename) }}" target="_blank" class="text-truncate pr-3">
+                                {{ $file->filename }}
+                            </a>
+                        </div>
+                    @endforeach
+                @endif
+            </div>
         @endcomponent
     @endif
 

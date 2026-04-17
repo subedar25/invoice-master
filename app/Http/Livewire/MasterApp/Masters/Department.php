@@ -3,7 +3,6 @@
 namespace App\Http\Livewire\MasterApp\Masters;
 
 use App\Models\Department as DepartmentModel;
-use App\Models\Organization as OrganizationModel;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -32,8 +31,16 @@ class Department extends Component
 
     protected $queryString = [
         'search' => ['except' => ''],
-        'organizationFilter' => ['except' => ''],
     ];
+
+    public function mount(): void
+    {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organizationFilter = (string) $selectedOrganizationId;
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+    }
 
     protected function rules(): array
     {
@@ -46,7 +53,7 @@ class Department extends Component
             'name' => ['required', 'string', 'max:255', $uniqueRule],
             'description' => ['nullable', 'string', 'max:65535'],
             'parent_id' => ['nullable', 'exists:departments,id'],
-            'organization_id' => ['nullable', 'exists:organizations,id'],
+            'organization_id' => ['required', 'exists:organizations,id'],
         ];
     }
 
@@ -58,11 +65,6 @@ class Department extends Component
     ];
 
     public function updatingSearch(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatingOrganizationFilter(): void
     {
         $this->resetPage();
     }
@@ -88,12 +90,13 @@ class Department extends Component
     public function openEditModal(int $id): void
     {
         $record = DepartmentModel::withTrashed()->findOrFail($id);
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
 
         $this->editId = $id;
         $this->name = $record->name;
         $this->description = $record->description ?? '';
         $this->parent_id = (string) ($record->parent_id ?? '');
-        $this->organization_id = (string) ($record->organization_id ?? '');
+        $this->organization_id = (string) ($selectedOrganizationId ?: $record->organization_id);
 
         $this->showEditModal = true;
         $this->showCreateModal = false;
@@ -133,6 +136,11 @@ class Department extends Component
 
     public function saveCreate(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+
         try {
             $this->validate();
         } catch (ValidationException $e) {
@@ -154,6 +162,11 @@ class Department extends Component
 
     public function saveEdit(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+
         try {
             $this->validate();
         } catch (ValidationException $e) {
@@ -212,8 +225,7 @@ class Department extends Component
                 $search = $this->search;
                 $q->where(function ($sub) use ($search) {
                     $sub->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('description', 'like', '%' . $search . '%')
-                        ->orWhereHas('organization', fn ($org) => $org->where('name', 'like', '%' . $search . '%'));
+                        ->orWhere('description', 'like', '%' . $search . '%');
                 });
             });
 
@@ -245,19 +257,15 @@ class Department extends Component
     public function getParentOptionsProperty()
     {
         $query = DepartmentModel::query()->orderBy('name');
+        if ($this->organization_id !== '') {
+            $query->where('organization_id', (int) $this->organization_id);
+        }
 
         if ($this->editId) {
             $query->where('id', '!=', $this->editId);
         }
 
         return $query->get();
-    }
-
-    public function getOrganizationOptionsProperty()
-    {
-        return OrganizationModel::query()
-            ->orderBy('name')
-            ->get(['id', 'name']);
     }
 
     public function render()
@@ -269,10 +277,22 @@ class Department extends Component
 
     private function resetForm(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
         $this->name = '';
         $this->description = '';
         $this->parent_id = '';
-        $this->organization_id = '';
+        $this->organization_id = $selectedOrganizationId !== null ? (string) $selectedOrganizationId : '';
         $this->resetValidation();
+    }
+
+    private function resolveSelectedOrganizationId(): ?int
+    {
+        $organizationId = session('current_organization_id');
+        if (! empty($organizationId)) {
+            return (int) $organizationId;
+        }
+
+        $fallback = auth()->user()?->last_selected_organization_id;
+        return ! empty($fallback) ? (int) $fallback : null;
     }
 }

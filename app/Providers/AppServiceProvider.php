@@ -48,7 +48,9 @@ use App\Http\Livewire\MasterApp\Masters\Location as LocationComponent;
 use App\Http\Livewire\MasterApp\Masters\Outlet as OutletComponent;
 use App\Http\Livewire\MasterApp\Masters\Product as ProductComponent;
 use App\Http\Livewire\MasterApp\Masters\Tax as TaxComponent;
+use App\Http\Livewire\MasterApp\Masters\Designation as DesignationComponent;
 use Livewire\Livewire;
+use App\Models\Organization;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -109,6 +111,7 @@ class AppServiceProvider extends ServiceProvider
         Livewire::component('master-app.masters.outlet', OutletComponent::class);
         Livewire::component('master-app.masters.product', ProductComponent::class);
         Livewire::component('master-app.masters.tax', TaxComponent::class);
+        Livewire::component('master-app.masters.designation', DesignationComponent::class);
 
         Paginator::useBootstrap();
         View::composer('partials.notification', function ($view) {
@@ -131,6 +134,64 @@ class AppServiceProvider extends ServiceProvider
                 $view->with([
                     'unreadCount' => 0,
                     'recentNotifications' => collect(),
+                ]);
+            }
+        });
+
+        View::composer([
+            'masterapp.partials.top-menu',
+            'masterapp.partials.sidebar-panel',
+            'partials.top-menu',
+            'partials.sidebar-panel',
+        ], function ($view) {
+            if (!auth()->check()) {
+                return;
+            }
+
+            try {
+                $user = auth()->user();
+                $isSystemUser = ($user->user_type ?? '') === 'systemuser';
+
+                $organizations = $isSystemUser
+                    ? Organization::orderBy('name')->get(['id', 'name', 'logo'])
+                    : $user->organizations()->orderBy('name')->get(['organizations.id', 'organizations.name', 'organizations.logo']);
+
+                session([
+                    'user_organization_ids' => $organizations->pluck('id')->map(fn ($id) => (int) $id)->values()->all(),
+                ]);
+
+                $selectedId = (int) session('current_organization_id', 0);
+                if ($selectedId && ! $organizations->contains('id', $selectedId)) {
+                    $selectedId = 0;
+                    session()->forget('current_organization_id');
+                }
+
+                if (! $selectedId) {
+                    $lastSelectedId = (int) ($user->last_selected_organization_id ?? 0);
+                    if ($lastSelectedId && $organizations->contains('id', $lastSelectedId)) {
+                        $selectedId = $lastSelectedId;
+                        session(['current_organization_id' => $selectedId]);
+                    }
+                }
+
+                // If a non-system user has exactly one org, default it into the session.
+                if (! $selectedId && ! $isSystemUser && $organizations->count() === 1) {
+                    $selectedId = (int) $organizations->first()->id;
+                    session(['current_organization_id' => $selectedId]);
+                }
+
+                $currentOrganization = $selectedId ? $organizations->firstWhere('id', $selectedId) : null;
+
+                $view->with([
+                    'orgSwitcherOrganizations' => $organizations,
+                    'orgSwitcherCurrentOrganization' => $currentOrganization,
+                    'orgSwitcherIsSystemUser' => $isSystemUser,
+                ]);
+            } catch (\Exception $e) {
+                $view->with([
+                    'orgSwitcherOrganizations' => collect(),
+                    'orgSwitcherCurrentOrganization' => null,
+                    'orgSwitcherIsSystemUser' => false,
                 ]);
             }
         });

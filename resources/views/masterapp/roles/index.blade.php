@@ -217,14 +217,33 @@
     });
 
     // Permissions column: toggle module to show/hide permissions
-    $(document).on('click', '.role-module-toggle', function(e) {
-      e.preventDefault();
-      var $row = $(this).closest('.role-perms-module');
-      var $list = $row.find('.role-perms-list');
-      var $icon = $row.find('.role-module-icon');
-      $list.collapse('toggle');
-      $icon.toggleClass('fa-chevron-right fa-chevron-down');
-    });
+    // Use namespaced handlers + collapse events so we don't double-toggle on redraw.
+    $(document)
+      .off('click.rolePerms', '.role-module-toggle')
+      .on('click.rolePerms', '.role-module-toggle', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        var $toggle = $(this);
+        var $module = $toggle.closest('.role-perms-module');
+        var $list = $module.find('.role-perms-list').first();
+        if (!$list.length) return;
+
+        // Guard against duplicate click events (e.g. touch + click),
+        // which can cause instant open-then-close behavior.
+        var now = Date.now();
+        var lastToggleAt = Number($toggle.data('lastToggleAt') || 0);
+        if (now - lastToggleAt < 300) return;
+        $toggle.data('lastToggleAt', now);
+
+        // Keep module open on click; do not auto-collapse on repeated clicks.
+        if (!$list.is(':visible')) {
+          $list.stop(true, true).slideDown(120);
+        }
+        $module.find('.role-module-icon').removeClass('fa-chevron-right').addClass('fa-chevron-down');
+        $toggle.attr('aria-expanded', 'true');
+      });
 
 // Your form submission handlers remain the same and are correct.
  $(document).ready(function() {

@@ -5,11 +5,16 @@ namespace App\Infrastructure\Persistence\Timesheet;
 use App\Core\Timesheet\Contracts\TimesheetRepository;
 use App\Models\Timesheet;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 
 class EloquentTimesheetRepository implements TimesheetRepository
 {
     public function hasOpenShift(int $userId): bool
     {
+        if (!Schema::hasTable((new Timesheet())->getTable())) {
+            return false;
+        }
+
         return Timesheet::where('user_id', $userId)
             ->whereNull('end_time')
             ->exists();
@@ -17,6 +22,10 @@ class EloquentTimesheetRepository implements TimesheetRepository
 
     public function getCurrentShift(int $userId): ?Timesheet
     {
+        if (!Schema::hasTable((new Timesheet())->getTable())) {
+            return null;
+        }
+
         return Timesheet::where('user_id', $userId)
             ->whereNull('end_time')
             ->latest('start_time')

@@ -14,7 +14,7 @@ class EloquentUserRepository implements UserRepository
     }
     public function find(int $id): User
     {
-        return User::with(['roles', 'organizations', 'reportingManager', 'userDocuments', 'department'])->findOrFail($id);
+        return User::with(['roles', 'organizations', 'reportingManager', 'userDocuments', 'department', 'designation'])->findOrFail($id);
     }
     public function create(array $data): User
     {
@@ -25,8 +25,10 @@ class EloquentUserRepository implements UserRepository
             'phone'         => $data['phone'] ?? null,
             'password'     => $data['password'],
             'active'        => $data['active'],
+            'user_type'     => $data['user_type'] ?? 'user',
             'driver' => false,
             'department_id' => $data['department_id'] ?? null,
+            'designation_id' => $data['designation_id'] ?? null,
             'reporting_manager_id' => $data['reporting_manager_id'] ?? null,
             'address' => $data['address'] ?? null,
             'city' => $data['city'] ?? null,
@@ -35,7 +37,6 @@ class EloquentUserRepository implements UserRepository
             'photo' => $data['photo'] ?? null,
             'is_wordpress_user' => $data['is_wordpress_user'],
             'contributor_status' => null,
-            'status_notes' => $data['status_notes'] ?? null,
         ]);
 
         if (!empty($data['roles'])) {
@@ -59,7 +60,7 @@ class EloquentUserRepository implements UserRepository
         $organizationIds = $data['organization_ids'] ?? [];
         $otherDocumentsData = $data['other_documents_data'] ?? [];
 
-        unset($data['roles'], $data['organization_ids'], $data['other_documents_data'], $data['other_documents']);
+        unset($data['roles'], $data['organization_ids'], $data['other_documents_data'], $data['other_documents'], $data['remove_photo'], $data['remove_documents']);
 
         $user = User::findOrFail($id);
         $user->update($data);
@@ -84,6 +85,6 @@ class EloquentUserRepository implements UserRepository
 
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
-        return User::with(['roles', 'department', 'organizations', 'reportingManager'])->get();
+        return User::with(['roles', 'department', 'designation', 'organizations', 'reportingManager'])->get();
     }
 }

@@ -25,23 +25,16 @@ class EntityInfoController extends Controller
         $entity = $modelClass::findOrFail($id);
 
         $displayStatusLabel = null;
-        if ($type === 'users') {
-            $currentShift = Timesheet::currentShiftForUser($entity->id);
-            $clockInModeToStatusLabel = [
-                'office'         => 'Available',
-                'remote'         => 'Available - Remote',
-                'out_of_office'  => 'Available - Out of Office',
-                'do_not_disturb' => 'Do Not Disturb',
-                'lunch'          => 'Lunch',
-            ];
-            if ($currentShift && isset($clockInModeToStatusLabel[$currentShift->clock_in_mode ?? ''])) {
-                $displayStatusLabel = $clockInModeToStatusLabel[$currentShift->clock_in_mode];
-            } else {
-                $displayStatusLabel = 'Not Available';
-            }
+        if ($type === 'users' || $type === 'drivers') {
+            // "Status" on the detail page should reflect the DB's active flag.
+            $displayStatusLabel = (bool) ($entity->active ?? false) ? 'Active' : 'Inactive';
         }
 
         $currentTab = strtolower($request->query('tab', 'info'));
+        $allowedTabs = array_map('strtolower', $config['tabs'] ?? []);
+        if (!in_array($currentTab, $allowedTabs, true)) {
+            $currentTab = strtolower($allowedTabs[0] ?? 'info');
+        }
 
         // Resolve tab view so it works on both case-sensitive (Linux) and case-insensitive (Windows) filesystems
         $tabViewName = "masterapp.entity.tabs.{$type}.{$currentTab}";

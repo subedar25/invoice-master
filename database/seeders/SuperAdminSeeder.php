@@ -18,27 +18,28 @@ class SuperAdminSeeder extends Seeder
         // 1. Create or find the "Super Admin" role.
       
         $role = Role::firstOrCreate(
-            ['name' => 'Super Admin'], // Attributes to search by
+            ['name' => 'System Admin'], // Attributes to search by
             ['guard_name' => 'web']    // Additional attributes if it needs to be created
         );
 
         // 2. Get all permissions from the database.
         $permissions = Permission::pluck('id')->all();
 
-        // 3. Assign all permissions to the "Super Admin" role.
+        // 3. Assign all permissions to the "System Admin" role.
         $role->syncPermissions($permissions);
 
         // 4. Create or find the Super Admin user.
         $user = User::firstOrCreate(
-            ['email' => 'superadmin@gmail.com'], // Search by email to prevent duplicates
+            ['email' => 'systemadmin@gmail.com'], // Search by email to prevent duplicates
             [
                 'first_name' => 'Super',
                 'last_name' => 'Admin',
-                'password' => Hash::make('password'), // Use Hash::make() for hashing
+                'password' => Hash::make('Password@2507'), // Use Hash::make() for hashing
                 'email_verified_at' => now(), // Assume the admin's email is verified
                 'created_at' => now(),
                 'updated_at' => now(),
                 'active' => 1,
+                'user_type' => 'systemuser',
                 // 'contributor_status' => 'no',
             ]
         );
@@ -46,6 +47,6 @@ class SuperAdminSeeder extends Seeder
         // 5. Assign the "Super Admin" role to the user.
         $user->assignRole($role);
 
-        $this->command->info(' Super Admin user and role created/updated successfully.');
+        $this->command->info(' System Admin user and role created/updated successfully.');
     }
 }

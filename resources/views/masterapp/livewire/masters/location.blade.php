@@ -7,26 +7,11 @@
                 'tableId' => 'locationMasterTable',
                 'orderCol' => '0',
                 'orderDir' => 'asc',
-                'nonOrderableTargets' => '7',
+                'nonOrderableTargets' => '6',
             ])
-                <div class="master-toolbar mb-3">
-                    <div class="master-toolbar__filters">
-                        <div class="d-inline-flex align-items-center">
-                            <label for="loc_organization_filter" class="mr-2 mb-0">Organization</label>
-                            <select id="loc_organization_filter" class="form-control form-control-sm" style="min-width: 240px;" wire:model.live="organizationFilter">
-                                <option value="">All Organizations</option>
-                                @foreach($this->organizationOptions as $opt)
-                                    <option value="{{ $opt->id }}">{{ $opt->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Organization</th>
                         <th>Address</th>
                         <th>Country</th>
                         <th>State</th>
@@ -39,7 +24,6 @@
                     @foreach($items as $item)
                         <tr>
                             <td>{{ $item->name }}</td>
-                            <td>{{ $item->organization?->name ?? '—' }}</td>
                             <td>{{ $item->address ?: '—' }}</td>
                             <td>{{ $item->country ?: '—' }}</td>
                             <td>{{ $item->state ?: '—' }}</td>
@@ -67,19 +51,6 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="master-toolbar mb-3">
-                        <div class="master-toolbar__filters">
-                            <div class="d-inline-flex align-items-center">
-                                <label for="loc_organization_filter_empty" class="mr-2 mb-0">Organization</label>
-                                <select id="loc_organization_filter_empty" class="form-control form-control-sm" style="min-width: 240px;" wire:model.live="organizationFilter">
-                                    <option value="">All Organizations</option>
-                                    @foreach($this->organizationOptions as $opt)
-                                        <option value="{{ $opt->id }}">{{ $opt->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
                     <p class="text-center text-muted mb-0">No locations found.</p>
                 </div>
             </div>
@@ -100,14 +71,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="loc_organization">Organization</label>
-                    <select id="loc_organization" class="form-control @error('organization_id') is-invalid @enderror" wire:model="organization_id">
-                        <option value="">— None —</option>
-                        @foreach($this->organizationOptions as $opt)
-                            <option value="{{ $opt->id }}">{{ $opt->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('organization_id') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                    <input type="hidden" wire:model="organization_id">
+                    @error('organization_id') <span class="text-danger small d-block">{{ $message }}</span> @enderror
                 </div>
 
                 <div class="form-group">

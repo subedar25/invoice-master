@@ -14,10 +14,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Department;
 use App\Models\Organization;
+use App\Models\UserDesignation;
 use App\Helpers\AppNotification;
 use App\Notifications\RoleUpdatedNotification;
 use App\Core\Email\Services\EmailService;
 use App\Core\File\Services\FileManagementService;
+use App\Models\UserDocument;
 
 class UserController extends Controller
 {
@@ -32,22 +34,57 @@ class UserController extends Controller
 
     public function index(UserService $service): View
     {
-        // $users = User::latest()->paginate(10);
+        $authUser = auth()->user();
+        $isSystemUser = ($authUser?->user_type ?? '') === 'systemuser';
+        $currentOrganizationId = (int) session('current_organization_id', 0);
 
-        // return view('masterapp.users.index', compact('users'));
-        $users = $service->getAll();
+        $accessibleOrganizations = $isSystemUser
+            ? Organization::orderBy('name')->get(['id', 'name'])
+            : $authUser->organizations()->orderBy('name')->get(['organizations.id', 'organizations.name']);
+
+        // Users list follows the org selected from the top switcher.
+        $users = $service->getAll()
+            ->reject(fn (User $u) => ($u->user_type ?? '') === 'systemuser')
+            ->filter(function (User $user) use ($currentOrganizationId, $isSystemUser, $accessibleOrganizations) {
+                if ($currentOrganizationId > 0) {
+                    return $user->organizations->contains('id', $currentOrganizationId);
+                }
+
+                if ($isSystemUser) {
+                    return true;
+                }
+
+                $allowedOrgIds = $accessibleOrganizations->pluck('id')->all();
+                if (empty($allowedOrgIds)) {
+                    return false;
+                }
+
+                return $user->organizations->pluck('id')->intersect($allowedOrgIds)->isNotEmpty();
+            })
+            ->values();
+
+        $organizations = $accessibleOrganizations;
 
 
-        return view('masterapp.users.index', compact('users', ));
+        return view('masterapp.users.index', compact('users', 'organizations', 'currentOrganizationId'));
     }
 
     public function create()
     {
+        $reportingManagers = User::query()
+            ->where(function ($query) {
+                $query->whereNull('user_type')
+                    ->orWhere('user_type', '!=', 'systemuser');
+            })
+            ->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name']);
+
         return view('masterapp.users.create', [
             'roles' => Role::where('is_active', true)->pluck('name', 'id'),
             'departments' => Department::all(),
+            'designations' => UserDesignation::where('status', true)->orderBy('name')->get(['id', 'name']),
             'organizations' => Organization::orderBy('name')->get(['id', 'name']),
-            'reportingManagers' => User::orderBy('first_name')->get(['id', 'first_name', 'last_name']),
+            'reportingManagers' => $reportingManagers,
         ]);
     }
 
@@ -55,18 +92,26 @@ class UserController extends Controller
     public function store(UserStoreRequest $request, UserService $service): JsonResponse|RedirectResponse
     {
         $data = $request->validated();
-        $data['photo'] = $request->hasFile('photo')
-            ? $this->fileService->upload($request->file('photo'), 'users/photos')
-            : null;
-        $data['other_documents_data'] = $this->storeUserDocuments($request);
-
+        // Create the user first so we can store files under users/<id>/...
+        $data['photo'] = null;
+        $data['other_documents_data'] = [];
         $user = $service->create($data);
+
+        if ($request->hasFile('photo')) {
+            $user->photo = $this->fileService->upload($request->file('photo'), "users/{$user->id}/photo");
+            $user->save();
+        }
+
+        $otherDocumentsData = $this->storeUserDocuments($request, $user);
+        if (!empty($otherDocumentsData)) {
+            $user->userDocuments()->createMany($otherDocumentsData);
+        }
 
         // Send welcome email to the newly created user
         $this->sendWelcomeEmail($user);
 
         // Send universal notification for user creation
-        AppNotification::notify_event('user.created', $user, auth()->user() ?? $user);
+        // AppNotification::notify_event('user.created', $user, auth()->user() ?? $user);
 
         //  If request is AJAX to return JSON
         if ($request->expectsJson()) {
@@ -85,14 +130,24 @@ class UserController extends Controller
     public function edit(int $id, UserService $service):View
     {
         $user = $service->get($id);
+        $this->ensureNotSystemUser($user);
+        $reportingManagers = User::query()
+            ->where('id', '!=', $user->id)
+            ->where(function ($query) {
+                $query->whereNull('user_type')
+                    ->orWhere('user_type', '!=', 'systemuser');
+            })
+            ->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name']);
 
         return view('masterapp.users.edit', [
             'user' => $user,
             'roles' => Role::where('is_active', true)->pluck('name','id'),
             'userRoles' => $user->roles->pluck('name','id')->toArray(),
             'departments' => Department::all(),
+            'designations' => UserDesignation::where('status', true)->orderBy('name')->get(['id', 'name']),
             'organizations' => Organization::orderBy('name')->get(['id', 'name']),
-            'reportingManagers' => User::where('id', '!=', $user->id)->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
+            'reportingManagers' => $reportingManagers,
         ]);
     }
 
@@ -100,19 +155,34 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $user = $service->get($id);
+        $this->ensureNotSystemUser($user);
         $oldRoles = $user->roles->pluck('name')->toArray();
 
         if ($request->hasFile('photo')) {
             $this->fileService->delete($user->photo);
-            $data['photo'] = $this->fileService->upload($request->file('photo'), 'users/photos');
+            $data['photo'] = $this->fileService->upload($request->file('photo'), "users/{$user->id}/photo");
+        } elseif ($request->boolean('remove_photo')) {
+            $this->fileService->delete($user->photo);
+            $data['photo'] = null;
         }
 
-        $data['other_documents_data'] = $this->storeUserDocuments($request);
+        $data['other_documents_data'] = $this->storeUserDocuments($request, $user);
+
+        if ($request->has('remove_documents')) {
+            $docsToDelete = \App\Models\UserDocument::whereIn('id', $request->input('remove_documents'))
+                ->where('user_id', $user->id)
+                ->get();
+            
+            foreach ($docsToDelete as $doc) {
+                $this->fileService->delete($doc->file_path);
+                $doc->delete();
+            }
+        }
 
         $updatedUser = $service->update($id, $data);
 
         // Send universal notification for user update
-        AppNotification::notify_event('user.updated', $updatedUser, auth()->user() ?? $updatedUser);
+        // AppNotification::notify_event('user.updated', $updatedUser, auth()->user() ?? $updatedUser);
 
         // Check if roles were updated and send notification
         $newRoles = $updatedUser->roles->pluck('name')->toArray();
@@ -125,7 +195,7 @@ class UserController extends Controller
             // $this->notifyAdminsAboutRoleUpdate($updatedUser, $oldRoles, $newRoles);
 
             // Send universal notification for role update
-            AppNotification::notify_event('role.updated', $updatedUser, auth()->user() ?? $updatedUser);
+            // AppNotification::notify_event('role.updated', $updatedUser, auth()->user() ?? $updatedUser);
         }
 
         //  If request is AJAX → return JSON
@@ -143,6 +213,7 @@ class UserController extends Controller
 
     public function destroy(int $id, UserService $service, User $user=null): JsonResponse {
         $user = $service->get($id);
+        $this->ensureNotSystemUser($user);
 
         $this->fileService->delete($user->photo);
         foreach ($user->userDocuments as $document) {
@@ -150,13 +221,39 @@ class UserController extends Controller
         }
 
         // Send universal notification for user deletion
-        AppNotification::notify_event('user.deleted', $user, auth()->user() ?? $user);
+        // AppNotification::notify_event('user.deleted', $user, auth()->user() ?? $user);
 
         $service->delete($id);
         // $user->delete();
 
         return response()->json([
             'message' => 'User deleted successfully',
+        ]);
+    }
+
+    public function destroyPhoto(User $user): JsonResponse
+    {
+        $this->ensureNotSystemUser($user);
+        $this->fileService->delete($user->photo);
+        $user->forceFill(['photo' => null])->save();
+
+        return response()->json([
+            'message' => 'Photo deleted successfully',
+        ]);
+    }
+
+    public function destroyDocument(User $user, UserDocument $document): JsonResponse
+    {
+        $this->ensureNotSystemUser($user);
+        if ((int) $document->user_id !== (int) $user->id) {
+            abort(404);
+        }
+
+        $this->fileService->delete($document->file_path);
+        $document->delete();
+
+        return response()->json([
+            'message' => 'Document deleted successfully',
         ]);
     }
 
@@ -168,6 +265,9 @@ class UserController extends Controller
 
     public function apiIndex(UserService $service): JsonResponse {
         $users = $service->index();
+        $users = is_iterable($users)
+            ? collect($users)->reject(fn ($u) => ($u->user_type ?? '') === 'systemuser')->values()
+            : $users;
 
         return response()->json([
             'users' => $users,
@@ -177,6 +277,7 @@ class UserController extends Controller
     public function toggleActive(Request $request,int $id, UserService $service) : JsonResponse
     {
     $user = $service->get($id);
+    $this->ensureNotSystemUser($user);
 
     $service->update($id, [
         'active' => ! $user->active,
@@ -187,6 +288,13 @@ class UserController extends Controller
         'message' => $user->active ? 'User Deactivated.' : 'User Activated.',
         // 'active'  => ! $user->active,
     ]);
+    }
+
+    private function ensureNotSystemUser(User $user): void
+    {
+        if (($user->user_type ?? '') === 'systemuser') {
+            abort(403, 'System user cannot be modified.');
+        }
     }
 
   // Show modal form (AJAX)
@@ -270,7 +378,7 @@ class UserController extends Controller
         $this->emailService->send($user->email, $subject, $view, $data, $options);
     }
 
-    private function storeUserDocuments(Request $request): array
+    private function storeUserDocuments(Request $request, User $user): array
     {
         $documents = [];
 
@@ -281,7 +389,7 @@ class UserController extends Controller
 
             $documents[] = [
                 'file_name' => $file->getClientOriginalName(),
-                'file_path' => $this->fileService->upload($file, 'users/documents'),
+                'file_path' => $this->fileService->upload($file, "users/{$user->id}/documents"),
             ];
         }
 

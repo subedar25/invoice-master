@@ -87,10 +87,10 @@ $(function () {
         },
         order: [[0, 'asc']],
         buttons: [
-            { extend: 'print', title: 'Pulse Publication - Organizations', text: '<i class="fa fa-print"></i> Print', className: 'btn btn-secondary', exportOptions: exportOpts },
-            { extend: 'copyHtml5', title: 'Pulse Publication - Organizations', text: '<i class="fa fa-copy"></i> Copy Data', className: 'btn btn-primary', exportOptions: exportOpts },
-            { extend: 'excelHtml5', title: 'Pulse Publication - Organizations', filename: 'Pulse Publication - Organizations', text: '<i class="fa fa-download"></i> Excel', className: 'btn btn-success', exportOptions: exportOpts },
-            { extend: 'pdfHtml5', title: 'Pulse Publication - Organizations', filename: 'Pulse Publication - Organizations', text: '<i class="fa fa-download"></i> PDF', className: 'btn btn-danger', orientation: 'landscape', pageSize: 'A4', exportOptions: exportOpts },
+            { extend: 'print', title: '{{ config('app.name', 'Invoice Masters') }} - Organizations', text: '<i class="fa fa-print"></i> Print', className: 'btn btn-secondary', exportOptions: exportOpts },
+            { extend: 'copyHtml5', title: '{{ config('app.name', 'Invoice Masters') }} - Organizations', text: '<i class="fa fa-copy"></i> Copy Data', className: 'btn btn-primary', exportOptions: exportOpts },
+            { extend: 'excelHtml5', title: '{{ config('app.name', 'Invoice Masters') }} - Organizations', filename: '{{ config('app.name', 'Invoice Masters') }} - Organizations', text: '<i class="fa fa-download"></i> Excel', className: 'btn btn-success', exportOptions: exportOpts },
+            { extend: 'pdfHtml5', title: '{{ config('app.name', 'Invoice Masters') }} - Organizations', filename: '{{ config('app.name', 'Invoice Masters') }} - Organizations', text: '<i class="fa fa-download"></i> PDF', className: 'btn btn-danger', orientation: 'landscape', pageSize: 'A4', exportOptions: exportOpts },
             { extend: 'colvis', text: '<i class="fa fa-columns"></i> Column visibility', className: 'btn btn-warning', columns: ':not(.no-vis)' }
         ],
         filterInputs: [

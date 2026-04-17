@@ -26,8 +26,9 @@ class UserUpdateRequest extends FormRequest
             'roles'   => ['required', 'array', 'min:1'],
             'roles.*' => ['exists:roles,id'],
             'department_id' => ['nullable', 'exists:departments,id'],
+            'designation_id' => ['nullable', 'exists:user_designation,id'],
             'active' => ['required', Rule::in(['0', '1'])],
-            'status_notes'  => 'nullable|string|max:200',
+            'user_type' => ['required', Rule::in(['systemuser', 'superadmin', 'admin', 'user'])],
             'organization_ids' => ['nullable', 'array'],
             'organization_ids.*' => ['exists:organizations,id'],
             'reporting_manager_id' => ['nullable', 'exists:users,id'],
@@ -39,6 +40,9 @@ class UserUpdateRequest extends FormRequest
             'other_documents' => ['nullable', 'array'],
             'other_documents.*' => ['file', 'max:10240'],
             'is_wordpress_user' => 'sometimes|boolean',
+            'remove_photo' => ['nullable', 'boolean'],
+            'remove_documents' => ['nullable', 'array'],
+            'remove_documents.*' => ['exists:user_documents,id'],
 
         ];
     }
@@ -57,6 +61,12 @@ class UserUpdateRequest extends FormRequest
         ]);
     }
 
+    if ($this->filled('designation_id')) {
+        $this->merge([
+            'designation_id' => (int) $this->input('designation_id'),
+        ]);
+    }
+
     if ($this->has('organization_ids')) {
         $this->merge([
             'organization_ids' => array_filter(array_map('intval', $this->input('organization_ids', []))),
@@ -72,6 +82,12 @@ class UserUpdateRequest extends FormRequest
     if ($this->has('is_wordpress_user')) {
         $this->merge([
             'is_wordpress_user' => (int) $this->input('is_wordpress_user'),
+        ]);
+    }
+
+    if ($this->has('user_type')) {
+        $this->merge([
+            'user_type' => strtolower(trim((string) $this->input('user_type'))),
         ]);
     }
     }

@@ -87,16 +87,17 @@ class RoleController extends Controller
 
                     $html = '<div class="role-perms-grouped">';
                     foreach ($grouped as $moduleName => $perms) {
-                        $permList = $perms->map(function ($p) {
-                            return e($p->display_name ?? $p->name);
-                        })->implode(', ');
+                        $permChips = $perms->map(function ($p) {
+                            $label = e($p->display_name ?? $p->name);
+                            return '<span class="role-perm-chip" title="' . $label . '">' . $label . '</span>';
+                        })->implode('');
                         $html .= '<div class="role-perms-module">';
-                        $html .= '<a href="#" class="role-module-toggle d-flex align-items-center py-1 text-dark" title="Click to show permissions">';
-                        $html .= '<i class="fa fa-chevron-right role-module-icon mr-1" style="font-size: 0.65rem; width: 12px;"></i>';
+                        $html .= '<button type="button" class="role-module-toggle d-flex align-items-center py-1 text-dark w-100" title="Click to show permissions" aria-expanded="false">';
+                        $html .= '<i class="fa fa-chevron-right role-module-icon mr-1" aria-hidden="true"></i>';
                         $html .= '<span class="small font-weight-bold">' . e($moduleName) . '</span>';
-                        $html .= '<span class="badge badge-pill badge-light border ml-1" style="font-size: 0.65rem;">' . $perms->count() . '</span>';
-                        $html .= '</a>';
-                        $html .= '<div class="role-perms-list collapse pl-3 py-1 small text-muted">' . $permList . '</div>';
+                        $html .= '<span class="badge badge-pill badge-light border ml-1 role-perm-count">' . $perms->count() . '</span>';
+                        $html .= '</button>';
+                        $html .= '<div class="role-perms-list" style="display:none;"><div class="role-perms-chips">' . $permChips . '</div></div>';
                         $html .= '</div>';
                     }
                     $html .= '</div>';

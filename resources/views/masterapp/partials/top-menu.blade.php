@@ -36,6 +36,45 @@
         </div>
       </li> -->
 
+      <!-- Organization Switcher -->
+      <li class="nav-item dropdown">
+          <a class="nav-link" data-toggle="dropdown" href="#" title="Switch organization">
+              <i class="fas fa-building mr-1"></i>
+              <span class="d-none d-md-inline">
+                  {{ $orgSwitcherCurrentOrganization->name ?? 'Select Organization' }}
+              </span>
+          </a>
+
+          <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+              <div class="dropdown-item dropdown-header">
+                  Organization
+              </div>
+              <div class="dropdown-divider"></div>
+
+              @php
+                  $orgs = $orgSwitcherOrganizations ?? collect();
+                  $currentOrgId = (int) ($orgSwitcherCurrentOrganization->id ?? 0);
+              @endphp
+
+              @if ($orgs->isEmpty())
+                  <span class="dropdown-item text-muted">No organizations available</span>
+              @else
+                  @foreach ($orgs as $org)
+                      <form method="POST" action="{{ route('masterapp.organization.switch') }}" class="m-0">
+                          @csrf
+                          <input type="hidden" name="organization_id" value="{{ $org->id }}">
+                          <button type="submit" class="dropdown-item d-flex align-items-center justify-content-between">
+                              <span class="text-truncate" style="max-width: 220px;">{{ $org->name }}</span>
+                              @if ((int) $org->id === $currentOrgId)
+                                  <i class="fas fa-check text-success"></i>
+                              @endif
+                          </button>
+                      </form>
+                  @endforeach
+              @endif
+          </div>
+      </li>
+
       <!-- Notifications Dropdown Menu -->
        @php
             $unreadCount = auth()->user()->unreadNotifications()->count();

@@ -19,7 +19,7 @@
                 @foreach($items as $item)
                     <tr>
                         <td>{{ $item->name }}</td>
-                        <td>{{ isset($item->created_at) ? $item->created_at->format('M j, Y') : '—' }}</td>
+                        <td>{{ $item->created_date ? $item->created_date->format('M j, Y') : '—' }}</td>
                         <td>
                             <div class="custom-control custom-switch">
                                 <input type="checkbox" class="custom-control-input" id="status_toggle_{{ $item->id }}" @if($item->status) checked @endif wire:change="toggleStatus({{ $item->id }})">
@@ -125,7 +125,10 @@
                 <dd class="col-sm-9">{{ $viewRecord->status ? 'Yes' : 'No' }}</dd>
 
                 <dt class="col-sm-3">Created</dt>
-                <dd class="col-sm-9">{{ isset($viewRecord->created_at) ? $viewRecord->created_at->format('M j, Y g:i A') : '—' }}</dd>
+                <dd class="col-sm-9">{{ $viewRecord->created_date ? $viewRecord->created_date->format('M j, Y g:i A') : '—' }}</dd>
+
+                <dt class="col-sm-3">Last edited</dt>
+                <dd class="col-sm-9">{{ $viewRecord->edited_date ? $viewRecord->edited_date->format('M j, Y g:i A') : '—' }}</dd>
             </dl>
 
             <hr class="my-4">

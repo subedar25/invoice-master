@@ -4,7 +4,6 @@ namespace App\Http\Livewire\MasterApp\Masters;
 
 use App\Models\Outlet as OutletModel;
 use App\Models\Location as LocationModel;
-use App\Models\Organization as OrganizationModel;
 use App\Models\User;
 use App\Models\Country as CountryModel;
 use App\Models\State as StateModel;
@@ -55,8 +54,16 @@ class Outlet extends Component
 
     protected $queryString = [
         'search' => ['except' => ''],
-        'organizationFilter' => ['except' => ''],
     ];
+
+    public function mount(): void
+    {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organizationFilter = (string) $selectedOrganizationId;
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+    }
 
     protected function rules(): array
     {
@@ -89,9 +96,10 @@ class Outlet extends Component
     public function openEditModal(int $id): void
     {
         $record = OutletModel::findOrFail($id);
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
         $this->editId = $id;
         $this->name = $record->name;
-        $this->organization_id = (string)$record->organization_id;
+        $this->organization_id = (string) ($selectedOrganizationId ?: $record->organization_id);
         $this->location_id = (string)$record->location_id;
         $this->area_manager_id = (string)$record->area_manager_id;
         $this->address = $record->address;
@@ -120,6 +128,11 @@ class Outlet extends Component
 
     public function saveCreate(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+
         $this->validate();
 
         $photoPath = $this->photo ? $this->fileService->upload($this->photo, 'outlets') : null;
@@ -144,6 +157,11 @@ class Outlet extends Component
 
     public function saveEdit(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+
         $this->validate();
         $record = OutletModel::findOrFail($this->editId);
         
@@ -205,8 +223,11 @@ class Outlet extends Component
                 $q->where('organization_id', $this->organizationFilter);
             })
             ->when($this->search, function ($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                  ->orWhere('city', 'like', '%' . $this->search . '%');
+                $search = $this->search;
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('city', 'like', '%' . $search . '%');
+                });
             })
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(15);
@@ -214,17 +235,17 @@ class Outlet extends Component
 
     public function getLocationOptionsProperty()
     {
-        return LocationModel::orderBy('name')->get(['id', 'name']);
+        return LocationModel::query()
+            ->when(filled($this->organization_id), function ($query) {
+                $query->where('organization_id', (int) $this->organization_id);
+            })
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 
     public function getAreaManagerOptionsProperty()
     {
         return User::orderBy('first_name')->get(['id', 'first_name', 'last_name']);
-    }
-
-    public function getOrganizationOptionsProperty()
-    {
-        return OrganizationModel::orderBy('name')->get(['id', 'name']);
     }
 
     public function getCountryOptionsProperty() { return CountryModel::orderBy('name')->get(['id', 'name']); }
@@ -245,12 +266,25 @@ class Outlet extends Component
 
     private function resetForm(): void
     {
-        $this->name = $this->organization_id = $this->location_id = $this->area_manager_id = '';
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        $this->name = $this->location_id = $this->area_manager_id = '';
+        $this->organization_id = $selectedOrganizationId !== null ? (string) $selectedOrganizationId : '';
         $this->address = $this->city = $this->pincode = '';
         $this->country_id = $this->state_id = '';
         $this->photo = $this->existingPhoto = null;
         $this->photoRemoved = false;
         $this->status = true;
         $this->resetValidation();
+    }
+
+    private function resolveSelectedOrganizationId(): ?int
+    {
+        $organizationId = session('current_organization_id');
+        if (! empty($organizationId)) {
+            return (int) $organizationId;
+        }
+
+        $fallback = auth()->user()?->last_selected_organization_id;
+        return ! empty($fallback) ? (int) $fallback : null;
     }
 }

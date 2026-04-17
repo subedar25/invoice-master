@@ -21,7 +21,7 @@
                     <tr><th>Email</th><td>{{ $entity->email ?? '—' }}</td></tr>
                     <tr><th>Phone</th><td>{{ $entity->phone ?? '—' }}</td></tr>
                     <tr><th>Change Password</th><td>{{ $entity->change_password ? 'Yes' : 'No' }}</td></tr>
-                    <tr><th>Active</th><td>{{ $entity->active ? 'Yes' : 'No' }}</td></tr>
+                    <tr><th>Active</th><td>{{ $entity->active ? 'Active' : 'Inactive' }}</td></tr>
                     <tr><th>Role</th><td>{{ $entity->roles->pluck('name')->implode(', ') ?: '—' }}</td></tr>
                     <tr><th>Organizations</th><td>{{ $entity->organizations->pluck('name')->implode(', ') ?: '—' }}</td></tr>
                     <tr><th>Reporting Manager</th><td>{{ $entity->reportingManager?->name ?? '—' }}</td></tr>

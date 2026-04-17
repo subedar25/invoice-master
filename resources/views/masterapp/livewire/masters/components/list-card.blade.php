@@ -17,7 +17,7 @@
     </div>
     <div class="card-body">
         <div class="master-toolbar">
-            <div class="master-toolbar__filters"></div>
+            <div class="master-toolbar__filters w-100">{{ $filters ?? '' }}</div>
         </div>
         <div class="table-responsive">
             <table id="{{ $tableId }}" class="table table-bordered table-hover table-sm js-master-datatable" data-order-col="{{ $orderCol }}" data-order-dir="{{ $orderDir }}" data-non-orderable-targets="{{ $nonOrderableTargets }}">

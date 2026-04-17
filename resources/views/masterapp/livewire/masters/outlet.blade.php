@@ -5,27 +5,12 @@
             'addButtonText' => 'Add Outlet',
             'tableId' => 'outletMasterTable',
             'orderCol' => '0',
-            'nonOrderableTargets' => '5,6',
+            'nonOrderableTargets' => '4,5',
         ])
-            <div class="master-toolbar mb-3">
-                <div class="master-toolbar__filters">
-                    <div class="d-inline-flex align-items-center">
-                        <label for="out_organization_filter" class="mr-2 mb-0">Organization</label>
-                        <select id="out_organization_filter" class="form-control form-control-sm" style="min-width: 240px;" wire:model.live="organizationFilter">
-                            <option value="">All Organizations</option>
-                            @foreach($this->organizationOptions as $opt)
-                                <option value="{{ $opt->id }}">{{ $opt->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-            </div>
-
             <thead>
                 <tr>
                     <th>Name</th>
                     <th>Location</th>
-                    <th>Organization</th>
                     <th>Area Manager</th>
                     <th>City</th>
                     <th>Status</th>
@@ -37,7 +22,6 @@
                     <tr>
                         <td>{{ $item->name }}</td>
                         <td>{{ $item->location?->name ?? '—' }}</td>
-                        <td>{{ $item->organization?->name ?? '—' }}</td>
                         <td>{{ $item->areaManager ? $item->areaManager->first_name . ' ' . $item->areaManager->last_name : '—' }}</td>
                         <td>{{ $item->city ?: '—' }}</td>
                         <td>
@@ -72,11 +56,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Organization <span class="text-danger">*</span></label>
-                    <select class="form-control @error('organization_id') is-invalid @enderror" wire:model="organization_id">
-                        <option value="">Select Organization</option>
-                        @foreach($this->organizationOptions as $opt) <option value="{{ $opt->id }}">{{ $opt->name }}</option> @endforeach
-                    </select>
+                    <input type="hidden" wire:model="organization_id">
+                    @error('organization_id') <span class="text-danger small d-block">{{ $message }}</span> @enderror
                 </div>
 
                 <div class="form-group">

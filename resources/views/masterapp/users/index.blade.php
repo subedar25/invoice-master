@@ -55,7 +55,7 @@
 
                 {{-- Filters (Active column only) --}}
                 @php
-                    $hasFilters = request()->has('active');
+                    $hasFilters = request()->has('active') || request()->has('organization_id');
                     $displayFilter = $hasFilters ? 'block' : 'none';
                 @endphp
 
@@ -65,6 +65,17 @@
                     </a>
                     <form id="filterForm">
                         <div class="row align-items-end">
+                            <div class="col-md-4">
+                                <label class="font-weight-bold">Organization</label>
+                                <select id="filter_organization_id" name="organization_id" class="form-control filter-input">
+                                    <option value="">All</option>
+                                    @foreach (($organizations ?? []) as $org)
+                                        <option value="{{ $org->id }}" {{ ((string) request('organization_id', $currentOrganizationId ?? '')) === (string) $org->id ? 'selected' : '' }}>
+                                            {{ $org->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <div class="col-md-3">
                                 <label class="font-weight-bold">Active</label>
                                 <select id="filter_active" name="active" class="form-control filter-input">
@@ -107,22 +118,21 @@
                                   <th>Email</th>
                                   <th>Phone</th>
                                   {{-- <th>Change Password</th> --}}
-                                  <th>Role</th>
+                                  <th class="hide-initial">Role</th>
                                   {{-- <th>Permissions</th> --}}
-                                  <th>Added Timestamp</th>
-                                  <th>Department</th>
-                                  <th>Organizations</th>
-                                  <th>Status</th>
-                                  <th>Notes</th>
-                                  @can('active-deactive')
-                                  <th>Active</th>
-                                  @endcan
+                                  <th class="hide-initial">Department</th>
+                                  <th class="hide-initial">Organizations</th>
+                                  <th class="hide-initial">Active</th>
                                   <th class="no-export no-vis">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                             @foreach ($users as $user)
-                              <tr data-id="{{ $user->id }}">
+                              <tr
+                                  data-id="{{ $user->id }}"
+                                  data-active="{{ $user->active ? 1 : 0 }}"
+                                  data-org-ids="{{ $user->organizations->pluck('id')->implode(',') }}"
+                              >
 
                                   <td class="d-none" data-field="id">{{ $user->id }}</td>
                                   <td data-field="name">
@@ -150,7 +160,6 @@
                                   {{-- <td data-field="permissions">
                                       {{ $user->getAllPermissions()->pluck("name")->implode(", ") ?: "NONE" }}
                                   </td> --}}
-                                  <td>{{ $user->created_at->format('m/d/Y h:i A') }}</td>
 
                                   <td data-field="department_id">
                                       {{ $user->department->name ?? "N/A" }}
@@ -159,51 +168,30 @@
                                   <td data-field="organizations">
                                       {{ $user->organizations->pluck('name')->implode(', ') ?: 'N/A' }}
                                   </td>
-                                  {{-- STATUS (select) --}}
-                                    <td data-field="status_id">
-                                        @php
-                                            $shift = $currentShifts[$user->id] ?? null;
-                                            $statusLabel = ($shift && isset($clockInModeToStatusLabel[$shift->clock_in_mode ?? '']))
-                                                ? $clockInModeToStatusLabel[$shift->clock_in_mode]
-                                                : 'Not Available';
-                                            $statusBadgeClass = match ($statusLabel) {
-                                                'Available', 'Available - Remote' => 'badge-success',
-                                                'Available - Out of Office' => 'badge-warning',
-                                                'Available - Lunch', 'Lunch' => 'badge-info',
-                                                'Do Not Disturb' => 'badge-danger',
-                                                default => 'badge-secondary',
-                                            };
-                                        @endphp
-                                        <span class="badge {{ $statusBadgeClass }}">
-                                            {{ $statusLabel }}
-                                        </span>
-                                    </td>
-
-                                  {{-- STATUS NOTES (textarea) --}}
-                                  <td data-field="status_notes">
-                                      {{ $user->status_notes }}
+                                  {{-- ACTIVE (DB) --}}
+                                  <td class="text-center" data-field="active">
+                                      @can('active-deactive')
+                                          <div class="d-flex align-items-center justify-content-center">
+                                              <div class="custom-control custom-switch">
+                                                  <input
+                                                      type="checkbox"
+                                                      class="custom-control-input js-toggle-active"
+                                                      id="activeSwitch{{ $user->id }}"
+                                                      data-id="{{ $user->id }}"
+                                                      {{ $user->active ? 'checked' : '' }}
+                                                  >
+                                                  <label class="custom-control-label" for="activeSwitch{{ $user->id }}"></label>
+                                              </div>
+                                              <div class="active-spinner d-none ml-2">
+                                                  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                              </div>
+                                          </div>
+                                      @else
+                                          <span class="badge {{ $user->active ? 'badge-success' : 'badge-secondary' }}">
+                                              {{ $user->active ? 'Active' : 'Inactive' }}
+                                          </span>
+                                      @endcan
                                   </td>
-
-                                {{-- ajax toggle without page reload --}}
-                                @can('active-deactive')
-                                <td class="text-center">
-                                    <div class="d-flex align-items-center justify-content-center">
-                                        <div class="custom-control custom-switch">
-                                            <input
-                                                type="checkbox"
-                                                class="custom-control-input js-toggle-active"
-                                                id="activeSwitch{{ $user->id }}"
-                                                data-id="{{ $user->id }}"
-                                                {{ $user->active ? 'checked' : '' }}
-                                            >
-                                            <label class="custom-control-label" for="activeSwitch{{ $user->id }}"></label>
-                                        </div>
-                                        <div class="active-spinner d-none ml-2">
-                                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                        </div>
-                                    </div>
-                                </td>
-                                @endcan
 
                                     {{-- ACTIONS --}}
                                     <td data-field="actions" class="no-export">
@@ -284,12 +272,15 @@ $(function () {
 
      // Initialize filter from URL
      if (urlParams.has('active')) $('#filter_active').val(urlParams.get('active'));
+     if (urlParams.has('organization_id')) $('#filter_organization_id').val(urlParams.get('organization_id'));
 
      // Update URL from current filter
      function updateUrl() {
          var params = new URLSearchParams();
          var active = $('#filter_active').val();
          if (active) params.set('active', active);
+         var organizationId = $('#filter_organization_id').val();
+         if (organizationId) params.set('organization_id', organizationId);
          var newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
          history.pushState(null, '', newUrl);
          updateActiveFilterBadges();
@@ -302,26 +293,47 @@ $(function () {
          list.empty();
          var activeVal = $('#filter_active').val();
          var activeText = $('#filter_active option:selected').text();
-         if (activeVal !== '') {
-             container.show();
-             var badge = $('<span class="badge badge-info ml-2 p-2" style="font-size: 100%;">Active: ' + activeText + ' <i class="fa fa-times cursor-pointer remove-filter" data-target="#filter_active" style="margin-left:5px;"></i></span>');
-             list.append(badge);
-         } else {
-             container.hide();
+         var orgVal = $('#filter_organization_id').val();
+         var orgText = $('#filter_organization_id option:selected').text();
+
+         var hasAny = false;
+         if (orgVal !== '') {
+             hasAny = true;
+             var badgeOrg = $('<span class="badge badge-info ml-2 p-2" style="font-size: 100%;">Organization: ' + orgText + ' <i class="fa fa-times cursor-pointer remove-filter" data-target=\"#filter_organization_id\" style="margin-left:5px;\"></i></span>');
+             list.append(badgeOrg);
          }
+         if (activeVal !== '') {
+             hasAny = true;
+             var badgeActive = $('<span class="badge badge-info ml-2 p-2" style="font-size: 100%;">Active: ' + activeText + ' <i class="fa fa-times cursor-pointer remove-filter" data-target=\"#filter_active\" style=\"margin-left:5px;\"></i></span>');
+             list.append(badgeActive);
+         }
+
+         if (hasAny) container.show();
+         else container.hide();
      }
 
-     // Custom search: filter by Active column (checkbox in row)
+     // Custom search: filter by Active value (row data attribute)
      $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
          if (settings.nTable.id !== 'example2') return true;
          var activeFilter = $('#filter_active').val();
-         if (!activeFilter) return true;
          var table = $('#example2').DataTable();
          var $row = $(table.row(dataIndex).node());
-         var isChecked = $row.find('.js-toggle-active').prop('checked');
-         if (activeFilter === '1') return !!isChecked;
-         if (activeFilter === '0') return !isChecked;
-         return true;
+         var isActive = String($row.data('active')) === '1';
+
+         var orgFilter = $('#filter_organization_id').val();
+         var orgIdsCsv = String($row.data('org-ids') ?? '');
+         var orgMatch = true;
+         if (orgFilter) {
+             // Match full ids only (avoid "1" matching "11")
+             var padded = ',' + orgIdsCsv + ',';
+             orgMatch = padded.indexOf(',' + String(orgFilter) + ',') !== -1;
+         }
+
+         var activeMatch = true;
+         if (activeFilter === '1') activeMatch = isActive;
+         else if (activeFilter === '0') activeMatch = !isActive;
+
+         return orgMatch && activeMatch;
      });
 
      // Filter panel toggle
@@ -367,8 +379,8 @@ $(function () {
       buttons: [
         {
             extend: 'print',
-            title: 'Pulse Publication - Users',
-            filename: 'Pulse Publication - Users',
+            title: '{{ config('app.name', 'Invoice Masters') }} - Users',
+            filename: '{{ config('app.name', 'Invoice Masters') }} - Users',
             text: '<i class="fa fa-print"></i> Print',
             className: 'btn btn-secondary',
             exportOptions: {
@@ -423,8 +435,8 @@ $(function () {
         },
         {
             extend: 'copyHtml5',
-            title: 'Pulse Publication - Users',
-            filename: 'Pulse Publication - Users',
+            title: '{{ config('app.name', 'Invoice Masters') }} - Users',
+            filename: '{{ config('app.name', 'Invoice Masters') }} - Users',
             text: '<i class="fa fa-copy"></i> Copy Data',
             className: 'btn btn-primary',
             exportOptions: {
@@ -435,8 +447,8 @@ $(function () {
 
         {
             extend: 'excelHtml5',
-            title: 'Pulse Publication - Users',
-            filename: 'Pulse Publication - Users',
+            title: '{{ config('app.name', 'Invoice Masters') }} - Users',
+            filename: '{{ config('app.name', 'Invoice Masters') }} - Users',
             text: '<i class="fa fa-download"></i> Excel',
             className: 'btn btn-success',
             exportOptions: {
@@ -467,8 +479,8 @@ $(function () {
           // },
         {
             extend: 'pdfHtml5',
-            title: 'Pulse Publication - Users',
-            filename: 'Pulse Publication - Users',
+            title: '{{ config('app.name', 'Invoice Masters') }} - Users',
+            filename: '{{ config('app.name', 'Invoice Masters') }} - Users',
             text: '<i class="fa fa-download"></i> PDF',
             className: 'btn btn-danger',
             orientation: 'landscape',
@@ -518,7 +530,7 @@ $(function () {
             searchable: false
         },
         {
-            targets: [5, 4, 6, 9, 10, 11, 12],
+            targets: '.hide-initial',
             // hidden initially
             visible: false
         },
@@ -631,6 +643,7 @@ $(function () {
             success: function () {
                 // Hide spinner
                 checkbox.closest('td').find('.active-spinner').addClass('d-none');
+                checkbox.closest('tr').attr('data-active', isActive ? '1' : '0').data('active', isActive ? 1 : 0);
 
                 Toast.fire({
                     icon: 'success',
