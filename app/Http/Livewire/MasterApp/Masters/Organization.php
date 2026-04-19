@@ -4,6 +4,7 @@ namespace App\Http\Livewire\MasterApp\Masters;
 
 use App\Models\Organization as OrganizationModel;
 use App\Core\File\Services\FileManagementService;
+use App\Support\UiTheme;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -41,6 +42,9 @@ class Organization extends Component
     public bool $logoRemoved = false;
     public bool $status = true;
 
+    /** @var string Public theme folder: dark_theam | blue_theam */
+    public string $theme = '';
+
     protected $queryString = [
         'search' => ['except' => ''],
     ];
@@ -59,6 +63,7 @@ class Organization extends Component
             'invoice_prefix' => ['nullable', 'string', 'max:10'],
             'logo' => ['nullable', 'image', 'max:2048'],
             'status' => ['boolean'],
+            'theme' => ['required', 'string', Rule::in(array_keys(UiTheme::options()))],
         ];
     }
 
@@ -88,6 +93,10 @@ class Organization extends Component
         $this->logo = null;
         $this->logoRemoved = false;
         $this->status = (bool) ($record->status ?? true);
+        $raw = trim((string) ($record->theme ?? ''));
+        $this->theme = in_array($raw, UiTheme::allowedFolders(), true)
+            ? $raw
+            : UiTheme::DEFAULT_FOLDER;
 
         $this->showEditModal = true;
         $this->showCreateModal = false;
@@ -146,6 +155,7 @@ class Organization extends Component
             'invoice_prefix' => $this->invoice_prefix ?: null,
             'logo' => $logoPath,
             'status' => $this->status,
+            'theme' => $this->theme,
         ]);
 
         $this->dispatch('formResult', type: 'success', message: 'Organization created successfully.');
@@ -170,6 +180,7 @@ class Organization extends Component
             'description' => $this->description ?: null,
             'invoice_prefix' => $this->invoice_prefix ?: null,
             'status' => $this->status,
+            'theme' => $this->theme,
         ];
 
         if ($this->logo) {
@@ -217,6 +228,7 @@ class Organization extends Component
 
         return view('masterapp.livewire.masters.organization', [
             'items' => $query->orderBy($this->sortField, $this->sortDirection)->paginate(15),
+            'themeOptions' => UiTheme::options(),
         ]);
     }
 
@@ -227,6 +239,7 @@ class Organization extends Component
         $this->existingLogo = null;
         $this->logoRemoved = false;
         $this->status = true;
+        $this->theme = UiTheme::DEFAULT_FOLDER;
         $this->resetValidation();
     }
 }

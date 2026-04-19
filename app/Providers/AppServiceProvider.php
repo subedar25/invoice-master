@@ -104,6 +104,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if (! function_exists('theme_asset')) {
+            require_once app_path('Helpers/theme_helpers.php');
+        }
+
         Livewire::component('master-app.masters.organization-type', OrganizationTypeComponent::class);
         Livewire::component('master-app.masters.seasons', SeasonsComponent::class);
         Livewire::component('master-app.masters.department', DepartmentComponent::class);

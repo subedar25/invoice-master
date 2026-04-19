@@ -71,6 +71,17 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="org_theme">Theme <span class="text-danger">*</span></label>
+                    <select id="org_theme" class="form-control @error('theme') is-invalid @enderror" wire:model.live="theme">
+                        @foreach(($themeOptions ?? []) as $folder => $label)
+                            <option value="{{ $folder }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('theme') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                    <small class="form-text text-muted">Controls stylesheet bundle for this organization when it is selected in the header.</small>
+                </div>
+
+                <div class="form-group">
                     <label for="org_logo">Logo</label>
                     <input type="file" id="org_logo" class="form-control-file @error('logo') is-invalid @enderror" wire:model="logo">
                     <div wire:loading wire:target="logo" class="text-primary small mt-1">Uploading...</div>
@@ -120,6 +131,9 @@
 
                 <dt class="col-sm-3">Invoice Prefix</dt>
                 <dd class="col-sm-9">{{ $viewRecord->invoice_prefix ?: '—' }}</dd>
+
+                <dt class="col-sm-3">Theme</dt>
+                <dd class="col-sm-9">{{ ($themeOptions[$viewRecord->theme] ?? null) ?: ($viewRecord->theme ?: '—') }}</dd>
 
                 <dt class="col-sm-3">Logo</dt>
                 <dd class="col-sm-9">

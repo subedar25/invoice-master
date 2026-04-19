@@ -1,6 +1,6 @@
 <div wire:key="invoice-module" id="master-list">
 @push('styles')
-<link rel="stylesheet" href="{{ asset('dark_theam/invoice-livewire-invoices.css') }}">
+<link rel="stylesheet" href="{{ theme_asset('invoice-livewire-invoices.css') }}">
 @endpush
     @if(!$showCreateModal && !$showEditModal && !$showViewModal)
         @php

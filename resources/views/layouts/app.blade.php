@@ -38,13 +38,13 @@
 
 {{-- Buttons CSS --}}
 @push('styles')
-<link rel="stylesheet" href="{{ asset('dark_theam/buttons.bootstrap5.min.css') }}">
+<link rel="stylesheet" href="{{ theme_asset('buttons.bootstrap5.min.css') }}">
 @endpush
 
 
 @push('scripts')
 <!-- Quill CDN -->
-<link rel="stylesheet" href="{{ asset('dark_theam/quill.snow.css') }}">
+<link rel="stylesheet" href="{{ theme_asset('quill.snow.css') }}">
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <!-- DataTables Buttons -->
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>

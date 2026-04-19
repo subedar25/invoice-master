@@ -154,7 +154,7 @@ window.inlineConfig = {
 </script>
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('dark_theam/buttons.bootstrap5.min.css') }}">
+<link rel="stylesheet" href="{{ theme_asset('buttons.bootstrap5.min.css') }}">
 @endpush
 
 @push('scripts')
