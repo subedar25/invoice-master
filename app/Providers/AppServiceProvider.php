@@ -153,6 +153,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer([
+            'masterapp.layouts.app',
+            'layouts.custom-admin',
             'masterapp.partials.top-menu',
             'masterapp.partials.sidebar-panel',
             'partials.top-menu',

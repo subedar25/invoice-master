@@ -1,4 +1,5 @@
 @extends('masterapp.layouts.app')
+@section('title', 'Settings')
 @section('content')
 
     <div class="content-header">

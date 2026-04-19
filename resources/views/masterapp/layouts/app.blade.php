@@ -6,7 +6,12 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Invoice Masters') }} - @yield('title')</title>
+    @php
+        $documentOrgName = isset($orgSwitcherCurrentOrganization) && $orgSwitcherCurrentOrganization
+            ? trim((string) ($orgSwitcherCurrentOrganization->name ?? ''))
+            : '';
+    @endphp
+    <title>IM-@yield('title', 'Page')@if($documentOrgName !== '') - {{ $documentOrgName }}@endif</title>
 
     <!-- Google Font: Source Sans Pro -->
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/favicon.ico') }}">

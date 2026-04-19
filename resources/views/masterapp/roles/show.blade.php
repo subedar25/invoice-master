@@ -1,6 +1,6 @@
 @extends('layouts.custom-admin')
 
-@section('title', 'Role Details', 'bold')
+@section('title', 'Role Details')
 
 @section('content')
 <div class="max-w-4xl mx-auto">

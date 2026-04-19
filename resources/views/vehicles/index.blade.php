@@ -1,6 +1,6 @@
 @extends('layouts.custom-admin')
 
-@section('title', 'Vehicles', 'bold')
+@section('title', 'Vehicles')
 
 @section('content')
 

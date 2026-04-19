@@ -288,25 +288,25 @@ body .swal2-popup.swal2-toast { z-index: 100000 !important; }
 }
 
 /* =============================================================================
-   Blue theme (blue_theam): dark blue left panel / sidebar
+   Yellow theme (yellow_theam): golden / yellow left panel / sidebar
    ============================================================================= */
 .main-sidebar.sidebar-dark-primary {
-    background: linear-gradient(180deg, #0a1628 0%, #0f2847 45%, #0c1e36 100%) !important;
-    color: #e2e8f0;
+    background: linear-gradient(180deg, #2a2408 0%, #3d350c 45%, #322b09 100%) !important;
+    color: #fefce8;
 }
 
 .main-sidebar.sidebar-dark-primary .brand-link {
-    background-color: rgba(15, 52, 96, 0.92) !important;
-    border-bottom: 1px solid rgba(59, 130, 246, 0.28);
+    background-color: rgba(113, 92, 18, 0.88) !important;
+    border-bottom: 1px solid rgba(234, 179, 8, 0.35);
 }
 
 .main-sidebar.sidebar-dark-primary .brand-link .brand-text {
-    color: #f1f5f9 !important;
+    color: #fffbeb !important;
 }
 
 .main-sidebar.sidebar-dark-primary .brand-link .organization-brand-initials {
-    background: linear-gradient(145deg, #1d4ed8, #2563eb) !important;
-    color: #fff !important;
+    background: linear-gradient(145deg, #ca8a04, #eab308) !important;
+    color: #1c1917 !important;
 }
 
 .main-sidebar.sidebar-dark-primary .sidebar {
@@ -314,56 +314,56 @@ body .swal2-popup.swal2-toast { z-index: 100000 !important; }
 }
 
 .main-sidebar.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link {
-    color: rgba(226, 232, 240, 0.95) !important;
+    color: rgba(254, 243, 199, 0.96) !important;
 }
 
 .main-sidebar.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link:hover {
-    background-color: rgba(37, 99, 235, 0.38) !important;
-    color: #fff !important;
+    background-color: rgba(234, 179, 8, 0.35) !important;
+    color: #fffbeb !important;
 }
 
 .main-sidebar.sidebar-dark-primary .nav-sidebar > .nav-item.menu-open > .nav-link,
 .main-sidebar.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active {
-    background-color: rgba(37, 99, 235, 0.55) !important;
-    color: #fff !important;
+    background-color: rgba(202, 138, 4, 0.5) !important;
+    color: #fffbeb !important;
 }
 
 .main-sidebar.sidebar-dark-primary .nav-treeview > .nav-item > .nav-link {
-    color: rgba(203, 213, 225, 0.92) !important;
+    color: rgba(253, 230, 138, 0.92) !important;
 }
 
 .main-sidebar.sidebar-dark-primary .nav-treeview > .nav-item > .nav-link:hover,
 .main-sidebar.sidebar-dark-primary .nav-treeview > .nav-item > .nav-link.active {
-    background-color: rgba(30, 64, 175, 0.48) !important;
-    color: #fff !important;
+    background-color: rgba(161, 98, 7, 0.48) !important;
+    color: #fffbeb !important;
 }
 
 .main-sidebar.sidebar-dark-primary .nav-header {
-    color: rgba(148, 163, 184, 0.95) !important;
+    color: rgba(253, 224, 71, 0.75) !important;
 }
 
 .main-sidebar.sidebar-dark-primary .form-control-sidebar {
-    background-color: rgba(15, 23, 42, 0.55) !important;
-    border: 1px solid rgba(59, 130, 246, 0.35) !important;
-    color: #e2e8f0 !important;
+    background-color: rgba(41, 37, 10, 0.65) !important;
+    border: 1px solid rgba(234, 179, 8, 0.4) !important;
+    color: #fffbeb !important;
 }
 
 .main-sidebar.sidebar-dark-primary .form-control-sidebar::placeholder {
-    color: rgba(148, 163, 184, 0.85);
+    color: rgba(253, 224, 71, 0.65);
 }
 
 .main-sidebar.sidebar-dark-primary .btn-sidebar {
-    background-color: rgba(30, 64, 175, 0.55) !important;
-    border: 1px solid rgba(59, 130, 246, 0.4) !important;
-    color: #e0f2fe !important;
+    background-color: rgba(161, 98, 7, 0.55) !important;
+    border: 1px solid rgba(234, 179, 8, 0.45) !important;
+    color: #fffbeb !important;
 }
 
 .main-sidebar.sidebar-dark-primary .btn-sidebar:hover {
-    background-color: rgba(37, 99, 235, 0.75) !important;
+    background-color: rgba(202, 138, 4, 0.75) !important;
     color: #fff !important;
 }
 
 .main-sidebar.sidebar-dark-primary.elevation-4 {
-    box-shadow: 4px 0 18px rgba(8, 15, 35, 0.55) !important;
+    box-shadow: 4px 0 18px rgba(42, 36, 8, 0.5) !important;
 }
 

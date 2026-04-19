@@ -1,5 +1,7 @@
 @extends('masterapp.layouts.app')
 
+@section('title', 'Edit Organization')
+
 @section('content')
 <div class="content-header">
     <div class="container-fluid">

@@ -1,5 +1,7 @@
 @extends('masterapp.layouts.app')
 
+@section('title', ($config['title'] ?? 'Entity') . ' Details')
+
 @section('content')
 
     {{-- Entity Title --}}

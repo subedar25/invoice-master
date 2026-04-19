@@ -22,6 +22,7 @@ return [
     'themes' => [
         'dark_theam' => 'Dark',
         'blue_theam' => 'Blue',
+        'yellow_theam' => 'Yellow',
     ],
 
 ];

@@ -1,4 +1,5 @@
 @extends('masterapp.layouts.app')
+@section('title', 'Modules')
 @section('content')
 @push('styles')
 <style>

@@ -1,6 +1,6 @@
 @extends('masterapp.layouts.app')
 
-@section('title', 'Dashboard', 'bold')
+@section('title', 'Dashboard')
 
 @section('content')
 {{-- <br/> --}}

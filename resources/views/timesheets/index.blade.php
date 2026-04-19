@@ -1,5 +1,5 @@
 @extends('layouts.custom-admin')
-@section('title', 'Timesheets', 'bold')
+@section('title', 'Timesheets')
 
 @section('content')
 
