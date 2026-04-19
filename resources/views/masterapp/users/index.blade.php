@@ -214,7 +214,6 @@
                                   <th class="hide-initial">Role</th>
                                   {{-- <th>Permissions</th> --}}
                                   <th class="hide-initial">Department</th>
-                                  <th class="hide-initial">Organizations</th>
                                   <th class="hide-initial">Active</th>
                                   <th class="no-export no-vis">Actions</th>
                                 </tr>
@@ -224,7 +223,6 @@
                               <tr
                                   data-id="{{ $user->id }}"
                                   data-active="{{ $user->active ? 1 : 0 }}"
-                                  data-org-ids="{{ $user->organizations->pluck('id')->implode(',') }}"
                                   data-department-id="{{ $user->department_id ?? '' }}"
                                   data-designation-id="{{ $user->designation_id ?? '' }}"
                               >
@@ -260,9 +258,6 @@
                                       {{ $user->department->name ?? "N/A" }}
                                   </td>
 
-                                  <td data-field="organizations">
-                                      {{ $user->organizations->pluck('name')->implode(', ') ?: 'N/A' }}
-                                  </td>
                                   {{-- ACTIVE (DB) --}}
                                   <td class="text-center" data-field="active">
                                       @can('active-deactive')

@@ -1,6 +1,6 @@
 <div wire:key="invoice-module" id="master-list">
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/invoice-livewire-invoices.css') }}">
+<link rel="stylesheet" href="{{ asset('dark_theam/invoice-livewire-invoices.css') }}">
 @endpush
     @if(!$showCreateModal && !$showEditModal && !$showViewModal)
         @php
@@ -10,7 +10,18 @@
                 'in_process' => 'In Process',
                 'complete' => 'Complete',
             ];
-            $hasInvoiceActiveFilters = trim($search) !== '' || count($filterStatuses) > 0 || count($filterDepartmentIds) > 0;
+            $datePresetLabels = [
+                'current_month' => 'Current month',
+                'last_month' => 'Last month',
+                'last_3_months' => 'Last 3 months',
+                'last_6_months' => 'Last 6 months',
+                'last_12_months' => 'Last one year',
+                'custom' => 'Custom range',
+            ];
+            $hasInvoiceActiveFilters = trim($search) !== ''
+                || count($filterStatuses) > 0
+                || count($filterDepartmentIds) > 0
+                || $invoiceDateFilterPreset !== 'last_3_months';
         @endphp
 
         @if(!$organization_id)
@@ -60,6 +71,26 @@
                     <div class="filter-wrapper" id="invoiceFilterWrapper" wire:key="invoice-filter-panel">
                         <a href="#" class="close-filter-btn" wire:click.prevent="$set('invoiceFiltersOpen', false)" title="Close">&times;</a>
                         <form wire:submit.prevent>
+                            <div class="row align-items-end mb-3">
+                                <div class="col-md-6 col-lg-4">
+                                    <label class="font-weight-bold">Date range</label>
+                                    <select wire:model.live="invoiceDateFilterPreset" class="form-control filter-input" aria-label="Invoice date range preset">
+                                        @foreach($datePresetLabels as $presetValue => $presetLabel)
+                                            <option value="{{ $presetValue }}">{{ $presetLabel }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @if($invoiceDateFilterPreset === 'custom')
+                                    <div class="col-md-3 col-lg-4">
+                                        <label class="font-weight-bold">From</label>
+                                        <input type="date" wire:model.live="dateFrom" class="form-control filter-input" aria-label="From date">
+                                    </div>
+                                    <div class="col-md-3 col-lg-4">
+                                        <label class="font-weight-bold">To</label>
+                                        <input type="date" wire:model.live="dateTo" class="form-control filter-input" aria-label="To date">
+                                    </div>
+                                @endif
+                            </div>
                             <div class="row align-items-end">
                                 <div class="col-md-6">
                                     <label class="font-weight-bold">Status</label>
@@ -116,6 +147,13 @@
                                     <i class="fa fa-times remove-filter-chip" wire:click="removeInvoiceFilterDepartment({{ $did }})" role="button" tabindex="0" title="Remove"></i>
                                 </span>
                             @endforeach
+                            @if($invoiceDateFilterPreset !== 'last_3_months')
+                                <span class="users-active-filter-chip badge badge-secondary mr-1 mb-1" wire:key="inv-date-preset">
+                                    {{ $datePresetLabels[$invoiceDateFilterPreset] ?? $invoiceDateFilterPreset }}
+                                    ({{ $invoicePeriodStart->format('M j, Y') }} – {{ $invoicePeriodEnd->format('M j, Y') }})
+                                    <i class="fa fa-times remove-filter-chip" wire:click="resetInvoiceDateFilterToDefault" role="button" tabindex="0" title="Reset to last 3 months"></i>
+                                </span>
+                            @endif
                         </span>
                     </div>
                 @endif
@@ -123,6 +161,14 @@
                 <div class="card">
                     {{-- Server-side pagination via Livewire: do not use js-master-datatable (DataTables would add a second pager and break layout). --}}
                     <div class="card-body p-0">
+                        <div class="px-3 pt-3 pb-2 bg-light border-bottom small text-muted">
+                            <i class="fa fa-calendar-alt mr-1" aria-hidden="true"></i>
+                            Created
+                            <strong class="text-dark">{{ $invoicePeriodStart->format('M j, Y') }}</strong>
+                            –
+                            <strong class="text-dark">{{ $invoicePeriodEnd->format('M j, Y') }}</strong>
+                            <span class="badge badge-light text-dark border ml-1">{{ $datePresetLabels[$invoiceDateFilterPreset] ?? $invoiceDateFilterPreset }}</span>
+                        </div>
                         <div id="invoiceTableToolbar" class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 pt-3 pb-2 bg-light border-bottom">
                             <div id="invoiceDtButtonsWrap" class="d-flex flex-wrap align-items-center"></div>
                             <div class="search-input-wrapper flex-grow-1" style="max-width: 28rem; min-width: 12rem;">

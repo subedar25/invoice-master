@@ -1,0 +1,289 @@
+/* Keep sidebar branding controlled by Blade markup (dynamic org logo/initials). */
+.brand-link::before,
+.brand-link::after {
+    content: none !important;
+}
+
+.main-sidebar .brand-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 57px;
+    padding: 0.7rem 0.85rem;
+    overflow: hidden;
+}
+
+.main-sidebar .brand-link .organization-brand-logo {
+    float: none;
+    margin: 0;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #ffffff;
+    opacity: 1;
+}
+
+.main-sidebar .brand-link .organization-brand-initials {
+    background-color: #6c757d;
+    font-size: 0.8rem;
+    border-radius: 999px;
+}
+
+.main-sidebar .brand-link .brand-text {
+    margin: 0;
+    font-size: 0.92rem;
+    max-width: calc(100% - 42px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.main-title h1 {
+    font-size: 2.5rem !important;
+    margin-left: 28px;
+}
+/* Sub-menu items: background only till content (not full sidebar width) */
+.main-sidebar .nav-treeview-inset .nav-item > .nav-link {
+    margin-right: 1.25rem;
+    border-radius: 0.25rem;
+}
+.main-sidebar .nav-treeview-inset .nav-item > .nav-link.active,
+.main-sidebar .nav-treeview-inset .nav-item > .nav-link:hover {
+    margin-right: 1.25rem;
+}
+
+/* Common Select2 styling (timesheets + time_off_requests index) */
+.select2-container--default .select2-selection--single {
+    background-color: #fff;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    height: 40px;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 25px;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 40px;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: #888 transparent transparent transparent;
+    border-style: solid;
+    border-width: 5px 4px 0 4px;
+    height: 0;
+    left: 50%;
+    margin-left: -14px;
+    margin-top: -3px;
+    position: absolute;
+    top: 50%;
+    width: 0;
+}
+
+/* Add this to your CSS file or in a <style> tag */
+select optgroup {
+    font-weight: bold;
+    color: #333; /* Darker color for better contrast */
+    background-color: #f8f9fa; /* Light grey background */
+}
+
+/* Form controls: consistent border and rounded corners (permission form, modal forms, card forms) */
+.card-body .form-control,
+.modal-body .form-control,
+#form-permission .form-control,
+#form-edit-permission .form-control {
+    border: 1px solid #ced4da !important;
+    border-radius: 8px;
+    min-height: calc(1.5em + 0.75rem + 2px);
+}
+.card-body .form-control:focus,
+.modal-body .form-control:focus,
+#form-permission .form-control:focus,
+#form-edit-permission .form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Role listing: permissions column – module names only; click to expand permissions */
+.role-perms-grouped {
+    max-height: 220px;
+    overflow-y: auto;
+    font-size: 0.875rem;
+    scrollbar-width: thin;
+}
+.role-perms-grouped::-webkit-scrollbar {
+    width: 6px;
+}
+.role-perms-grouped::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+.role-perms-grouped::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+.role-perms-grouped::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+.role-perms-module {
+    padding: 6px 8px;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    background: #ffffff;
+    margin-bottom: 8px;
+}
+.role-module-toggle {
+    text-decoration: none !important;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+}
+.role-module-toggle:hover {
+    text-decoration: none !important;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+.role-perms-list {
+    font-size: 0.8rem;
+    word-break: break-word;
+    padding: 2px 0 0 0;
+}
+
+.role-perms-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 0 2px 0;
+}
+.role-perm-chip {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 2px 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 999px;
+    background: #f8f9fa;
+    color: #495057;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.role-module-icon {
+    font-size: 0.75rem;
+    width: 14px;
+    color: #6c757d;
+}
+.role-perm-count {
+    font-size: 0.68rem;
+}
+
+/* Organization create/edit form */
+.organization-form-card input.form-control,
+.organization-form-card select.form-control,
+.organization-form-card textarea.form-control {
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+}
+#types-parent-nav .list-group-item,
+#organization-section-nav .list-group-item {
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+    font-size: 0.9rem;
+}
+#types-parent-nav .list-group-item {
+    padding-left: 0.4rem;
+}
+
+/* SweetAlert2 toasts above other content (e.g. organization edit) */
+body .swal2-container { z-index: 99999 !important; }
+body .swal2-popup.swal2-toast { z-index: 100000 !important; }
+
+/* DataTables: no client search (e.g. invoice) — top + bottom rows: info, Show, pagination */
+.master-dt-no-client-search .dataTables_filter {
+    display: none !important;
+}
+.master-dt-no-client-search .master-dt-top-paging {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+}
+.master-dt-no-client-search .master-dt-bottom {
+    margin-top: 0.75rem;
+    border-top: 1px solid #dee2e6;
+    padding-top: 0.75rem;
+}
+.master-dt-no-client-search .master-dt-bottom-inner,
+.master-dt-no-client-search .master-dt-top-paging .master-dt-bottom-inner {
+    width: 100%;
+}
+.master-dt-no-client-search .master-dt-bottom-right,
+.master-dt-no-client-search .master-dt-top-paging .master-dt-bottom-right {
+    flex: 0 0 auto;
+}
+.master-dt-no-client-search .master-dt-bottom-right .dataTables_length,
+.master-dt-no-client-search .master-dt-top-paging .dataTables_length {
+    margin-bottom: 0;
+}
+.master-dt-no-client-search .master-dt-bottom-right .dataTables_paginate,
+.master-dt-no-client-search .master-dt-top-paging .dataTables_paginate {
+    margin-left: 0.75rem;
+}
+
+/* Invoice form: supporting files card + file picker */
+.invoice-supporting-files-card {
+    border-color: #dee2e6 !important;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+.invoice-supporting-files-header {
+    background: linear-gradient(180deg, #f8f9fa 0%, #f1f3f5 100%);
+    border-bottom: 1px solid #dee2e6;
+    font-size: 0.95rem;
+}
+.invoice-supporting-files-header-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.35rem;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    color: #495057;
+}
+.invoice-file-picker-zone {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 1rem 1.1rem;
+    border: 2px dashed #ced4da;
+    border-radius: 0.45rem;
+    background: #fafbfc;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.invoice-file-picker-zone:hover {
+    border-color: #80bdff;
+    background: #f0f7ff;
+}
+.invoice-file-choose-btn {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    white-space: nowrap;
+}
+.invoice-file-picker-hint {
+    flex: 1 1 200px;
+    min-width: 0;
+}
+.invoice-file-row {
+    border: 1px solid #e9ecef;
+    background: #fff;
+}
+.invoice-file-row:hover {
+    border-color: #dee2e6;
+    background: #f8f9fa;
+}
+

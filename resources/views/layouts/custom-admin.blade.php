@@ -17,22 +17,22 @@
     <!-- AdminLTE -->
 <link rel="stylesheet" href="{{ asset('vendor/almasaeed2010/adminlte/dist/css/adminlte.min.css') }}">
  
-    <!-- DataTables CSS (Local) -->
-<link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap5.min.css') }}">
-<link rel="stylesheet" href="{{ asset('css/select.bootstrap5.min.css') }}">
-<link rel="stylesheet" href="{{ asset('css/buttons.bootstrap5.min.css') }}">
-<link rel="stylesheet" href="{{ asset('css/responsive.bootstrap5.min.css') }}">
+    <!-- DataTables CSS (dark_theam) -->
+<link rel="stylesheet" href="{{ asset('dark_theam/dataTables.bootstrap5.min.css') }}">
+<link rel="stylesheet" href="{{ asset('dark_theam/select.bootstrap5.min.css') }}">
+<link rel="stylesheet" href="{{ asset('dark_theam/buttons.bootstrap5.min.css') }}">
+<link rel="stylesheet" href="{{ asset('dark_theam/responsive.bootstrap5.min.css') }}">
  
     <!-- Custom Admin CSS -->
-<link rel="stylesheet" href="{{ asset('css/admin-custom.css') }}">
+<link rel="stylesheet" href="{{ asset('dark_theam/admin-custom.css') }}">
  
     <!-- Vite -->
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
  
     @stack('styles')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous"> 
+    <link rel="stylesheet" href="{{ asset('dark_theam/bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dark_theam/bootstrap5.min.css') }}">
     
 </head>
  
@@ -78,7 +78,7 @@
             All rights reserved.
         </footer>
     </div>
-<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ asset('dark_theam/quill.snow.css') }}">
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -120,12 +120,12 @@
 
 <script src="{{ asset('js/settings-panel.js') }}"></script>
 
-<link rel="stylesheet" href="{{ asset('css/admin-custom.css') }}">
+<link rel="stylesheet" href="{{ asset('dark_theam/admin-custom.css') }}">
     <!-- DataTables CSS -->
-<link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap5.min.css') }}">
-<link rel="stylesheet" href="{{ asset('css/select.bootstrap5.min.css') }}">
-<link rel="stylesheet" href="{{ asset('css/buttons.bootstrap5.min.css') }}">
-<link rel="stylesheet" href="{{ asset('css/responsive.bootstrap5.min.css') }}">
+<link rel="stylesheet" href="{{ asset('dark_theam/dataTables.bootstrap5.min.css') }}">
+<link rel="stylesheet" href="{{ asset('dark_theam/select.bootstrap5.min.css') }}">
+<link rel="stylesheet" href="{{ asset('dark_theam/buttons.bootstrap5.min.css') }}">
+<link rel="stylesheet" href="{{ asset('dark_theam/responsive.bootstrap5.min.css') }}">
 
 
 <!-- Bootstrap JS (required for modals) -->
@@ -140,7 +140,7 @@
 <script src="{{ asset('js/sweetalert2.js') }}"></script>
  {{-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
 <!-- Quill -->
-<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ asset('dark_theam/quill.snow.css') }}">
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
  
 {{-- ================= DATATABLES ================= --}}

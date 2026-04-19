@@ -69,7 +69,7 @@
     </div>
 </div>
 
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ asset('dark_theam/quill.snow.css') }}">
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 {{-- <script>
 document.getElementById('added_timestamp').value = new Date().toString();

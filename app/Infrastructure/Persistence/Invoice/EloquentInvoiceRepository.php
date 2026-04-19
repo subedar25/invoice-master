@@ -11,6 +11,7 @@ use App\Models\Organization;
 use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\Vendor;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -25,12 +26,19 @@ class EloquentInvoiceRepository implements InvoiceRepository
         int $perPage = 15,
         ?array $restrictDepartmentIds = null,
         bool $ownInvoicesOnly = false,
+        ?Carbon $createdFrom = null,
+        ?Carbon $createdTo = null,
     ): LengthAwarePaginator {
         $query = Invoice::query()
             ->with(['vendor', 'organization', 'department', 'outlet']);
 
         if ($organizationId) {
             $query->where('organization_id', $organizationId);
+        }
+
+        if ($createdFrom !== null && $createdTo !== null) {
+            $query->where('created_at', '>=', $createdFrom)
+                ->where('created_at', '<=', $createdTo);
         }
 
         if ($ownInvoicesOnly && auth()->check()) {

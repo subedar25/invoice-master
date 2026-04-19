@@ -154,7 +154,7 @@ window.inlineConfig = {
 </script>
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+<link rel="stylesheet" href="{{ asset('dark_theam/buttons.bootstrap5.min.css') }}">
 @endpush
 
 @push('scripts')

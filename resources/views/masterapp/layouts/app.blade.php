@@ -14,21 +14,23 @@
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}">
     <!-- AdminLTE CSS -->
     <link rel="stylesheet" href="{{ asset('vendor/almasaeed2010/adminlte/dist/css/adminlte.min.css') }}">
-    {{-- <link rel="stylesheet" href="{{ asset('css/admin-custom.css') }}"> --}}
-    <link rel="stylesheet" href="{{ asset('css/custom-datatable.css') }}">
+    {{-- <link rel="stylesheet" href="{{ asset('dark_theam/admin-custom.css') }}"> --}}
+    <link rel="stylesheet" href="{{ asset('dark_theam/custom-datatable.css') }}">
     <!-- DataTables CSS -->
-    <link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap5.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/select.bootstrap5.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/buttons.bootstrap5.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/responsive.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dark_theam/dataTables.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dark_theam/select.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dark_theam/buttons.bootstrap5.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dark_theam/responsive.bootstrap5.min.css') }}">
 
 
-  <link rel="stylesheet" href="{{ asset('css/select2.min.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/admin-custom.css') }}">
+  <link rel="stylesheet" href="{{ asset('dark_theam/select2.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('dark_theam/admin-custom.css') }}">
 
-    <link rel="stylesheet" href="{{ asset('css/select2-bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dark_theam/select2-bootstrap4.min.css') }}">
     <!-- Flatpickr (datepicker) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="{{ asset('dark_theam/flatpickr.min.css') }}">
+    <!-- Quill editor -->
+    <link rel="stylesheet" href="{{ asset('dark_theam/quill.snow.css') }}">
 
      @vite(['resources/css/app.css', 'resources/js/app.js'])
     <!-- Your Custom CSS (optional) -->
@@ -82,7 +84,6 @@
             All rights reserved.
         </footer>
     </div>
-<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -143,8 +144,7 @@
     <!-- SweetAlert -->
     <script src="{{ asset('js/sweetalert2.js') }}"></script>
 
-    <!-- Quill CDN -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <!-- Quill stylesheet: dark_theam/quill.snow.css (head) -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
     <!-- Your Custom JS (optional) -->

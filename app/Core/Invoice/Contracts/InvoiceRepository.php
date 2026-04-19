@@ -8,6 +8,7 @@ use App\Models\Organization;
 use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\Vendor;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -26,6 +27,8 @@ interface InvoiceRepository
         int $perPage = 15,
         ?array $restrictDepartmentIds = null,
         bool $ownInvoicesOnly = false,
+        ?Carbon $createdFrom = null,
+        ?Carbon $createdTo = null,
     ): LengthAwarePaginator;
 
     public function findForEdit(int $id): Invoice;

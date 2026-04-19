@@ -8,6 +8,7 @@ use App\Models\InvoiceStatusHistory;
 use App\Models\Ledger;
 use App\Models\LedgerStatusHistory;
 use App\Support\InvoiceDepartmentAuthorization;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Validation\Rule;
@@ -72,6 +73,13 @@ class Invoices extends Component
 
     /** @var array<int, int|string> */
     public array $filterDepartmentIds = [];
+
+    /** @var string current_month|last_month|last_3_months|last_6_months|last_12_months|custom — default last 3 months */
+    public string $invoiceDateFilterPreset = 'last_3_months';
+
+    public ?string $dateFrom = null;
+
+    public ?string $dateTo = null;
 
     public bool $invoiceFiltersOpen = false;
 
@@ -287,6 +295,103 @@ class Invoices extends Component
     {
         $this->search = '';
         $this->resetPage();
+    }
+
+    public function updatingInvoiceDateFilterPreset(mixed $value): void
+    {
+        if ((string) $value === 'custom' && $this->invoiceDateFilterPreset !== 'custom') {
+            [$s, $e] = $this->computeBoundsForPreset($this->invoiceDateFilterPreset);
+            $this->dateFrom = $s->toDateString();
+            $this->dateTo = $e->toDateString();
+        }
+    }
+
+    public function updatedInvoiceDateFilterPreset(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        if ($this->invoiceDateFilterPreset === 'custom') {
+            $this->resetPage();
+        }
+    }
+
+    public function updatedDateTo(): void
+    {
+        if ($this->invoiceDateFilterPreset === 'custom') {
+            $this->resetPage();
+        }
+    }
+
+    public function resetInvoiceDateFilterToDefault(): void
+    {
+        $this->invoiceDateFilterPreset = 'last_3_months';
+        $this->dateFrom = null;
+        $this->dateTo = null;
+        $this->resetPage();
+    }
+
+    /**
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function computeBoundsForPreset(string $preset): array
+    {
+        $now = now();
+
+        return match ($preset) {
+            'current_month' => [
+                $now->copy()->startOfMonth()->startOfDay(),
+                $now->copy()->endOfDay(),
+            ],
+            'last_month' => [
+                $now->copy()->subMonth()->startOfMonth()->startOfDay(),
+                $now->copy()->subMonth()->endOfMonth()->endOfDay(),
+            ],
+            'last_3_months' => [
+                $now->copy()->subMonths(3)->startOfDay(),
+                $now->copy()->endOfDay(),
+            ],
+            'last_6_months' => [
+                $now->copy()->subMonths(6)->startOfDay(),
+                $now->copy()->endOfDay(),
+            ],
+            'last_12_months' => [
+                $now->copy()->subYear()->startOfDay(),
+                $now->copy()->endOfDay(),
+            ],
+            default => [
+                $now->copy()->subMonths(3)->startOfDay(),
+                $now->copy()->endOfDay(),
+            ],
+        };
+    }
+
+    /**
+     * Filter list by `invoices.created_at` (inclusive).
+     *
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function resolveCreatedAtRangeForQuery(): array
+    {
+        if ($this->invoiceDateFilterPreset === 'custom') {
+            $now = now();
+            $tz = config('app.timezone');
+            $from = ($this->dateFrom !== null && $this->dateFrom !== '')
+                ? Carbon::parse($this->dateFrom, $tz)->startOfDay()
+                : $now->copy()->subMonths(3)->startOfDay();
+            $to = ($this->dateTo !== null && $this->dateTo !== '')
+                ? Carbon::parse($this->dateTo, $tz)->endOfDay()
+                : $now->copy()->endOfDay();
+            if ($from->gt($to)) {
+                return [$to->copy()->startOfDay(), $from->copy()->endOfDay()];
+            }
+
+            return [$from, $to];
+        }
+
+        return $this->computeBoundsForPreset($this->invoiceDateFilterPreset);
     }
 
     public function updatedSearch(): void
@@ -1317,6 +1422,8 @@ class Invoices extends Component
             ? collect()
             : $this->invoice()->getFilterDepartments($this->organization_id, $listDeptRestriction);
 
+        [$invoicePeriodStart, $invoicePeriodEnd] = $this->resolveCreatedAtRangeForQuery();
+
         return view('invoice.livewire.invoices', [
             'invoices' => $this->invoice()->paginateForList(
                 $this->organization_id,
@@ -1326,7 +1433,11 @@ class Invoices extends Component
                 $this->perPage,
                 $listDeptRestrictionForQuery,
                 $ownInvoicesOnly,
+                $invoicePeriodStart,
+                $invoicePeriodEnd,
             ),
+            'invoicePeriodStart' => $invoicePeriodStart,
+            'invoicePeriodEnd' => $invoicePeriodEnd,
             'vendors' => $vendors,
             'departments' => $departments,
             'filterDepartments' => $filterDepartments,

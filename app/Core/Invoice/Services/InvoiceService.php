@@ -9,6 +9,7 @@ use App\Models\Organization;
 use App\Models\Outlet;
 use App\Models\Product;
 use App\Models\Vendor;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -30,6 +31,8 @@ class InvoiceService
         int $perPage = 15,
         ?array $restrictDepartmentIds = null,
         bool $ownInvoicesOnly = false,
+        ?Carbon $createdFrom = null,
+        ?Carbon $createdTo = null,
     ): LengthAwarePaginator {
         return $this->invoices->paginateForList(
             $organizationId,
@@ -39,6 +42,8 @@ class InvoiceService
             $perPage,
             $restrictDepartmentIds,
             $ownInvoicesOnly,
+            $createdFrom,
+            $createdTo,
         );
     }
 
