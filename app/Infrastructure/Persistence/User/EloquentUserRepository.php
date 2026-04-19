@@ -26,7 +26,6 @@ class EloquentUserRepository implements UserRepository
             'password'     => $data['password'],
             'active'        => $data['active'],
             'user_type'     => $data['user_type'] ?? 'user',
-            'driver' => false,
             'department_id' => $data['department_id'] ?? null,
             'designation_id' => $data['designation_id'] ?? null,
             'reporting_manager_id' => $data['reporting_manager_id'] ?? null,
@@ -36,7 +35,6 @@ class EloquentUserRepository implements UserRepository
             'pincode' => $data['pincode'] ?? null,
             'photo' => $data['photo'] ?? null,
             'is_wordpress_user' => $data['is_wordpress_user'],
-            'contributor_status' => null,
         ]);
 
         if (!empty($data['roles'])) {

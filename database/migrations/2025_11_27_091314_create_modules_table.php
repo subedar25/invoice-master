@@ -17,6 +17,8 @@ return new class extends Migration
             $table->id();
             $table->string('name'); // e.g., "User Management"
             $table->string('slug')->unique(); // e.g., "user-management"
+            $table->string('type')->default('public'); // system | public
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

@@ -203,3 +203,87 @@ select optgroup {
 body .swal2-container { z-index: 99999 !important; }
 body .swal2-popup.swal2-toast { z-index: 100000 !important; }
 
+/* DataTables: no client search (e.g. invoice) — top + bottom rows: info, Show, pagination */
+.master-dt-no-client-search .dataTables_filter {
+    display: none !important;
+}
+.master-dt-no-client-search .master-dt-top-paging {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+}
+.master-dt-no-client-search .master-dt-bottom {
+    margin-top: 0.75rem;
+    border-top: 1px solid #dee2e6;
+    padding-top: 0.75rem;
+}
+.master-dt-no-client-search .master-dt-bottom-inner,
+.master-dt-no-client-search .master-dt-top-paging .master-dt-bottom-inner {
+    width: 100%;
+}
+.master-dt-no-client-search .master-dt-bottom-right,
+.master-dt-no-client-search .master-dt-top-paging .master-dt-bottom-right {
+    flex: 0 0 auto;
+}
+.master-dt-no-client-search .master-dt-bottom-right .dataTables_length,
+.master-dt-no-client-search .master-dt-top-paging .dataTables_length {
+    margin-bottom: 0;
+}
+.master-dt-no-client-search .master-dt-bottom-right .dataTables_paginate,
+.master-dt-no-client-search .master-dt-top-paging .dataTables_paginate {
+    margin-left: 0.75rem;
+}
+
+/* Invoice form: supporting files card + file picker */
+.invoice-supporting-files-card {
+    border-color: #dee2e6 !important;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+.invoice-supporting-files-header {
+    background: linear-gradient(180deg, #f8f9fa 0%, #f1f3f5 100%);
+    border-bottom: 1px solid #dee2e6;
+    font-size: 0.95rem;
+}
+.invoice-supporting-files-header-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.35rem;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    color: #495057;
+}
+.invoice-file-picker-zone {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 1rem 1.1rem;
+    border: 2px dashed #ced4da;
+    border-radius: 0.45rem;
+    background: #fafbfc;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.invoice-file-picker-zone:hover {
+    border-color: #80bdff;
+    background: #f0f7ff;
+}
+.invoice-file-choose-btn {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    white-space: nowrap;
+}
+.invoice-file-picker-hint {
+    flex: 1 1 200px;
+    min-width: 0;
+}
+.invoice-file-row {
+    border: 1px solid #e9ecef;
+    background: #fff;
+}
+.invoice-file-row:hover {
+    border-color: #dee2e6;
+    background: #f8f9fa;
+}
+

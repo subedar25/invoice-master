@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
             ModuleAndPermissionSeeder::class,
              CountrySeeder::class,
              StateSeeder::class,
-             SuperAdminSeeder::class,
+             SystemAdminSeeder::class,
              AdminUserSeeder::class,
         ]);
 

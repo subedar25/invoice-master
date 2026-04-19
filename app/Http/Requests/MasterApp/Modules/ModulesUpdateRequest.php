@@ -18,6 +18,8 @@ class ModulesUpdateRequest extends FormRequest
 
             'name' => 'required|string|max:255|unique:modules,name,' . $moduleId,
             'slug' => 'required|string|max:255|unique:modules,slug,' . $moduleId,
+            'type' => 'required|string|in:system,public',
+            'is_active' => 'required|in:0,1',
         ];
     }
    

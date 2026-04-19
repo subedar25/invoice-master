@@ -14,14 +14,13 @@ return new class extends Migration
         Schema::create('outlets', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('location_id')->constrained('locations')->onDelete('cascade');
+            // FKs to locations / states / countries are added after those tables exist — see 2026_02_03_132000 and 2026_03_08_143000.
+            $table->unsignedBigInteger('location_id')->nullable();
             $table->foreignId('area_manager_id')->nullable()->constrained('users')->onDelete('set null');
             $table->text('address')->nullable();
             $table->unsignedInteger('state_id')->nullable();
-            $table->foreign('state_id')->references('id')->on('states')->onDelete('set null');
             $table->string('city')->nullable();
             $table->unsignedInteger('country_id')->nullable();
-            $table->foreign('country_id')->references('id')->on('countries')->onDelete('set null');
             $table->string('pincode', 20)->nullable();
             $table->string('photo')->nullable();
             $table->boolean('status')->default(true);

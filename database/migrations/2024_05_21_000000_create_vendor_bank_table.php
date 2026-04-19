@@ -10,7 +10,8 @@ return new class extends Migration
     {
         Schema::create('vendor_bank', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('vendor_id')->constrained('vendors')->cascadeOnDelete();
+            // FK added in 2024_05_27_010000 — `vendors` is created later the same week.
+            $table->unsignedBigInteger('vendor_id');
             $table->string('bank_name');
             $table->string('ac_number');
             $table->string('ifsc_number');

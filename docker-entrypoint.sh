@@ -80,14 +80,14 @@ try {
     # Run seeders
     echo "Running database seeders..."
     php artisan db:seed --class=ModuleAndPermissionSeeder --force || echo "ModuleAndPermissionSeeder failed or already run"
-    php artisan db:seed --class=SuperAdminSeeder --force || echo "SuperAdminSeeder failed or already run"
+    php artisan db:seed --class=SystemAdminSeeder --force || echo "SystemAdminSeeder failed or already run"
 else
     echo "Warning: Could not connect to database. Skipping migrations and seeders."
     echo "Make sure your .env file has correct database credentials."
     echo "You can run them manually later with:"
     echo "  docker-compose exec app php artisan migrate --force"
     echo "  docker-compose exec app php artisan db:seed --class=ModuleAndPermissionSeeder"
-    echo "  docker-compose exec app php artisan db:seed --class=SuperAdminSeeder"
+    echo "  docker-compose exec app php artisan db:seed --class=SystemAdminSeeder"
 fi
 
 # Check and build frontend assets if needed

@@ -5,6 +5,7 @@ namespace App\Http\Livewire\MasterApp\Masters;
 use App\Models\Country as CountryModel;
 use App\Models\Location as LocationModel;
 use App\Models\State as StateModel;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -38,6 +39,11 @@ class Location extends Component
     protected $queryString = [
         'search' => ['except' => ''],
     ];
+
+    public function boot(): void
+    {
+        Gate::authorize('locations');
+    }
 
     public function mount(): void
     {

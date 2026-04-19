@@ -14,9 +14,7 @@ class VehicleController extends Controller
     {
         $vehicles = Vehicle::with('driver')->get();
 
-        $drivers = User::where('driver', 1)
-            ->orWhereHas('roles', fn ($q) => $q->where('name', 'Driver'))
-            ->get(['id', 'first_name']);
+        $drivers = $this->drivers();
 
         return view('vehicles.index', compact('vehicles', 'drivers'));
     }
@@ -219,9 +217,11 @@ class VehicleController extends Controller
     //  * HELPERS
     private function drivers()
     {
-        return User::where('driver', 1)
-            ->orWhereHas('roles', fn ($q) => $q->where('name', 'Driver'))
-            ->get(['id', 'name']);
+        return User::query()
+            ->where('active', true)
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get(['id', 'first_name', 'last_name']);
     }
 
     private function validatedData(Request $request)

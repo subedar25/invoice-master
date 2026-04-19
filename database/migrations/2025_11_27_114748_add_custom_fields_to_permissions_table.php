@@ -14,13 +14,14 @@ return new class extends Migration
           
             $table->string('slug')->unique()->after('display_name');
             $table->foreignId('module_id')->nullable()->constrained()->onDelete('cascade')->after('slug');
+            $table->string('type')->default('public')->after('module_id');
         });
     }
 
     public function down(): void
     {
         Schema::table('permissions', function (Blueprint $table) {
-            $table->dropColumn(['display_name', 'slug', 'module_id']);
+            $table->dropColumn(['display_name', 'slug', 'module_id', 'type']);
         });
     }
 };

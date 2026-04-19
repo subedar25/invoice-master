@@ -40,6 +40,7 @@ class PermissionsStoreRequest extends FormRequest
             'slug' => 'required|string|max:255|unique:permissions,slug',
             'guard_name' => 'required|string|in:web,api', // Usually guard_name is either 'web' or 'api'
             'is_active' => 'nullable|boolean',
+            'type' => 'required|string|in:system,public',
         ];
     }
 
@@ -49,6 +50,7 @@ class PermissionsStoreRequest extends FormRequest
             'slug' => Str::slug($this->name),
             'guard_name' => $this->guard_name ?? 'web', // Default to 'web' if not provided
             'is_active' => $this->has('is_active') ? $this->boolean('is_active') : true,
+            'type' => $this->input('type', 'public'),
         ]);
     }
 

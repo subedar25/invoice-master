@@ -22,7 +22,6 @@ class Invoice extends Model implements AuditableContract
         'department_id',
         'pay_term',
         'comp_date',
-        'created_date',
         'year',
         'description',
         'total_amount',
@@ -42,7 +41,6 @@ class Invoice extends Model implements AuditableContract
         'department_id',
         'pay_term',
         'comp_date',
-        'created_date',
         'year',
         'description',
         'total_amount',
@@ -51,6 +49,10 @@ class Invoice extends Model implements AuditableContract
         'order_status',
         'task_status',
         'priority',
+    ];
+
+    protected $casts = [
+        'comp_date' => 'date',
     ];
 
     public function vendor(): BelongsTo
@@ -81,6 +83,21 @@ class Invoice extends Model implements AuditableContract
     public function files(): HasMany
     {
         return $this->hasMany(InvoiceFile::class);
+    }
+
+    public function ledgers(): HasMany
+    {
+        return $this->hasMany(Ledger::class);
+    }
+
+    public function ledgerStatusHistories(): HasMany
+    {
+        return $this->hasMany(LedgerStatusHistory::class);
+    }
+
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(InvoiceStatusHistory::class);
     }
 
     public function transformAudit(array $data): array

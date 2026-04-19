@@ -29,11 +29,84 @@
             var colCount = $table.find('thead th').length;
             targets = [colCount - 2, colCount - 1];
         }
-        $table.DataTable({
+        var noClientSearch = $table.hasClass('master-datatable-no-search');
+
+        function prepareControlsClone($node) {
+            var $c = $node.clone(false, true);
+            $c.removeAttr('id');
+            $c.find('*').each(function () {
+                var $el = $(this);
+                $el.removeAttr('id');
+                if ($el.is('select')) {
+                    $el.removeAttr('name');
+                }
+            });
+            return $c;
+        }
+
+        /** Keep top Show <select> identical to the real bottom control (default 10, All, etc.). */
+        function syncTopLengthFromBottom($w) {
+            var $real = $w.find('.master-dt-bottom .dataTables_length select').first();
+            var $top = $w.find('.master-dt-top-paging .dataTables_length select').first();
+            if (!$real.length || !$top.length) {
+                return;
+            }
+            var realEl = $real[0];
+            var topEl = $top[0];
+            var idx = realEl.selectedIndex;
+            if (idx >= 0 && idx < topEl.options.length) {
+                topEl.selectedIndex = idx;
+            } else {
+                $top.val($real.val());
+            }
+        }
+
+        function mirrorTopControls() {
+            if (!noClientSearch) return;
+            var $w = $table.closest('.dataTables_wrapper');
+            var $tbl = $w.find('table.dataTable').first();
+            if (!$tbl.length) {
+                $tbl = $table;
+            }
+            if (!$w.find('.master-dt-top-paging').length) {
+                $tbl.before('<div class="master-dt-top-paging clearfix mb-2" aria-label="Table controls (top)"></div>');
+            }
+            var $slot = $w.find('.master-dt-top-paging');
+            $slot.empty();
+            var $inner = $w.find('.master-dt-bottom .master-dt-bottom-inner');
+            if ($inner.length) {
+                $slot.append(prepareControlsClone($inner.first()));
+                syncTopLengthFromBottom($w);
+                return;
+            }
+            var $info = $w.find('.master-dt-bottom .dataTables_info').first();
+            var $len = $w.find('.master-dt-bottom .dataTables_length').first();
+            var $pag = $w.find('.master-dt-bottom .dataTables_paginate').first();
+            if (!$info.length && !$len.length && !$pag.length) {
+                return;
+            }
+            var $row = $('<div class="master-dt-bottom-inner d-flex flex-wrap align-items-center justify-content-between w-100"></div>');
+            var $right = $('<div class="master-dt-bottom-right d-flex flex-wrap align-items-center justify-content-end ml-auto"></div>');
+            if ($len.length) {
+                $right.append(prepareControlsClone($len));
+            }
+            if ($pag.length) {
+                $right.append(prepareControlsClone($pag));
+            }
+            if ($info.length) {
+                $row.append(prepareControlsClone($info));
+            }
+            $row.append($right);
+            $slot.append($row);
+            syncTopLengthFromBottom($w);
+        }
+
+        var dtOptions = {
             pageLength: 10,
             responsive: true,
             scrollX: false,
             autoWidth: false,
+            searching: !noClientSearch,
             lengthMenu: [[-1, 10, 50, 100], ['All', 10, 50, 100]],
             language: {
                 lengthMenu: 'Show _MENU_',
@@ -46,8 +119,50 @@
             order: [[orderCol, orderDir]],
             columnDefs: [{ orderable: false, targets: targets }],
             fixedColumns: { rightColumns: 1 },
+            drawCallback: noClientSearch ? function () {
+                mirrorTopControls();
+            } : undefined,
             initComplete: function () {
                 var $wrapper = $table.closest('.dataTables_wrapper');
+                if (noClientSearch) {
+                    $wrapper.addClass('master-dt-no-client-search');
+                    $wrapper.find('.dataTables_filter').remove();
+                    var $bottom = $wrapper.find('.master-dt-bottom');
+                    if ($bottom.length) {
+                        var $info = $bottom.find('.dataTables_info');
+                        var $len = $bottom.find('.dataTables_length');
+                        var $pag = $bottom.find('.dataTables_paginate');
+                        var $row = $('<div class="master-dt-bottom-inner d-flex flex-wrap align-items-center justify-content-between w-100"></div>');
+                        var $right = $('<div class="master-dt-bottom-right d-flex flex-wrap align-items-center justify-content-end ml-auto"></div>');
+                        $right.append($len).append($pag);
+                        $row.append($info).append($right);
+                        $bottom.empty().append($row);
+                    }
+                    mirrorTopControls();
+                    $wrapper.off('click.dtTopPag').on('click.dtTopPag', '.master-dt-top-paging a', function (e) {
+                        e.preventDefault();
+                        var $a = $(this);
+                        if ($a.parent().hasClass('disabled') || $a.hasClass('disabled')) {
+                            return;
+                        }
+                        var idx = $a.data('dt-idx');
+                        if (idx === undefined) {
+                            return;
+                        }
+                        var $real = $wrapper.find('.master-dt-bottom .dataTables_paginate a[data-dt-idx="' + idx + '"]').first();
+                        if ($real.length) {
+                            $real.trigger('click');
+                        }
+                    });
+                    $wrapper.off('change.dtTopLen').on('change.dtTopLen', '.master-dt-top-paging .dataTables_length select', function () {
+                        var val = $(this).val();
+                        var $real = $wrapper.find('.master-dt-bottom .dataTables_length select').first();
+                        if ($real.length && String($real.val()) !== String(val)) {
+                            $real.val(val).trigger('change');
+                        }
+                    });
+                    return;
+                }
                 var $topContainer = $wrapper.find('.top');
                 $topContainer.addClass('master-table-top');
                 $wrapper.find('.dataTables_length').appendTo($topContainer);
@@ -63,7 +178,12 @@
                 $searchInput.before('<i class="fa fa-search"></i>');
 
             }
-        });
+        };
+        if (noClientSearch) {
+            // Single control row in DOM (avoids duplicate ids); clone info + Show + pager above table each draw
+            dtOptions.dom = 'rt<"master-dt-bottom clearfix"ilp>';
+        }
+        $table.DataTable(dtOptions);
     }
 
     function initChildTable($table) {

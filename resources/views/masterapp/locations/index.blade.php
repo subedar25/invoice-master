@@ -38,7 +38,7 @@
                     <i class="fa fa-filter"></i> Filter
                 </button>
 
-                @can('create-location')
+                @can('locations')
                 <button type="button"
                     class="btn btn-primary add-new ml-2"
                     data-toggle="modal"

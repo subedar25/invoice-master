@@ -17,6 +17,7 @@ use App\Notifications\NewUserNotification;
 use App\Notifications\RoleUpdatedNotification;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Department;
+use App\Models\Permission;
 use Laragear\TwoFactor\Contracts\TwoFactorAuthenticatable;
 use Laragear\TwoFactor\TwoFactorAuthentication;
 use Illuminate\Support\Collection;
@@ -30,7 +31,6 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
         'last_name',
         'email',
         'password',
-        'driver',
         'active',
         'user_type',
         'last_selected_organization_id',
@@ -39,7 +39,6 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
         'soft_delete',
         'department_id',
         'designation_id',
-        'contributor_status',
         'reporting_manager_id',
         'address',
         'city',
@@ -58,7 +57,6 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'change_password' => 'boolean',
-        'driver' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -230,6 +228,37 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
         return false;
     }
 
+    /**
+     * Whether the user has the permission through an active role that belongs to the given organization.
+     */
+    public function hasPermissionInOrganization(string $permissionName, ?int $organizationId): bool
+    {
+        if ($organizationId === null) {
+            return false;
+        }
+
+        $permission = Permission::query()
+            ->where('name', $permissionName)
+            ->where('guard_name', 'web')
+            ->first();
+        if (! $permission) {
+            return false;
+        }
+
+        $roles = $this->roles()
+            ->where('roles.is_active', true)
+            ->where('roles.organization_id', $organizationId)
+            ->get();
+
+        foreach ($roles as $role) {
+            if ($role->hasPermissionTo($permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function hasAllRoles($roles, ?string $guard = null): bool
     {
         if ($roles instanceof Collection) {
@@ -258,6 +287,11 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
         $this->notify(new RoleUpdatedNotification($this, $oldRoles, $newRoles));
     }
     
+    public function isSystemUser(): bool
+    {
+        return ($this->user_type ?? '') === 'systemuser';
+    }
+
     public function isActive()
     {
         return (bool) $this->active;

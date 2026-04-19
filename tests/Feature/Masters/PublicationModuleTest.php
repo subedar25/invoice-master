@@ -20,7 +20,7 @@ class PublicationModuleTest extends TestCase
         parent::setUp();
 
         $this->createPermissionsAndRole();
-        $this->user = User::factory()->create(['driver' => 0, 'active' => true]);
+        $this->user = User::factory()->create(['active' => true]);
         $this->user->givePermissionTo('list-master', 'publication');
     }
 

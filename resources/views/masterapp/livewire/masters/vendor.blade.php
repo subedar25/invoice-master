@@ -70,13 +70,6 @@
                     <input type="hidden" wire:model="organization_id">
                     @error('organization_id') <span class="text-danger small d-block">{{ $message }}</span> @enderror
                 </div>
-                <div class="form-group">
-                    <label>Category</label>
-                    <select class="form-control" wire:model="category_id">
-                        <option value="">Select Category</option>
-                        @foreach($categoryOptions as $opt) <option value="{{ $opt->id }}">{{ $opt->name }}</option> @endforeach
-                    </select>
-                </div>
                 <div class="form-group"><label>Address</label><textarea class="form-control" rows="2" wire:model="address"></textarea></div>
                 <div class="row">
                     <div class="col-md-4 form-group"><label>City</label><input type="text" class="form-control" wire:model="city"></div>
@@ -84,8 +77,15 @@
                     <div class="col-md-4 form-group"><label>Pincode</label><input type="text" class="form-control" wire:model="pin"></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6 form-group"><label>PAN</label><input type="text" class="form-control" wire:model="PAN"></div>
-                    <div class="col-md-6 form-group"><label>GST Number</label><input type="text" class="form-control" wire:model="gst"></div>
+                    <div class="col-md-4 form-group">
+                        <label>Category</label>
+                        <select class="form-control" wire:model="category_id">
+                            <option value="">Select Category</option>
+                            @foreach($categoryOptions as $opt) <option value="{{ $opt->id }}">{{ $opt->name }}</option> @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4 form-group"><label>PAN</label><input type="text" class="form-control" wire:model="PAN"></div>
+                    <div class="col-md-4 form-group"><label>GST Number</label><input type="text" class="form-control" wire:model="gst"></div>
                 </div>
                 <div class="form-group">
                     <div class="custom-control custom-checkbox">
@@ -95,42 +95,47 @@
                 </div>
 
                 <hr>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="mb-0">Bank Details</h6>
-                    <button type="button" class="btn btn-success btn-sm" wire:click="addBank">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <h6 class="mb-0">Bank details <span class="text-muted font-weight-normal">(optional)</span></h6>
+                        <p class="text-muted small mb-0">Leave empty or click &quot;Add Bank&quot;. If you start filling a row, all fields in that row are required.</p>
+                    </div>
+                    <button type="button" class="btn btn-success btn-sm flex-shrink-0 ml-2" wire:click="addBank">
                         <i class="fa fa-plus"></i> Add Bank
                     </button>
                 </div>
 
+                @if(count($banks) === 0)
+                    <p class="text-muted small mb-3 mb-md-0">No bank rows yet. Use &quot;Add Bank&quot; when you want to capture account details.</p>
+                @endif
+
                 @foreach($banks as $index => $bank)
-                    <div class="border rounded p-3 mb-3 bg-light position-relative">
-                        @if(count($banks) > 1)
-                            <button type="button" class="btn btn-danger btn-sm position-absolute" style="top: 10px; right: 10px;" wire:click="removeBank({{ $index }})">
-                                <i class="fa fa-times"></i>
-                            </button>
-                        @endif
+                    <div class="border rounded p-3 mb-3 bg-light position-relative" wire:key="vendor-bank-{{ $index }}">
+                        <button type="button" class="btn btn-danger btn-sm position-absolute" style="top: 10px; right: 10px;" wire:click="removeBank({{ $index }})" title="Remove this row">
+                            <i class="fa fa-times"></i>
+                        </button>
                         <div class="row">
                             <div class="col-md-6 form-group">
-                                <label>Bank Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('banks.'.$index.'.bank_name') is-invalid @enderror" wire:model="banks.{{ $index }}.bank_name">
+                                <label>Bank name</label>
+                                <input type="text" class="form-control @error('banks.'.$index.'.bank_name') is-invalid @enderror" wire:model="banks.{{ $index }}.bank_name" autocomplete="off">
                                 @error('banks.'.$index.'.bank_name') <span class="invalid-feedback">{{ $message }}</span> @enderror
                             </div>
                             <div class="col-md-6 form-group">
-                                <label>Account Number <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('banks.'.$index.'.ac_number') is-invalid @enderror" wire:model="banks.{{ $index }}.ac_number">
+                                <label>Account number</label>
+                                <input type="text" class="form-control @error('banks.'.$index.'.ac_number') is-invalid @enderror" wire:model="banks.{{ $index }}.ac_number" autocomplete="off">
                                 @error('banks.'.$index.'.ac_number') <span class="invalid-feedback">{{ $message }}</span> @enderror
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 form-group">
-                                <label>IFSC Code <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('banks.'.$index.'.ifsc_number') is-invalid @enderror" wire:model="banks.{{ $index }}.ifsc_number">
+                                <label>IFSC / bank code</label>
+                                <input type="text" class="form-control @error('banks.'.$index.'.ifsc_number') is-invalid @enderror" wire:model="banks.{{ $index }}.ifsc_number" autocomplete="off">
                                 @error('banks.'.$index.'.ifsc_number') <span class="invalid-feedback">{{ $message }}</span> @enderror
                             </div>
                             <div class="col-md-6 form-group">
-                                <label>Account Type <span class="text-danger">*</span></label>
+                                <label>Account type</label>
                                 <select class="form-control @error('banks.'.$index.'.ac_type') is-invalid @enderror" wire:model="banks.{{ $index }}.ac_type">
-                                    <option value="">Select Type</option>
+                                    <option value="">Select type</option>
                                     <option value="Savings">Savings</option>
                                     <option value="Current">Current</option>
                                 </select>

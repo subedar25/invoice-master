@@ -5,6 +5,7 @@ namespace App\Http\Livewire\MasterApp\Masters;
 use App\Models\Organization as OrganizationModel;
 use App\Models\Product as ProductModel;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -39,6 +40,11 @@ class Product extends Component
     protected $queryString = [
         'search' => ['except' => ''],
     ];
+
+    public function boot(): void
+    {
+        Gate::authorize('products');
+    }
 
     public function mount(): void
     {

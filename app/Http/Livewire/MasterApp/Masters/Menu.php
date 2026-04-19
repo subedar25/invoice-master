@@ -19,17 +19,17 @@ class Menu extends Component
             $this->active = 'country';
         } elseif (auth()->user()?->can('state')) {
             $this->active = 'state';
-        } elseif (auth()->user()?->can('list-locations')) {
+        } elseif (auth()->user()?->can('locations')) {
             $this->active = 'location';
-        } elseif (auth()->user()?->can('list-vendors')) {
+        } elseif (auth()->user()?->can('vendors')) {
             $this->active = 'vendor';
-        } elseif (auth()->user()?->can('list-outlets')) {
+        } elseif (auth()->user()?->can('outlets')) {
             $this->active = 'outlet';
         } elseif (auth()->user()?->can('products')) {
             $this->active = 'product';
         } elseif (auth()->user()?->can('taxes')) {
             $this->active = 'tax';
-        } elseif (auth()->user()?->can('list-master')) {
+        } elseif (auth()->user()?->can('designation')) {
             $this->active = 'designation';
         } elseif (auth()->user()?->can('seasons')) {
             $this->active = 'seasons';

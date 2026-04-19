@@ -21,6 +21,16 @@
 </div>
 
 
+
+<div class="form-group">
+    <label for="type">Type <span class="text-danger">*</span></label>
+    @php($permissionType = old('type', $permission->type ?? 'public'))
+    <select id="type" name="type" class="form-control" required>
+        <option value="system" {{ $permissionType === 'system' ? 'selected' : '' }}>System</option>
+        <option value="public" {{ $permissionType === 'public' ? 'selected' : '' }}>Public</option>
+    </select>
+</div>
+
 <div class="mb-3">
     <label for="is_active" class="form-label">Active Status</label>
     <select id="is_active" name="is_active" class="form-control">

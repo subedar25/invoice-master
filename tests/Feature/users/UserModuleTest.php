@@ -57,36 +57,6 @@ class UserModuleTest extends TestCase
         $this->assertTrue(Hash::check('NewPassword@456', $user->fresh()->password));
     }
   
-    
-    public function test_driver_field_handling()
-    {
-        $this->authenticate();
-
-        $user = User::factory()->create([
-            'driver' => 0
-        ]);
-
-        // Update to driver
-        $response = $this->put("/users/{$user->id}", [
-            'name' => $user->name,
-            'email' => $user->email,
-            'driver' => "1"
-        ]);
-
-        $response->assertStatus(200);
-        $this->assertEquals(1, $user->fresh()->driver);
-
-        // Update back to not a driver
-        $response = $this->put("/users/{$user->id}", [
-            'name' => $user->name,
-            'email' => $user->email,
-            'driver' => "0"
-        ]);
-
-        $response->assertStatus(200);
-        $this->assertEquals(0, $user->fresh()->driver);
-    }
-    
     public function test_role_assignment_on_update()
     {
         $this->authenticate();
@@ -193,7 +163,6 @@ public function test_user_update_basic_info()
         $response = $this->put("/users/{$user->id}", [
             'name' => 'Updated User Name',
             'email' => $user->email,
-            'driver' => "0",
             'change_password' => "0"
         ]);
 
@@ -215,7 +184,6 @@ public function test_user_update_basic_info()
         $response = $this->put("/users/{$user->id}", [
             'name' => $user->name,
             'email' => $user->email,
-            'driver' => "0",
             'change_password' => "1",
             'password' => 'NewPassword@123'
         ]);
@@ -312,8 +280,7 @@ public function test_user_update_basic_info()
         $responseCreate = $this->post('/users', [
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'password' => 'Password@123',   
-            'driver' => "0",
+            'password' => 'Password@123',
             'change_password' => "0",
         ]);
         $responseCreate->assertStatus(200)
@@ -323,7 +290,6 @@ public function test_user_update_basic_info()
         $responseUpdate = $this->put("/users/{$user->id}", [
             'name' => 'Updated User Name',
             'email' => $user->email,
-            'driver' => "0",
             'change_password' => "0"
         ]);
         $responseUpdate->assertStatus(200)

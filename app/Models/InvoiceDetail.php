@@ -15,6 +15,8 @@ class InvoiceDetail extends Model implements AuditableContract
     protected $fillable = [
         'invoice_id',
         'product_id',
+        'product_name',
+        'hsn',
         'cgst',
         'sgst',
         'total_gst',
@@ -30,6 +32,8 @@ class InvoiceDetail extends Model implements AuditableContract
     protected $auditInclude = [
         'invoice_id',
         'product_id',
+        'product_name',
+        'hsn',
         'cgst',
         'sgst',
         'total_gst',

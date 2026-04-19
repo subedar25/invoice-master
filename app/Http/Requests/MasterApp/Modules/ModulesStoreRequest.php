@@ -28,6 +28,8 @@ class ModulesStoreRequest extends FormRequest
          return [
             'name' => 'required|string|max:255|unique:modules,name',
             'slug' => 'required|string|max:255|unique:modules,slug',
+            'type' => 'required|string|in:system,public',
+            'is_active' => 'required|in:0,1',
         ];
     }
 

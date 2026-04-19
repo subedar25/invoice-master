@@ -39,16 +39,16 @@ class NotificationEngine
 
         // USER CRUD to notify admins + super admins
         elseif (in_array($eventKey, ['user.created', 'user.updated', 'user.deleted'])) {
-            $recipients = $this->getAdminAndSuperAdminUsers();
+            $recipients = $this->getAdminAndSystemAdminUsers();
             \Log::debug("NotificationEngine: User CRUD - recipients are admins", ['admin_count' => $recipients->count()]);
         }
 
         // TIMESHEET EVENTS to notify admins + super admins + timesheet owner
         elseif (str_starts_with($eventKey, 'timesheet.') && $model && isset($model->user_id)) {
-            $recipients = $this->getAdminAndSuperAdminUsers();
+            $recipients = $this->getAdminAndSystemAdminUsers();
             $recipients->push(User::find($model->user_id));
             \Log::debug("NotificationEngine: Timesheet event - recipients are admins + owner", [
-                'admin_count' => $this->getAdminAndSuperAdminUsers()->count(),
+                'admin_count' => $this->getAdminAndSystemAdminUsers()->count(),
                 'owner_id' => $model->user_id,
             ]);
         }
@@ -61,7 +61,7 @@ class NotificationEngine
                 $recipients->push(User::find($model->user_id));
                 \Log::debug("NotificationEngine: Timeoff approved/rejected - recipient is requestor", ['user_id' => $model->user_id]);
             }
-            // Created / updated / deleted: notify users with roles that have a rule for this event (Admin User + Super Admin)
+            // Created / updated / deleted: notify users with roles that have a rule for this event (Admin User + System Admin)
             else {
                 $recipients = $this->getTimeOffRecipientsFromRules($rules);
                 \Log::debug("NotificationEngine: Timeoff created/updated/deleted - recipients from rules", ['count' => $recipients->count(), 'recipient_ids' => $recipients->pluck('id')->toArray()]);
@@ -112,22 +112,22 @@ class NotificationEngine
     }
 
     /**
-     * Users with role "Admin User" or "Super Admin" (exact names from seeders).
+     * Users with role "Admin User" or "System Admin" (exact names from seeders).
      */
-    private function getAdminAndSuperAdminUsers(): \Illuminate\Support\Collection
+    private function getAdminAndSystemAdminUsers(): \Illuminate\Support\Collection
     {
-        return User::role(['Admin User', 'Super Admin'])->get();
+        return User::role(['Admin User', 'System Admin'])->get();
     }
 
     /**
      * For timeoff events: get recipients from notification rules (users with any role that has a rule for this event).
-     * Ensures both Admin User and Super Admin receive time-off notifications when rules exist for both roles.
+     * Ensures both Admin User and System Admin receive time-off notifications when rules exist for both roles.
      */
     private function getTimeOffRecipientsFromRules(\Illuminate\Support\Collection $rules): \Illuminate\Support\Collection
     {
         $roleNames = $rules->pluck('role_name')->filter()->unique()->values()->toArray();
         if (empty($roleNames)) {
-            return $this->getAdminAndSuperAdminUsers();
+            return $this->getAdminAndSystemAdminUsers();
         }
         return User::role($roleNames)->get();
     }

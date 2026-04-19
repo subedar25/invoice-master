@@ -19,8 +19,8 @@ class CheckUserActive
         if (Auth::check()) {
             $user = Auth::user();
 
-            // Super Admin always allowed
-            if ($user->hasRole('Super Admin')) {
+            // System Admin always allowed
+            if ($user->hasRole('System Admin')) {
                 return $next($request);
             }
 

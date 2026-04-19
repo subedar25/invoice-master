@@ -33,6 +33,7 @@ class Organization extends Component
     public ?int $viewId = null;
 
     public string $name = '';
+    public string $address = '';
     public string $description = '';
     public string $invoice_prefix = '';
     public $logo;
@@ -53,6 +54,7 @@ class Organization extends Component
 
         return [
             'name' => ['required', 'string', 'max:255', $uniqueRule],
+            'address' => ['nullable', 'string', 'max:2000'],
             'description' => ['nullable', 'string', 'max:65535'],
             'invoice_prefix' => ['nullable', 'string', 'max:10'],
             'logo' => ['nullable', 'image', 'max:2048'],
@@ -79,6 +81,7 @@ class Organization extends Component
 
         $this->editId = $id;
         $this->name = $record->name;
+        $this->address = $record->address ?? '';
         $this->description = $record->description ?? '';
         $this->invoice_prefix = $record->invoice_prefix ?? '';
         $this->existingLogo = $record->logo;
@@ -138,6 +141,7 @@ class Organization extends Component
 
         OrganizationModel::create([
             'name' => $this->name,
+            'address' => $this->address !== '' ? $this->address : null,
             'description' => $this->description ?: null,
             'invoice_prefix' => $this->invoice_prefix ?: null,
             'logo' => $logoPath,
@@ -162,6 +166,7 @@ class Organization extends Component
         
         $data = [
             'name' => $this->name,
+            'address' => $this->address !== '' ? $this->address : null,
             'description' => $this->description ?: null,
             'invoice_prefix' => $this->invoice_prefix ?: null,
             'status' => $this->status,
@@ -217,7 +222,7 @@ class Organization extends Component
 
     private function resetForm(): void
     {
-        $this->name = $this->description = $this->invoice_prefix = '';
+        $this->name = $this->address = $this->description = $this->invoice_prefix = '';
         $this->logo = null;
         $this->existingLogo = null;
         $this->logoRemoved = false;

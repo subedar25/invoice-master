@@ -55,7 +55,7 @@ DB_PASSWORD=root
 // for  roles and permission run this seeder command
 php artisan db:seed --class=ModuleAndPermissionSeeder
 
-php artisan db:seed --class=SuperAdminSeeder
+php artisan db:seed --class=SystemAdminSeeder
 
 
 // command for create controller

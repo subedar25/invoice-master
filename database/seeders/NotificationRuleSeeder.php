@@ -9,7 +9,7 @@ use Spatie\Permission\Models\Role;
 class NotificationRuleSeeder extends Seeder
 {
     /** Roles that receive time-off (and other) event notifications. */
-    private const NOTIFICATION_ROLES = ['Admin User', 'Super Admin'];
+    private const NOTIFICATION_ROLES = ['Admin User', 'System Admin'];
 
     public function run(): void
     {

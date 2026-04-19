@@ -53,6 +53,12 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="org_address">Address</label>
+                    <textarea id="org_address" class="form-control @error('address') is-invalid @enderror" rows="3" wire:model="address" placeholder="Street, city, state, postal code…"></textarea>
+                    @error('address') <span class="invalid-feedback">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="form-group">
                     <label for="org_description">Description</label>
                     <textarea id="org_description" class="form-control @error('description') is-invalid @enderror" rows="3" wire:model="description"></textarea>
                     @error('description') <span class="invalid-feedback">{{ $message }}</span> @enderror
@@ -105,6 +111,9 @@
             <dl class="row mb-0">
                 <dt class="col-sm-3">Name</dt>
                 <dd class="col-sm-9">{{ $viewRecord->name }}</dd>
+
+                <dt class="col-sm-3">Address</dt>
+                <dd class="col-sm-9" style="white-space: pre-wrap;">{{ $viewRecord->address ?: '—' }}</dd>
 
                 <dt class="col-sm-3">Description</dt>
                 <dd class="col-sm-9">{{ $viewRecord->description ?: '—' }}</dd>

@@ -40,7 +40,7 @@ class AuthServiceProvider extends ServiceProvider
                 return true;
             }
 
-            if ($user->hasAnyRole(['Admin', 'Super Admin'])) {
+            if ($user->hasAnyRole(['Admin', 'System Admin'])) {
                 return true;
             }
 

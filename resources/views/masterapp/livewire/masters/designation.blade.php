@@ -69,6 +69,9 @@
         @php $viewRecord = $this->viewRecord; @endphp
         @component('masterapp.livewire.masters.components.view-card', ['viewTitle' => 'View Designation'])
             <dl class="row mb-0">
+                <dt class="col-sm-3">Organization</dt>
+                <dd class="col-sm-9">{{ $viewRecord->organization->name ?? '—' }}</dd>
+
                 <dt class="col-sm-3">Name</dt>
                 <dd class="col-sm-9">{{ $viewRecord->name }}</dd>
 

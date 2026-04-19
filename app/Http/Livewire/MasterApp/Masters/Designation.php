@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\MasterApp\Masters;
 
 use App\Models\UserDesignation;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -25,14 +26,32 @@ class Designation extends Component
 
     public string $name = '';
     public bool $status = true;
+    public string $organization_id = '';
+    public string $organizationFilter = '';
 
     protected $queryString = [
         'search' => ['except' => ''],
     ];
 
+    public function boot(): void
+    {
+        Gate::authorize('designation');
+    }
+
+    public function mount(): void
+    {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organizationFilter = (string) $selectedOrganizationId;
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+    }
+
     protected function rules(): array
     {
-        $uniqueRule = Rule::unique('user_designation', 'name');
+        $uniqueRule = Rule::unique('user_designation', 'name')->where(
+            fn ($query) => $query->where('organization_id', (int) $this->organization_id)
+        );
         if ($this->editId) {
             $uniqueRule->ignore($this->editId);
         }
@@ -40,12 +59,14 @@ class Designation extends Component
         return [
             'name' => ['required', 'string', 'max:255', $uniqueRule],
             'status' => ['boolean'],
+            'organization_id' => ['required', 'exists:organizations,id'],
         ];
     }
 
     protected array $validationAttributes = [
         'name' => 'Designation Name',
         'status' => 'Status',
+        'organization_id' => 'Organization',
     ];
 
     public function updatingSearch(): void
@@ -64,10 +85,12 @@ class Designation extends Component
     public function openEditModal(int $id): void
     {
         $record = UserDesignation::findOrFail($id);
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
 
         $this->editId = $id;
         $this->name = $record->name;
         $this->status = (bool) $record->status;
+        $this->organization_id = (string) ($selectedOrganizationId ?: $record->organization_id);
 
         $this->showEditModal = true;
         $this->showCreateModal = false;
@@ -100,6 +123,11 @@ class Designation extends Component
 
     public function saveCreate(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+
         try {
             $this->validate();
         } catch (ValidationException $e) {
@@ -109,6 +137,7 @@ class Designation extends Component
         }
 
         UserDesignation::create([
+            'organization_id' => (int) $this->organization_id,
             'name' => $this->name,
             'status' => $this->status ? 1 : 0,
         ]);
@@ -119,6 +148,11 @@ class Designation extends Component
 
     public function saveEdit(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
+        if ($selectedOrganizationId !== null) {
+            $this->organization_id = (string) $selectedOrganizationId;
+        }
+
         try {
             $this->validate();
         } catch (ValidationException $e) {
@@ -129,6 +163,7 @@ class Designation extends Component
 
         $record = UserDesignation::findOrFail((int) $this->editId);
         $record->update([
+            'organization_id' => (int) $this->organization_id,
             'name' => $this->name,
             'status' => $this->status ? 1 : 0,
         ]);
@@ -167,6 +202,9 @@ class Designation extends Component
         $sortDirection = $this->sortDirection === 'asc' ? 'asc' : 'desc';
 
         return UserDesignation::query()
+            ->when($this->organizationFilter !== '', function ($q) {
+                $q->where('organization_id', (int) $this->organizationFilter);
+            })
             ->when($this->search !== '', function ($q) {
                 $q->where('name', 'like', '%' . $this->search . '%');
             })
@@ -180,7 +218,7 @@ class Designation extends Component
             return null;
         }
 
-        return UserDesignation::find($this->viewId);
+        return UserDesignation::with('organization')->find($this->viewId);
     }
 
     public function render()
@@ -192,8 +230,22 @@ class Designation extends Component
 
     private function resetForm(): void
     {
+        $selectedOrganizationId = $this->resolveSelectedOrganizationId();
         $this->name = '';
         $this->status = true;
+        $this->organization_id = $selectedOrganizationId !== null ? (string) $selectedOrganizationId : '';
         $this->resetValidation();
+    }
+
+    private function resolveSelectedOrganizationId(): ?int
+    {
+        $organizationId = session('current_organization_id');
+        if (! empty($organizationId)) {
+            return (int) $organizationId;
+        }
+
+        $fallback = auth()->user()?->last_selected_organization_id;
+
+        return ! empty($fallback) ? (int) $fallback : null;
     }
 }

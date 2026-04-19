@@ -22,11 +22,19 @@ class Module extends Model implements AuditableContract
     protected $fillable = [
         'name',
         'slug',
+        'type',
+        'is_active',
     ];
 
     protected $auditInclude = [
         'name',
         'slug',
+        'type',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     protected $auditExclude = [

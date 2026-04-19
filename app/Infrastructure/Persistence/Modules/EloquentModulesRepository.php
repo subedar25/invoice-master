@@ -17,6 +17,8 @@ class EloquentModulesRepository implements ModulesRepository
         $modules = Module::create([
             'name'    => $data['name'],
             'slug'     => $data['slug'],
+            'type'     => $data['type'],
+            'is_active' => (bool) ($data['is_active'] ?? true),
         ]);
       
         return $modules;

@@ -3,7 +3,7 @@ namespace App\Http\Controllers\MasterApp;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 use App\Core\User\Services\UserService;
 use App\Http\Requests\MasterApp\User\UserStoreRequest;
 use App\Http\Requests\MasterApp\User\UserUpdateRequest;
@@ -20,6 +20,7 @@ use App\Notifications\RoleUpdatedNotification;
 use App\Core\Email\Services\EmailService;
 use App\Core\File\Services\FileManagementService;
 use App\Models\UserDocument;
+use App\Support\CurrentOrganization;
 
 class UserController extends Controller
 {
@@ -63,26 +64,39 @@ class UserController extends Controller
             })
             ->values();
 
-        $organizations = $accessibleOrganizations;
+        $filterDepartments = $currentOrganizationId > 0
+            ? Department::where('organization_id', $currentOrganizationId)->orderBy('name')->get()
+            : collect();
 
+        $filterDesignations = $currentOrganizationId > 0
+            ? UserDesignation::query()
+                ->where('status', true)
+                ->where('organization_id', $currentOrganizationId)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+            : collect();
 
-        return view('masterapp.users.index', compact('users', 'organizations', 'currentOrganizationId'));
+        return view('masterapp.users.index', compact(
+            'users',
+            'currentOrganizationId',
+            'filterDepartments',
+            'filterDesignations'
+        ));
     }
 
     public function create()
     {
-        $reportingManagers = User::query()
-            ->where(function ($query) {
-                $query->whereNull('user_type')
-                    ->orWhere('user_type', '!=', 'systemuser');
-            })
-            ->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name']);
+        $orgIds = [];
+        $oid = CurrentOrganization::idForUserAssignment();
+        if ($oid) {
+            $orgIds = [$oid];
+        }
+        $reportingManagers = $this->reportingManagersForOrganizationIds($orgIds, null);
 
         return view('masterapp.users.create', [
-            'roles' => Role::where('is_active', true)->pluck('name', 'id'),
-            'departments' => Department::all(),
-            'designations' => UserDesignation::where('status', true)->orderBy('name')->get(['id', 'name']),
+            'roles' => $this->rolesForOrganizationIds($orgIds)->pluck('name', 'id'),
+            'departments' => $this->departmentsForCurrentContext(),
+            'designations' => $this->designationsForCurrentContext(),
             'organizations' => Organization::orderBy('name')->get(['id', 'name']),
             'reportingManagers' => $reportingManagers,
         ]);
@@ -131,22 +145,18 @@ class UserController extends Controller
     {
         $user = $service->get($id);
         $this->ensureNotSystemUser($user);
-        $reportingManagers = User::query()
-            ->where('id', '!=', $user->id)
-            ->where(function ($query) {
-                $query->whereNull('user_type')
-                    ->orWhere('user_type', '!=', 'systemuser');
-            })
-            ->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name']);
+        $orgIds = $user->organizations->pluck('id')->toArray();
+        $reportingManagers = $this->reportingManagersForOrganizationIds($orgIds, $user->id);
+
+        $organizations = Organization::orderBy('name')->get(['id', 'name']);
 
         return view('masterapp.users.edit', [
             'user' => $user,
-            'roles' => Role::where('is_active', true)->pluck('name','id'),
+            'roles' => $this->rolesForOrganizationIds($orgIds)->pluck('name', 'id'),
             'userRoles' => $user->roles->pluck('name','id')->toArray(),
-            'departments' => Department::all(),
-            'designations' => UserDesignation::where('status', true)->orderBy('name')->get(['id', 'name']),
-            'organizations' => Organization::orderBy('name')->get(['id', 'name']),
+            'departments' => $this->departmentsForCurrentContext(),
+            'designations' => $this->designationsForCurrentContext(),
+            'organizations' => $organizations,
             'reportingManagers' => $reportingManagers,
         ]);
     }
@@ -349,7 +359,7 @@ class UserController extends Controller
     private function notifyAdminsAboutRoleUpdate(User $user, array $oldRoles, array $newRoles): void
     {
         $admins = User::whereHas('roles', function ($query) {
-            $query->whereIn('name', ['Admin User', 'Super Admin']);
+            $query->whereIn('name', ['Admin User', 'System Admin']);
         })->where('id', '!=', auth()->id())->get();
 
         foreach ($admins as $admin) {
@@ -394,5 +404,161 @@ class UserController extends Controller
         }
 
         return $documents;
+    }
+
+    private function departmentsForCurrentContext(): \Illuminate\Database\Eloquent\Collection
+    {
+        $currentOrgId = (int) session('current_organization_id', 0);
+        if ($currentOrgId > 0) {
+            return Department::where('organization_id', $currentOrgId)->orderBy('name')->get();
+        }
+
+        $authUser = auth()->user();
+        $isSystemUser = ($authUser?->user_type ?? '') === 'systemuser';
+        if ($isSystemUser) {
+            return Department::orderBy('name')->get();
+        }
+
+        $orgIds = $authUser->organizations()->pluck('organizations.id');
+        if ($orgIds->isEmpty()) {
+            return new \Illuminate\Database\Eloquent\Collection;
+        }
+
+        return Department::whereIn('organization_id', $orgIds)->orderBy('name')->get();
+    }
+
+    private function designationsForCurrentContext(): \Illuminate\Database\Eloquent\Collection
+    {
+        $currentOrgId = (int) session('current_organization_id', 0);
+        if ($currentOrgId > 0) {
+            return UserDesignation::query()
+                ->where('status', true)
+                ->where('organization_id', $currentOrgId)
+                ->orderBy('name')
+                ->get(['id', 'name']);
+        }
+
+        $authUser = auth()->user();
+        $isSystemUser = ($authUser?->user_type ?? '') === 'systemuser';
+        if ($isSystemUser) {
+            return UserDesignation::query()
+                ->where('status', true)
+                ->orderBy('name')
+                ->get(['id', 'name']);
+        }
+
+        $orgIds = $authUser->organizations()->pluck('organizations.id');
+        if ($orgIds->isEmpty()) {
+            return new \Illuminate\Database\Eloquent\Collection;
+        }
+
+        return UserDesignation::query()
+            ->where('status', true)
+            ->whereIn('organization_id', $orgIds)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+
+    /**
+     * JSON list of users eligible as reporting managers for the given organization ids (must belong to at least one).
+     */
+    public function reportingManagersByOrganizations(Request $request): JsonResponse
+    {
+        $auth = auth()->user();
+        if (! $auth || (! $auth->can('create-user') && ! $auth->can('edit-user'))) {
+            abort(403);
+        }
+
+        $ids = $request->query('organization_ids', []);
+        if (! is_array($ids)) {
+            $ids = $ids !== null && $ids !== '' ? [$ids] : [];
+        }
+        $ids = array_values(array_filter(array_map('intval', $ids)));
+
+        $exclude = $request->query('exclude_user_id');
+        $excludeId = $exclude !== null && $exclude !== '' ? (int) $exclude : null;
+
+        $managers = $this->reportingManagersForOrganizationIds($ids, $excludeId);
+
+        return response()->json([
+            'managers' => $managers->map(fn (User $m) => [
+                'id' => $m->id,
+                'first_name' => $m->first_name,
+                'last_name' => $m->last_name,
+            ])->values(),
+        ]);
+    }
+
+    /**
+     * @param  array<int>  $organizationIds
+     */
+    protected function reportingManagersForOrganizationIds(array $organizationIds, ?int $excludeUserId = null)
+    {
+        $organizationIds = array_values(array_unique(array_filter(array_map('intval', $organizationIds))));
+
+        $query = User::query()
+            ->where(function ($q) {
+                $q->whereNull('user_type')
+                    ->orWhere('user_type', '!=', 'systemuser');
+            });
+
+        if ($excludeUserId !== null) {
+            $query->where('id', '!=', $excludeUserId);
+        }
+
+        if ($organizationIds === []) {
+            return collect();
+        }
+
+        $query->whereHas('organizations', function ($q) use ($organizationIds) {
+            $q->whereIn('organizations.id', $organizationIds);
+        });
+
+        return $query->orderBy('first_name')->orderBy('last_name')->get(['id', 'first_name', 'last_name']);
+    }
+
+    /**
+     * JSON list of active roles for the given organization ids (role.organization_id must match).
+     */
+    public function rolesByOrganizations(Request $request): JsonResponse
+    {
+        $auth = auth()->user();
+        if (! $auth || (! $auth->can('create-user') && ! $auth->can('edit-user'))) {
+            abort(403);
+        }
+
+        $ids = $request->query('organization_ids', []);
+        if (! is_array($ids)) {
+            $ids = $ids !== null && $ids !== '' ? [$ids] : [];
+        }
+        $ids = array_values(array_filter(array_map('intval', $ids)));
+
+        $roles = $this->rolesForOrganizationIds($ids);
+
+        return response()->json([
+            'roles' => $roles->map(fn (Role $r) => [
+                'id' => $r->id,
+                'name' => $r->name,
+            ])->values(),
+        ]);
+    }
+
+    /**
+     * @param  array<int>  $organizationIds
+     * @return \Illuminate\Support\Collection<int, Role>
+     */
+    protected function rolesForOrganizationIds(array $organizationIds)
+    {
+        $organizationIds = array_values(array_unique(array_filter(array_map('intval', $organizationIds))));
+
+        if ($organizationIds === []) {
+            return collect();
+        }
+
+        return Role::query()
+            ->where('is_active', true)
+            ->whereIn('organization_id', $organizationIds)
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 }

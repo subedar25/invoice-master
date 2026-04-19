@@ -197,6 +197,7 @@ class PermissionController extends Controller
             'slug' => $permission->slug,
             'guard_name' => $permission->guard_name,
             'module_name' => optional($permission->module)->name ?? '',
+            'type_label' => ucfirst($permission->type ?? 'public'),
             'status_html' => $this->buildStatusToggleHtml($permission),
             'actions_html' => $this->buildActionsHtml($permission),
         ];

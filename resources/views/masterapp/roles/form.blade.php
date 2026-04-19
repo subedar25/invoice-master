@@ -29,6 +29,16 @@
     <strong>Assign Permissions</strong>
 </div>
 
+@php
+    $allDepartmentsForInvoiceScope = $allDepartmentsForInvoiceScope ?? collect();
+    $invoiceDepartmentScopes = $invoiceDepartmentScopes ?? [
+        'list-invoices' => ['all_departments' => true, 'department_ids' => []],
+        'approve-invoice' => ['all_departments' => true, 'department_ids' => []],
+    ];
+    $listInvoicesPermissionId = $listInvoicesPermissionId ?? null;
+    $approveInvoicePermissionId = $approveInvoicePermissionId ?? null;
+@endphp
+
 <div id="permissions-container" class="row border rounded p-0" style="border: 1px solid #ced4da !important; border-radius: 8px; min-height: 400px;">
     @if(isset($groupedPermissions))
         {{-- Left panel: list of modules (departments) --}}
@@ -76,6 +86,11 @@
                             </div>
                         </div>
                         @endforeach
+                        @if($moduleName === 'Invoice Management')
+                            @once
+                                @include('masterapp.roles.partials.invoice-department-scopes')
+                            @endonce
+                        @endif
                     </div>
                 </div>
             @endforeach

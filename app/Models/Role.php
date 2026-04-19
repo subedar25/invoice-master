@@ -6,8 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Permission\Models\Role as SpatieRole;
-use App\Models\User;        
-use App\Models\Department; 
+use App\Models\User;
+use App\Models\Department;
+use App\Models\Organization;
 use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 
@@ -17,7 +18,8 @@ class Role extends SpatieRole implements AuditableContract
       
     protected $fillable = [
         'name',
-        'guard_name', 
+        'guard_name',
+        'organization_id',
         'department_id',
         'is_active',
     ];
@@ -25,6 +27,7 @@ class Role extends SpatieRole implements AuditableContract
     protected $auditInclude = [
         'name',
         'guard_name',
+        'organization_id',
         'department_id',
         'is_active',
     ];
@@ -45,6 +48,11 @@ class Role extends SpatieRole implements AuditableContract
     public function department()
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
     }
 
     public function transformAudit(array $data): array

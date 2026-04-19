@@ -31,6 +31,7 @@ class Organization extends Model implements AuditableContract
 
     protected $fillable = [
         'name',
+        'address',
         'status',
         'invoice_prefix',
         'logo',
@@ -46,6 +47,7 @@ class Organization extends Model implements AuditableContract
 
     protected $auditInclude = [
         'name',
+        'address',
         'status',
         'invoice_prefix',
         'logo',

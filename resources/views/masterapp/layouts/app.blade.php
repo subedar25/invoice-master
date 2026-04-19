@@ -161,6 +161,7 @@
     <script src="{{ asset('js/ajax-form-handler.js') }}"></script>
     <script src="{{ asset('js/generic-delete-handler.js') }}"></script>
     <script src="{{ asset('js/masterapp/master-data-livewire.js') }}"></script>
+    <script src="{{ asset('js/users-create.js') }}"></script>
     <!-- Flatpickr (datepicker) -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 

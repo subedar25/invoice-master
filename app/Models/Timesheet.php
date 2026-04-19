@@ -93,7 +93,7 @@ class Timesheet extends Model implements AuditableContract
      */
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
-        if ($user->hasRole(['Admin User', 'Super Admin'])) {
+        if ($user->hasRole(['Admin User', 'System Admin'])) {
             return $query;
         }
 

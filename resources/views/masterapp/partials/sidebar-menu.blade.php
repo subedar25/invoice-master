@@ -35,7 +35,7 @@
         <li class="nav-item">
             <a href="{{ route('masterapp.users.index') }}" class="nav-link {{ request()->routeIs('masterapp.users.*') || (request()->routeIs('masterapp.entity.*') && $from === 'users') ? 'active' : '' }}">
                 <i class="fas fa-users"></i>
-                <p>All Users</p>
+                <p>Users</p>
             </a>
         </li>
         @endcan

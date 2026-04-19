@@ -26,19 +26,25 @@
                     class="nav-link {{ $active == 'state' ? 'active' : '' }}">State</a>
             </li>
              @endcan
-             @can('list-locations')
+             @can('locations')
             <li class="nav-item">
                 <a href="#" wire:click.prevent="setActive('location')"
                     class="nav-link {{ $active == 'location' ? 'active' : '' }}">Locations</a>
             </li>
              @endcan
-             @can('list-vendors')
+             @can('vendors')
             <li class="nav-item">
                 <a href="#" wire:click.prevent="setActive('vendor')"
                     class="nav-link {{ $active == 'vendor' ? 'active' : '' }}">Vendors</a>
             </li>
              @endcan
-             @can('list-outlets')
+             @can('vendors')
+            <li class="nav-item">
+                <a href="#" wire:click.prevent="setActive('vendor-category')"
+                    class="nav-link {{ $active == 'vendor-category' ? 'active' : '' }}">Vendor Category</a>
+            </li>
+             @endcan
+             @can('outlets')
             <li class="nav-item">
                 <a href="#" wire:click.prevent="setActive('outlet')"
                     class="nav-link {{ $active == 'outlet' ? 'active' : '' }}">Outlets</a>
@@ -56,7 +62,7 @@
                     class="nav-link {{ $active == 'tax' ? 'active' : '' }}">Taxes</a>
             </li>
              @endcan
-            @can('list-master')
+            @can('designation')
             <li class="nav-item">
                 <a href="#" wire:click.prevent="setActive('designation')"
                     class="nav-link {{ $active == 'designation' ? 'active' : '' }}">Designation</a>
@@ -79,6 +85,8 @@
             @livewire('master-app.masters.location')
         @elseif($active == 'vendor')
             @livewire('master-app.masters.vendor')
+        @elseif($active == 'vendor-category')
+            @livewire('master-app.masters.vendor-category')
         @elseif($active == 'outlet')
             @livewire('master-app.masters.outlet')
         @elseif($active == 'product')

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Country as CountryModel;
 use App\Models\State as StateModel;
 use App\Core\File\Services\FileManagementService;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -23,6 +24,7 @@ class Outlet extends Component
     public function boot(FileManagementService $fileService): void
     {
         $this->fileService = $fileService;
+        Gate::authorize('outlets');
     }
 
     public string $search = '';
@@ -71,7 +73,13 @@ class Outlet extends Component
             'name' => ['required', 'string', 'max:255'],
             'organization_id' => ['required', 'exists:organizations,id'],
             'location_id' => ['required', 'exists:locations,id'],
-            'area_manager_id' => ['nullable', 'exists:users,id'],
+            'area_manager_id' => [
+                'nullable',
+                Rule::exists('users', 'id')->where(function ($query) {
+                    $query->whereNull('user_type')
+                        ->orWhere('user_type', '<>', 'systemuser');
+                }),
+            ],
             'address' => ['nullable', 'string', 'max:1000'],
             'country_id' => ['nullable', 'exists:countries,id'],
             'state_id' => ['nullable', 'exists:states,id'],
@@ -101,7 +109,15 @@ class Outlet extends Component
         $this->name = $record->name;
         $this->organization_id = (string) ($selectedOrganizationId ?: $record->organization_id);
         $this->location_id = (string)$record->location_id;
-        $this->area_manager_id = (string)$record->area_manager_id;
+        $amId = $record->area_manager_id;
+        if ($amId) {
+            $manager = User::query()->find($amId);
+            $this->area_manager_id = ($manager && ($manager->user_type ?? '') === 'systemuser')
+                ? ''
+                : (string) $amId;
+        } else {
+            $this->area_manager_id = '';
+        }
         $this->address = $record->address;
         $this->country_id = (string)$record->country_id;
         $this->state_id = (string)$record->state_id;
@@ -245,7 +261,14 @@ class Outlet extends Component
 
     public function getAreaManagerOptionsProperty()
     {
-        return User::orderBy('first_name')->get(['id', 'first_name', 'last_name']);
+        return User::query()
+            ->where(function ($q) {
+                $q->whereNull('user_type')
+                    ->orWhere('user_type', '<>', 'systemuser');
+            })
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get(['id', 'first_name', 'last_name']);
     }
 
     public function getCountryOptionsProperty() { return CountryModel::orderBy('name')->get(['id', 'name']); }

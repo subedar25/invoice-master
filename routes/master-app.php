@@ -48,6 +48,12 @@ Route::prefix('master-app')
             ->name('users.create')
             ->middleware('can:create-user');
 
+        Route::get('/users/reporting-managers-options', [UserController::class, 'reportingManagersByOrganizations'])
+            ->name('users.reporting-managers-options');
+
+        Route::get('/users/roles-options', [UserController::class, 'rolesByOrganizations'])
+            ->name('users.roles-options');
+
         Route::post('/users/store', [UserController::class, 'store'])
             ->name('users.store')
             ->middleware('can:create-user');
@@ -166,6 +172,9 @@ Route::prefix('master-app')
         Route::put('modules/{module}', [ModuleController::class, 'update'])
             ->name('modules.update')
             ->middleware('can:edit-modules');
+        Route::patch('modules/{module}/toggle-active', [ModuleController::class, 'toggleActive'])
+            ->name('modules.toggle-active')
+            ->middleware('can:edit-modules');
         Route::delete('modules/{module}', [ModuleController::class, 'destroy'])
             ->name('modules.destroy')
             ->middleware('can:delete-modules');
@@ -280,7 +289,7 @@ Route::prefix('master-app')
 
     // LOCATIONS
     //location routes - custom routes first to avoid conflict with resource routes
-    Route::prefix('locations')->name('locations.')->group(function () {
+    Route::prefix('locations')->name('locations.')->middleware('can:locations')->group(function () {
         Route::post('check-unique', [LocationController::class, 'checkUnique'])->name('check-unique');
         Route::get('data', [LocationController::class, 'getLocations'])->name('data');
         Route::post('bulk-delete', [LocationController::class, 'bulkDestroy'])->name('bulk-delete');
@@ -294,20 +303,14 @@ Route::prefix('master-app')
 
     });
 
-    // Route::resource('locations', LocationController::class)->middleware([
-    //     'index'   => 'can:list-locations',
-    //     'create'  => 'can:create-location',
-    //     'store'   => 'can:create-location',
-    //     'show'    => 'can:list-locations',
-    //     'edit'    => 'can:edit-location',
-    //     'update'  => 'can:edit-location',
-    //     'destroy' => 'can:delete-location',
-    // ]);
     Route::resource('locations', LocationController::class)->middleware([
-        'index' => 'can:list-locations',
-         'create' => 'can:create-location',
-         'edit'   => 'can:edit-location',
-        'destroy'=> 'can:delete-location',
+        'index' => 'can:locations',
+        'create' => 'can:locations',
+        'store' => 'can:locations',
+        'show' => 'can:locations',
+        'edit' => 'can:locations',
+        'update' => 'can:locations',
+        'destroy' => 'can:locations',
     ]);
 
 

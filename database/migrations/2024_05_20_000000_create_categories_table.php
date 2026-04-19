@@ -16,7 +16,7 @@ return new class extends Migration
 
         Schema::create('vendor_categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('organization_id')->constrained()->cascadeOnDelete();
+            // organization_id + FK: see 2026_03_08_020000 (organizations table is created later).
             $table->string('name');
             $table->text('desc')->nullable();
             $table->foreignId('parent_id')->nullable()->constrained('vendor_categories')->nullOnDelete();

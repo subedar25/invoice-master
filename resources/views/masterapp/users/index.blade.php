@@ -23,6 +23,88 @@
     padding-left: 34px !important;
     box-sizing: border-box;
   }
+
+  /* Select2 multi-select filters: full width, readable tags */
+  #filterWrapper .select2-container {
+    width: 100% !important;
+  }
+
+  /* Float dropdown over content (dropdownParent: body); high z-index above sidebar/cards */
+  .select2-dropdown.users-filter-select2-dropdown {
+    z-index: 9999 !important;
+  }
+
+  #filterWrapper .select2-container .select2-selection--multiple {
+    min-height: 38px;
+    border-radius: 0.25rem;
+  }
+
+  #filterWrapper .select2-container .select2-selection--multiple .select2-selection__rendered {
+    padding-bottom: 2px;
+  }
+
+  /* Smaller text only for selected values (tags) inside Department / Designation — full column width unchanged */
+  #filterWrapper .select2-container .select2-selection--multiple .select2-selection__choice {
+    font-size: 0.72rem;
+    line-height: 1.3;
+    padding: 0.1rem 0.4rem 0.1rem 0.35rem;
+    margin-top: 0.2rem;
+  }
+
+  #filterWrapper .select2-container .select2-selection--multiple .select2-selection__choice__remove {
+    font-size: 0.68rem;
+    margin-right: 0.25rem;
+  }
+
+  /* Active filters: label + chips on one line (does not affect filter row width) */
+  #activeFilters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.5rem;
+    font-size: 0.8125rem;
+  }
+
+  #activeFilters .active-filters-heading {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  #activeFilters #activeFiltersList {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .users-active-filter-chips {
+    gap: 0.35rem 0.25rem;
+  }
+
+  .users-active-filter-chip {
+    font-size: 0.72rem;
+    font-weight: 500;
+    line-height: 1.3;
+    padding: 0.2rem 0.45rem 0.2rem 0.5rem;
+    border-radius: 0.2rem;
+    display: inline-flex;
+    align-items: center;
+    max-width: min(100%, 20rem);
+  }
+
+  .users-active-filter-chip .remove-filter-chip {
+    cursor: pointer;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.15rem;
+    margin-left: 0.25rem;
+    opacity: 0.85;
+    flex-shrink: 0;
+  }
+
+  .users-active-filter-chip .remove-filter-chip:hover {
+    opacity: 1;
+  }
 </style>
 @endpush
 
@@ -30,7 +112,7 @@
                     <div class="container-fluid">
                             <div class="row mb-2 align-items-center">
                                 <div class="col-sm-6">
-                                    <h1 class="m-0 text-dark">All Users</h1>
+                                    <h1 class="m-0 text-dark">Users</h1>
                                 </div>
 
                                 <div class="col-sm-6 d-flex justify-content-end">
@@ -53,9 +135,17 @@
             <section class="content">
                 <div class="container-fluid">
 
-                {{-- Filters (Active column only) --}}
+                {{-- Filters (scope follows org from header switcher) --}}
                 @php
-                    $hasFilters = request()->has('active') || request()->has('organization_id');
+                    $rawDept = request()->input('department_id');
+                    $selectedDepartmentIds = is_array($rawDept)
+                        ? array_values(array_filter(array_map('strval', $rawDept)))
+                        : (($rawDept !== null && $rawDept !== '') ? [(string) $rawDept] : []);
+                    $rawDesig = request()->input('designation_id');
+                    $selectedDesignationIds = is_array($rawDesig)
+                        ? array_values(array_filter(array_map('strval', $rawDesig)))
+                        : (($rawDesig !== null && $rawDesig !== '') ? [(string) $rawDesig] : []);
+                    $hasFilters = request()->filled('active') || $selectedDepartmentIds !== [] || $selectedDesignationIds !== [];
                     $displayFilter = $hasFilters ? 'block' : 'none';
                 @endphp
 
@@ -66,17 +156,28 @@
                     <form id="filterForm">
                         <div class="row align-items-end">
                             <div class="col-md-4">
-                                <label class="font-weight-bold">Organization</label>
-                                <select id="filter_organization_id" name="organization_id" class="form-control filter-input">
-                                    <option value="">All</option>
-                                    @foreach (($organizations ?? []) as $org)
-                                        <option value="{{ $org->id }}" {{ ((string) request('organization_id', $currentOrganizationId ?? '')) === (string) $org->id ? 'selected' : '' }}>
-                                            {{ $org->name }}
+                                <label class="font-weight-bold">Department</label>
+                                <select id="filter_department_id" name="department_id[]" class="form-control filter-input select2 select2-users-filter" multiple="multiple" style="width: 100%;" data-placeholder="All departments">
+                                    <option value=""></option>
+                                    @foreach (($filterDepartments ?? []) as $dept)
+                                        <option value="{{ $dept->id }}" @selected(in_array((string) $dept->id, $selectedDepartmentIds, true))>
+                                            {{ $dept->name }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
+                                <label class="font-weight-bold">Designation</label>
+                                <select id="filter_designation_id" name="designation_id[]" class="form-control filter-input select2 select2-users-filter" multiple="multiple" style="width: 100%;" data-placeholder="All designations">
+                                    <option value=""></option>
+                                    @foreach (($filterDesignations ?? []) as $desig)
+                                        <option value="{{ $desig->id }}" @selected(in_array((string) $desig->id, $selectedDesignationIds, true))>
+                                            {{ $desig->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
                                 <label class="font-weight-bold">Active</label>
                                 <select id="filter_active" name="active" class="form-control filter-input">
                                     <option value="">All</option>
@@ -84,21 +185,13 @@
                                     <option value="0" {{ request('active') === '0' ? 'selected' : '' }}>Deactive</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <button type="button" id="applyFilterBtn" class="btn btn-primary btn-block"><i class="fa fa-filter"></i> Apply Filter</button>
-                            </div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-md-12 text-right">
-                                <a href="{{ route('masterapp.users.index') }}" class="btn btn-link btn-sm text-secondary">Clear All Filters</a>
-                            </div>
                         </div>
                     </form>
                 </div>
 
-                {{-- Active Filters Badges --}}
+                {{-- Active Filters: one chip per selected value, each with its own remove --}}
                 <div id="activeFilters" class="mb-3" style="display:none;">
-                    <strong>Active Filters:</strong>
+                    <span class="active-filters-heading">Active filters</span>
                     <span id="activeFiltersList"></span>
                 </div>
 
@@ -132,6 +225,8 @@
                                   data-id="{{ $user->id }}"
                                   data-active="{{ $user->active ? 1 : 0 }}"
                                   data-org-ids="{{ $user->organizations->pluck('id')->implode(',') }}"
+                                  data-department-id="{{ $user->department_id ?? '' }}"
+                                  data-designation-id="{{ $user->designation_id ?? '' }}"
                               >
 
                                   <td class="d-none" data-field="id">{{ $user->id }}</td>
@@ -267,52 +362,133 @@
 <script>
 
 $(function () {
-     // --- URL Param Handling (Active filter only) ---
+     // --- URL param handling (department[], designation[], active; org from header) ---
      var urlParams = new URLSearchParams(window.location.search);
 
-     // Initialize filter from URL
      if (urlParams.has('active')) $('#filter_active').val(urlParams.get('active'));
-     if (urlParams.has('organization_id')) $('#filter_organization_id').val(urlParams.get('organization_id'));
 
-     // Update URL from current filter
+     function readMultiParam(paramBase) {
+         var bracket = paramBase + '[]';
+         var vals = urlParams.getAll(bracket);
+         if (vals.length) return vals;
+         var legacy = urlParams.get(paramBase);
+         if (legacy) return legacy.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+         vals = [];
+         for (var i = 0; i < 50; i++) {
+             var k = paramBase + '[' + i + ']';
+             if (!urlParams.has(k)) break;
+             vals.push(urlParams.get(k));
+         }
+         return vals;
+     }
+
+     if ($.fn.select2) {
+         var $dropdownParent = $(document.body);
+         $('#filter_department_id').select2({
+             width: '100%',
+             placeholder: $('#filter_department_id').data('placeholder') || 'All departments',
+             allowClear: true,
+             closeOnSelect: false,
+             dropdownParent: $dropdownParent,
+             dropdownCssClass: 'users-filter-select2-dropdown'
+         });
+         $('#filter_designation_id').select2({
+             width: '100%',
+             placeholder: $('#filter_designation_id').data('placeholder') || 'All designations',
+             allowClear: true,
+             closeOnSelect: false,
+             dropdownParent: $dropdownParent,
+             dropdownCssClass: 'users-filter-select2-dropdown'
+         });
+     }
+
+     var deptFromUrl = readMultiParam('department_id');
+     if (deptFromUrl.length) {
+         $('#filter_department_id').val(deptFromUrl).trigger('change');
+     }
+     var desigFromUrl = readMultiParam('designation_id');
+     if (desigFromUrl.length) {
+         $('#filter_designation_id').val(desigFromUrl).trigger('change');
+     }
+
      function updateUrl() {
          var params = new URLSearchParams();
          var active = $('#filter_active').val();
          if (active) params.set('active', active);
-         var organizationId = $('#filter_organization_id').val();
-         if (organizationId) params.set('organization_id', organizationId);
+         var departmentIds = $('#filter_department_id').val() || [];
+         departmentIds.forEach(function (id) {
+             if (id) params.append('department_id[]', id);
+         });
+         var designationIds = $('#filter_designation_id').val() || [];
+         designationIds.forEach(function (id) {
+             if (id) params.append('designation_id[]', id);
+         });
          var newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
          history.pushState(null, '', newUrl);
          updateActiveFilterBadges();
      }
 
-     // Active filter badges
+     function optionLabel($select, value) {
+         var s = String(value);
+         var t = $select.find('option').filter(function () { return $(this).val() === s; }).first().text();
+         return (t || '').trim() || s;
+     }
+
      function updateActiveFilterBadges() {
          var container = $('#activeFilters');
          var list = $('#activeFiltersList');
          list.empty();
-         var activeVal = $('#filter_active').val();
-         var activeText = $('#filter_active option:selected').text();
-         var orgVal = $('#filter_organization_id').val();
-         var orgText = $('#filter_organization_id option:selected').text();
 
+         var $wrap = $('<div class="users-active-filter-chips d-flex flex-wrap align-items-center"></div>');
          var hasAny = false;
-         if (orgVal !== '') {
+
+         var $dept = $('#filter_department_id');
+         ($dept.val() || []).filter(function (v) { return v !== ''; }).forEach(function (id) {
              hasAny = true;
-             var badgeOrg = $('<span class="badge badge-info ml-2 p-2" style="font-size: 100%;">Organization: ' + orgText + ' <i class="fa fa-times cursor-pointer remove-filter" data-target=\"#filter_organization_id\" style="margin-left:5px;\"></i></span>');
-             list.append(badgeOrg);
-         }
+             var label = optionLabel($dept, id);
+             var $chip = $('<span class="users-active-filter-chip badge badge-info"></span>');
+             $chip.attr('title', 'Department: ' + label);
+             $chip.append(document.createTextNode(label + ' '));
+             var $x = $('<i class="fa fa-times remove-filter-chip" role="button" tabindex="0" title="Remove"></i>');
+             $x.attr('data-filter', 'department').attr('data-value', id);
+             $chip.append($x);
+             $wrap.append($chip);
+         });
+
+         var $desig = $('#filter_designation_id');
+         ($desig.val() || []).filter(function (v) { return v !== ''; }).forEach(function (id) {
+             hasAny = true;
+             var label = optionLabel($desig, id);
+             var $chip = $('<span class="users-active-filter-chip badge badge-info"></span>');
+             $chip.attr('title', 'Designation: ' + label);
+             $chip.append(document.createTextNode(label + ' '));
+             var $x = $('<i class="fa fa-times remove-filter-chip" role="button" tabindex="0" title="Remove"></i>');
+             $x.attr('data-filter', 'designation').attr('data-value', id);
+             $chip.append($x);
+             $wrap.append($chip);
+         });
+
+         var activeVal = $('#filter_active').val();
          if (activeVal !== '') {
              hasAny = true;
-             var badgeActive = $('<span class="badge badge-info ml-2 p-2" style="font-size: 100%;">Active: ' + activeText + ' <i class="fa fa-times cursor-pointer remove-filter" data-target=\"#filter_active\" style=\"margin-left:5px;\"></i></span>');
-             list.append(badgeActive);
+             var activeText = $('#filter_active option:selected').text();
+             var $chip = $('<span class="users-active-filter-chip badge badge-info"></span>');
+             $chip.attr('title', 'Status: ' + activeText);
+             $chip.append(document.createTextNode(activeText + ' '));
+             var $x = $('<i class="fa fa-times remove-filter-chip" role="button" tabindex="0" title="Remove"></i>');
+             $x.attr('data-filter', 'active');
+             $chip.append($x);
+             $wrap.append($chip);
          }
 
-         if (hasAny) container.show();
-         else container.hide();
+         if (hasAny) {
+             list.append($wrap);
+             container.show();
+         } else {
+             container.hide();
+         }
      }
 
-     // Custom search: filter by Active value (row data attribute)
      $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
          if (settings.nTable.id !== 'example2') return true;
          var activeFilter = $('#filter_active').val();
@@ -320,20 +496,29 @@ $(function () {
          var $row = $(table.row(dataIndex).node());
          var isActive = String($row.data('active')) === '1';
 
-         var orgFilter = $('#filter_organization_id').val();
-         var orgIdsCsv = String($row.data('org-ids') ?? '');
-         var orgMatch = true;
-         if (orgFilter) {
-             // Match full ids only (avoid "1" matching "11")
-             var padded = ',' + orgIdsCsv + ',';
-             orgMatch = padded.indexOf(',' + String(orgFilter) + ',') !== -1;
+         var departmentFilters = ($('#filter_department_id').val() || []).filter(function (v) { return v !== ''; });
+         var rowDeptId = String($row.data('departmentId') ?? $row.attr('data-department-id') ?? '');
+         var departmentMatch = true;
+         if (departmentFilters.length) {
+             departmentMatch = departmentFilters.some(function (id) {
+                 return String(id) === rowDeptId;
+             });
+         }
+
+         var designationFilters = ($('#filter_designation_id').val() || []).filter(function (v) { return v !== ''; });
+         var rowDesigId = String($row.data('designationId') ?? $row.attr('data-designation-id') ?? '');
+         var designationMatch = true;
+         if (designationFilters.length) {
+             designationMatch = designationFilters.some(function (id) {
+                 return String(id) === rowDesigId;
+             });
          }
 
          var activeMatch = true;
          if (activeFilter === '1') activeMatch = isActive;
          else if (activeFilter === '0') activeMatch = !isActive;
 
-         return orgMatch && activeMatch;
+         return departmentMatch && designationMatch && activeMatch;
      });
 
      // Filter panel toggle
@@ -345,18 +530,25 @@ $(function () {
          $('#filterWrapper').slideToggle();
      });
 
-     // Apply Filter (will run after table is created)
-     function applyFilter() {
-         $('#example2').DataTable().draw();
-         updateUrl();
-     }
-
-     // Remove single filter badge
-     $(document).on('click', '.remove-filter', function () {
-         var target = $(this).data('target');
-         $(target).val('');
-         $('#example2').DataTable().draw();
-         updateUrl();
+     $(document).on('click', '.remove-filter-chip', function (e) {
+         e.preventDefault();
+         var filter = $(this).data('filter');
+         var value = $(this).data('value');
+         if (filter === 'department') {
+             var $sel = $('#filter_department_id');
+             var vals = ($sel.val() || []).filter(function (v) {
+                 return v !== '' && String(v) !== String(value);
+             });
+             $sel.val(vals.length ? vals : null).trigger('change');
+         } else if (filter === 'designation') {
+             var $selD = $('#filter_designation_id');
+             var valsD = ($selD.val() || []).filter(function (v) {
+                 return v !== '' && String(v) !== String(value);
+             });
+             $selD.val(valsD.length ? valsD : null).trigger('change');
+         } else if (filter === 'active') {
+             $('#filter_active').val('').trigger('change');
+         }
      });
 
      var dataTable=$('#example2').DataTable({
@@ -574,6 +766,13 @@ $(function () {
       }
   });
 
+     $('#filter_department_id, #filter_designation_id, #filter_active').on('change.usersFilter', function () {
+         if ($.fn.DataTable.isDataTable('#example2')) {
+             $('#example2').DataTable().draw();
+         }
+         updateUrl();
+     });
+
     // When returning from print tab/window, force a redraw to restore search behavior.
     if (!window.__usersPrintFocusHandlerBound) {
         window.__usersPrintFocusHandlerBound = true;
@@ -599,11 +798,6 @@ $(function () {
             });
         }
     }
-
-     // Apply Filter button
-     $('#applyFilterBtn').click(function () {
-         applyFilter();
-     });
 
 });
 //  {{-- ajax toggle without page reload --}}

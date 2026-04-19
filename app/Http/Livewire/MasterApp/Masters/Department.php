@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\MasterApp\Masters;
 
 use App\Models\Department as DepartmentModel;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -32,6 +33,11 @@ class Department extends Component
     protected $queryString = [
         'search' => ['except' => ''],
     ];
+
+    public function boot(): void
+    {
+        Gate::authorize('department');
+    }
 
     public function mount(): void
     {

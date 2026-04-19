@@ -38,6 +38,8 @@ use App\Core\OrganizationType\Contracts\OrganizationTypeRepository;
 use App\Infrastructure\Persistence\OrganizationType\EloquentOrganizationTypeRepository;
 use App\Core\Season\Contracts\SeasonRepository;
 use App\Infrastructure\Persistence\Season\EloquentSeasonRepository;
+use App\Core\Invoice\Contracts\InvoiceRepository;
+use App\Infrastructure\Persistence\Invoice\EloquentInvoiceRepository;
 use App\Http\Livewire\MasterApp\Masters\OrganizationType as OrganizationTypeComponent;
 use App\Http\Livewire\MasterApp\Masters\Seasons as SeasonsComponent;
 use App\Http\Livewire\MasterApp\Masters\Department as DepartmentComponent;
@@ -80,6 +82,7 @@ class AppServiceProvider extends ServiceProvider
             SeasonRepository::class => EloquentSeasonRepository::class,
             OrganizationRepository::class => EloquentOrganizationRepository::class,
             LocationRepository::class => EloquentLocationRepository::class,
+            InvoiceRepository::class => EloquentInvoiceRepository::class,
         ];
 
         foreach ($bindings as $abstract => $concrete) {
@@ -114,6 +117,13 @@ class AppServiceProvider extends ServiceProvider
         Livewire::component('master-app.masters.designation', DesignationComponent::class);
 
         Paginator::useBootstrap();
+
+        // Let published Livewire views (e.g. resources/views/vendor/livewire/bootstrap.blade.php) override package defaults.
+        $livewirePublishedViews = resource_path('views/vendor/livewire');
+        if (is_dir($livewirePublishedViews)) {
+            View::prependNamespace('livewire', $livewirePublishedViews);
+        }
+
         View::composer('partials.notification', function ($view) {
             if (!auth()->check()) {
                 return;

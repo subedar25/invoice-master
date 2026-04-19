@@ -57,6 +57,8 @@
                 <th>ID</th>
                 <th>Name</th>
                 <th>slug</th>
+                <th>Type</th>
+                <th>Active</th>
 
                 <th>Actions</th>
               </thead>
@@ -69,6 +71,27 @@
                       {{ $module->name }}
                   </td>
                   <td data-field="email">{{ $module->slug }}</td>
+                  <td data-field="type">{{ ucfirst($module->type ?? 'public') }}</td>
+                  <td data-field="is_active">
+                    @can('edit-modules')
+                    <div class="text-center">
+                      <div class="custom-control custom-switch d-inline-block">
+                        <input type="checkbox"
+                               class="custom-control-input js-toggle-module-active"
+                               id="moduleActiveSwitch{{ $module->id }}"
+                               data-id="{{ $module->id }}"
+                               {{ ($module->is_active ?? true) ? 'checked' : '' }}>
+                        <label class="custom-control-label" for="moduleActiveSwitch{{ $module->id }}"></label>
+                      </div>
+                    </div>
+                    @else
+                      @if($module->is_active ?? true)
+                        <span class="badge badge-success">Active</span>
+                      @else
+                        <span class="badge badge-secondary">Inactive</span>
+                      @endif
+                    @endcan
+                  </td>
                   <td data-field="actions">
                     <div class="action-div">
                        @can('edit-modules')
@@ -216,7 +239,44 @@
 
     handleDelete();
 
+    $(document).on('change', '.js-toggle-module-active', function() {
+      const checkbox = $(this);
+      const moduleId = checkbox.data('id');
+      const isActive = checkbox.prop('checked');
 
+      $.ajax({
+        url: `{{ route('masterapp.modules.toggle-active', ':id') }}`.replace(':id', moduleId),
+        type: 'PATCH',
+        data: {
+          _token: '{{ csrf_token() }}'
+        },
+        success: function() {
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: isActive ? 'Module activated' : 'Module deactivated',
+              timer: 2000,
+              showConfirmButton: false
+            });
+          }
+        },
+        error: function() {
+          checkbox.prop('checked', !isActive);
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'error',
+              title: 'Failed to update module status',
+              timer: 3000,
+              showConfirmButton: false
+            });
+          }
+        }
+      });
+    });
 
   });
 </script>

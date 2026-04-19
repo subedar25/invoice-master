@@ -8,17 +8,26 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('vendors')) {
+            return;
+        }
+
+        if (Schema::hasColumn('vendors', 'organization_id')) {
+            return;
+        }
+
         Schema::table('vendors', function (Blueprint $table) {
-            if (!Schema::hasColumn('vendors', 'organization_id')) {
-                $table->foreignId('organization_id')->nullable()->after('id')->constrained('organizations')->nullOnDelete();
-            }
+            $table->unsignedBigInteger('organization_id')->nullable()->after('id');
         });
     }
 
     public function down(): void
     {
+        if (! Schema::hasTable('vendors') || ! Schema::hasColumn('vendors', 'organization_id')) {
+            return;
+        }
+
         Schema::table('vendors', function (Blueprint $table) {
-            $table->dropForeign(['organization_id']);
             $table->dropColumn('organization_id');
         });
     }

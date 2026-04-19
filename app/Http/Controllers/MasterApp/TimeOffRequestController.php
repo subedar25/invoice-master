@@ -37,7 +37,7 @@ class TimeOffRequestController extends Controller
 
     /**
      * Get users who should be notified when a new time-off request is created:
-     * Super Admin, Admin User, and any user with a time-off permission. Optionally exclude a user (e.g. requester).
+     * System Admin, Admin User, and any user with a time-off permission. Optionally exclude a user (e.g. requester).
      *
      * @param int|null $excludeUserId
      * @return \Illuminate\Support\Collection<int, User>

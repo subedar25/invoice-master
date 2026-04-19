@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\MasterApp\User;
 
+use App\Models\Role;
 use App\Models\User;
+use App\Support\CurrentOrganization;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -63,8 +65,62 @@ class UserStoreRequest extends FormRequest
             'is_wordpress_user' => 'sometimes|boolean',
         ];
     }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $rm = $this->input('reporting_manager_id');
+            if ($rm === null || $rm === '' || $rm === '0') {
+                return;
+            }
+            $orgIds = array_values(array_filter(array_map('intval', (array) $this->input('organization_ids', []))));
+            if ($orgIds === []) {
+                return;
+            }
+            $manager = User::query()->find((int) $rm);
+            if (! $manager) {
+                return;
+            }
+            if (! $manager->organizations()->whereIn('organizations.id', $orgIds)->exists()) {
+                $validator->errors()->add(
+                    'reporting_manager_id',
+                    'The reporting manager must belong to one of the selected organizations.'
+                );
+            }
+
+            $roleIds = array_values(array_filter(array_map('intval', (array) $this->input('roles', []))));
+            if ($roleIds !== [] && $orgIds === []) {
+                $validator->errors()->add(
+                    'roles',
+                    'Select at least one organization before assigning roles.'
+                );
+            }
+            if ($roleIds !== [] && $orgIds !== []) {
+                $invalid = Role::query()
+                    ->whereIn('id', $roleIds)
+                    ->where(function ($q) use ($orgIds) {
+                        $q->whereNull('organization_id')->orWhereNotIn('organization_id', $orgIds);
+                    })
+                    ->exists();
+                if ($invalid) {
+                    $validator->errors()->add(
+                        'roles',
+                        'Each selected role must belong to one of the selected organizations.'
+                    );
+                }
+            }
+        });
+    }
+
     protected function prepareForValidation()
     {
+        $editor = $this->user();
+        if ($editor instanceof User && ! $editor->isSystemUser()) {
+            $this->merge([
+                'user_type' => 'user',
+            ]);
+        }
+
         if ($this->has('roles')) {
             $this->merge([
                 'roles' => array_filter(array_map('intval', $this->input('roles', []))),
@@ -110,6 +166,15 @@ class UserStoreRequest extends FormRequest
             'user_type' => strtolower(trim((string) $this->input('user_type'))),
         ]);
     }
+
+        if ($editor instanceof User && ! $editor->isSystemUser()) {
+            $oid = CurrentOrganization::idForUserAssignment();
+            if ($oid) {
+                $this->merge([
+                    'organization_ids' => [$oid],
+                ]);
+            }
+        }
 
     }
 

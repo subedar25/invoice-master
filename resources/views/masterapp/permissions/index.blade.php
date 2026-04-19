@@ -49,6 +49,7 @@
                   <th>slug</th>
                   <th>Guard Name</th>
                   <th>Module Name</th>
+                  <th>Type</th>
                   <th>Active</th>
                   <th>Actions</th>
                 </tr>
@@ -61,6 +62,7 @@
                   <td data-field="email">{{ $permission->slug }}</td>
                   <td data-field="email">{{ $permission->guard_name }}</td>
                   <td data-field="module_name">{{ optional($permission->module)->name }}</td>
+                  <td data-field="type">{{ ucfirst($permission->type ?? 'public') }}</td>
                   <td data-field="status">
                     @can('activate-deactivate-permission')
                     <div class="text-center">
@@ -170,6 +172,7 @@
       permission.slug || '',
       permission.guard_name || '',
       permission.module_name || '',
+      permission.type_label || 'Public',
       permission.status_html || '',
       permission.actions_html || ''
     ];

@@ -32,8 +32,8 @@ return new class extends Migration
                 $table->string('last_name', 255)->nullable()->after('first_name');
             }
 
-             if (!Schema::hasColumn('users', 'phone')) {
-               $table->string('last_phonename', 20)->nullable()->after('last_name');
+            if (! Schema::hasColumn('users', 'phone')) {
+                $table->string('phone', 20)->nullable()->after('last_name');
             }
 
             // Add other missing columns

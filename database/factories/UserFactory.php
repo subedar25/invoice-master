@@ -50,12 +50,6 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
-    public function driver(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'driver' => true,
-        ]);
-    }
     public function changePassword(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -78,20 +72,6 @@ class UserFactory extends Factory
     {
         return $this->afterCreating(function ($user) {
             $user->roles()->detach();
-        });
-    }
-    public function withDriver($isDriver = true): static
-    {
-        return $this->afterCreating(function ($user) use ($isDriver) {
-            $user->driver = $isDriver;
-            $user->save();
-        });
-    }
-    public function withoutDriver(): static
-    {
-        return $this->afterCreating(function ($user) {
-            $user->driver = false;
-            $user->save();
         });
     }
     public function withChangePassword($requiresChange = true): static

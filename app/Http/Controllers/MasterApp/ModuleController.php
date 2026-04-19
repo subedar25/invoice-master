@@ -12,6 +12,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Core\Modules\Services\ModulesService;
 use App\Http\Requests\MasterApp\Modules\ModulesStoreRequest;
 use App\Http\Requests\MasterApp\Modules\ModulesUpdateRequest;
+use Illuminate\Http\JsonResponse;
 
 
 class  ModuleController extends Controller
@@ -125,6 +126,19 @@ class  ModuleController extends Controller
             'message' => 'Module updated successfully!',
             'redirect' => route('masterapp.modules.index')
         ], 200);
+    }
+
+    public function toggleActive(Module $module): JsonResponse
+    {
+        $module->is_active = ! (bool) $module->is_active;
+        $module->save();
+
+        return response()->json([
+            'message' => $module->is_active
+                ? 'Module activated successfully.'
+                : 'Module deactivated successfully.',
+            'is_active' => (bool) $module->is_active,
+        ]);
     }
 
     /**

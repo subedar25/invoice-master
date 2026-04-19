@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserDesignation extends Model
 {
@@ -11,6 +12,7 @@ class UserDesignation extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'organization_id',
         'name',
         'status',
     ];
@@ -18,4 +20,9 @@ class UserDesignation extends Model
     protected $casts = [
         'status' => 'boolean',
     ];
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
 }

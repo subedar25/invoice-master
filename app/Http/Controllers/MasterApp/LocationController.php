@@ -84,16 +84,16 @@ class LocationController extends Controller
                 'state' => e($location->state),
                 'city' => e($location->city),
                 'postal_code' => e($location->postal_code),
-                'actions' => '<div class="action-div d-flex gap-2">' .
-                    (auth()->user()->can('edit-location') ? '
+                'actions' => auth()->user()->can('locations')
+                    ? '<div class="action-div d-flex gap-2">
                     <button class="btn btn-link p-0 action-icon js-edit-location" data-id="' . $location->id . '" data-url="' . route('masterapp.locations.json', $location->id) . '">
                         <i class="fa fa-edit"></i>
-                    </button>' : '') .
-                    (auth()->user()->can('delete-location') ? '
+                    </button>
                     <button type="button" class="btn btn-link p-0 action-icon text-danger delete-item" data-url="' . route('masterapp.locations.destroy', $location->id) . '" data-name="Location" title="Delete location">
                         <i class="fa fa-trash"></i>
-                    </button>' : '') . '
-                </div>',
+                    </button>
+                </div>'
+                    : '<div class="action-div d-flex gap-2"></div>',
             ];
         });
 
@@ -225,7 +225,7 @@ class LocationController extends Controller
     {
         // Get all admin and superadmin users
         $adminUsers = User::whereHas('roles', function ($query) {
-            $query->whereIn('name', ['Admin User', 'Super Admin']);
+            $query->whereIn('name', ['Admin User', 'System Admin']);
         })->get();
 
         // Send notification to each admin (excluding the current user if they're an admin)

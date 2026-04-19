@@ -25,16 +25,11 @@ class LocationTest extends TestCase
 
     protected function seedPermissionsAndRole(): void
     {
-        $permissionNames = [
-            'list-locations',
-            'create-location',
-            'edit-location',
-            'delete-location',
-        ];
+        $permissionNames = ['locations'];
         foreach ($permissionNames as $name) {
             Permission::firstOrCreate(
                 ['name' => $name, 'guard_name' => 'web'],
-                ['slug' => $name, 'display_name' => $name, 'guard_name' => 'web']
+                ['slug' => $name, 'display_name' => 'Locations', 'guard_name' => 'web']
             );
         }
         $role = Role::firstOrCreate(['name' => 'location-admin', 'guard_name' => 'web']);
@@ -63,7 +58,7 @@ class LocationTest extends TestCase
         ], $overrides);
     }
 
-    public function test_index_requires_list_permission(): void
+    public function test_index_requires_locations_permission(): void
     {
         /** @var User $userNoPerm */
         $userNoPerm = User::factory()->create();
@@ -120,7 +115,7 @@ class LocationTest extends TestCase
         $response->assertJsonStructure(['draw', 'recordsTotal', 'recordsFiltered', 'data']);
     }
 
-    public function test_show_returns_200_with_list_permission(): void
+    public function test_show_returns_200_with_locations_permission(): void
     {
         $location = Location::create($this->validLocationPayload());
         $this->actingAs($this->userWithPermissions)
@@ -138,13 +133,12 @@ class LocationTest extends TestCase
         $response->assertViewHas('location', $location);
     }
 
-    public function test_destroy_returns_403_without_delete_permission(): void
+    public function test_destroy_returns_403_without_locations_permission(): void
     {
-        /** @var User $userNoDelete */
-        $userNoDelete = User::factory()->create();
-        $userNoDelete->givePermissionTo('list-locations');
+        /** @var User $userNoPerm */
+        $userNoPerm = User::factory()->create();
         $location = Location::create($this->validLocationPayload());
-        $this->actingAs($userNoDelete)
+        $this->actingAs($userNoPerm)
             ->delete(route('masterapp.locations.destroy', $location->id))
             ->assertStatus(403);
     }
@@ -247,7 +241,7 @@ class LocationTest extends TestCase
         $response->assertJsonValidationErrors(['longitude']);
     }
 
-    public function test_edit_returns_200_with_edit_permission(): void
+    public function test_edit_returns_200_with_locations_permission(): void
     {
         $location = Location::create($this->validLocationPayload());
         $response = $this->actingAs($this->userWithPermissions)

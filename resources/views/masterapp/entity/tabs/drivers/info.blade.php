@@ -51,9 +51,9 @@
                     </tr>
 
                     <tr>
-                        <th>Driver</th>
+                        <th>Driver role</th>
                         <td>
-                            {{ $entity->driver ? 'Yes' : 'No' }}
+                            {{ $entity->hasRole('Driver') ? 'Yes' : 'No' }}
                         </td>
                     </tr>
 

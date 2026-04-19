@@ -26,6 +26,7 @@ class EloquentPermissionsRepository implements PermissionsRepository
             'slug' => $data['slug'],
             'guard_name' => $guardName,
             'is_active' => (bool) ($data['is_active'] ?? true),
+            'type' => $data['type'] ?? 'public',
         ]);
 
         return $permission;
@@ -45,6 +46,7 @@ class EloquentPermissionsRepository implements PermissionsRepository
             'is_active' => array_key_exists('is_active', $data) && $data['is_active'] !== null
                 ? (bool) $data['is_active']
                 : (bool) $permission->is_active,
+            'type' => $data['type'] ?? ($permission->type ?? 'public'),
         ]);
 
         return $permission;

@@ -41,6 +41,7 @@ class PermissionsUpdateRequest extends FormRequest
             ],
             'guard_name' => 'required|string|in:web,api', // Example: ensure guard_name is either 'web' or 'api'
             'is_active' => 'nullable|boolean',
+            'type' => 'required|string|in:system,public',
         ];
     }
 
@@ -53,6 +54,7 @@ class PermissionsUpdateRequest extends FormRequest
             'slug' => Str::slug($this->name),
             'guard_name' => $this->guard_name ?? 'web',
             'is_active' => $this->has('is_active') ? $this->boolean('is_active') : null,
+            'type' => $this->input('type', 'public'),
         ]);
     }
 

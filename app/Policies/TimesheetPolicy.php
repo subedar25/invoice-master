@@ -19,7 +19,7 @@ class TimesheetPolicy
 
     /**
      * View a single timesheet.
-     * Admin/Super Admin: can view any (if they have list-timesheets).
+     * Admin/System Admin: can view any (if they have list-timesheets).
      * Others: can view only their own timesheet.
      */
     public function view(User $user, Timesheet $timesheet): bool
@@ -27,7 +27,7 @@ class TimesheetPolicy
         if (!$user->can('list-timesheets')) {
             return false;
         }
-        if ($user->hasAnyRole(['Admin User', 'Super Admin'])) {
+        if ($user->hasAnyRole(['Admin User', 'System Admin'])) {
             return true;
         }
         return $timesheet->user_id === $user->id;
@@ -53,7 +53,7 @@ class TimesheetPolicy
     public function update(User $user, Timesheet $timesheet): bool
     {
         // Admins can edit everything
-        if ($user->hasAnyRole(['Admin User', 'Super Admin'])) {
+        if ($user->hasAnyRole(['Admin User', 'System Admin'])) {
             return true;
         }
 
@@ -86,18 +86,18 @@ class TimesheetPolicy
      */
     public function duplicate(User $user, Timesheet $timesheet): bool
     {
-        return $user->hasAnyRole(['Admin User', 'Super Admin']);
+        return $user->hasAnyRole(['Admin User', 'System Admin']);
     }
 
     
 
     public function restore(User $user, Timesheet $timesheet): bool
     {
-        return $user->hasAnyRole(['Admin User', 'Super Admin']);
+        return $user->hasAnyRole(['Admin User', 'System Admin']);
     }
 
     public function forceDelete(User $user, Timesheet $timesheet): bool
     {
-        return $user->hasAnyRole(['Admin User', 'Super Admin']);
+        return $user->hasAnyRole(['Admin User', 'System Admin']);
     }
 }

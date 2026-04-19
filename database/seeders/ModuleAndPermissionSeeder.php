@@ -27,9 +27,9 @@ class ModuleAndPermissionSeeder extends Seeder
                     ['name' => 'edit-email', 'display_name' => 'Edit Email','slug' => 'edit-email'],
                     ['name' => 'list-users', 'display_name' => 'View Users','slug' => 'list-users'],
                     ['name' => 'list-driver', 'display_name' => 'View Driver','slug' => 'list-driver'],
-                    ['name' => 'list-wordpress-user', 'display_name' => 'View WordPress User', 'slug' => 'list-wordpress-user'],
+                   // ['name' => 'list-wordpress-user', 'display_name' => 'View WordPress User', 'slug' => 'list-wordpress-user'],
                     //create active user,drivers, wordpress permissions
-                    ['name' => 'active-deactive', 'display_name' => 'Active-Deactive (Users, Drivers, WordPress Users, etc.)','slug' => 'active-deactive'],
+                    ['name' => 'active-deactive', 'display_name' => 'Active-Deactive User','slug' => 'active-deactive'],
                 ],
                 'slug' => 'user-management'
             ],
@@ -44,6 +44,7 @@ class ModuleAndPermissionSeeder extends Seeder
             ],
 
             'Permission Management' => [
+                'type' => 'system',
                 'permissions' => [
                     ['name' => 'create-permission', 'display_name' => 'Create Permission','slug' => 'create-permission'],
                     ['name' => 'edit-permission', 'display_name' => 'Edit Permission','slug' => 'edit-permission'],
@@ -55,6 +56,7 @@ class ModuleAndPermissionSeeder extends Seeder
             ],
 
             'Modules Management' => [
+                'type' => 'system',
                 'permissions' => [
                     ['name' => 'create-modules', 'display_name' => 'Create Modules','slug' => 'create-modules'],
                     ['name' => 'edit-modules', 'display_name' => 'Edit Modules','slug' => 'edit-modules'],
@@ -63,15 +65,15 @@ class ModuleAndPermissionSeeder extends Seeder
                 ],
                 'slug' => 'modules-management'
             ],
-            'Client Management' => [
-                'permissions' => [
-                    ['name' => 'create-client', 'display_name' => 'Create Client','slug' => 'create-client'],
-                    ['name' => 'edit-client', 'display_name' => 'Edit Client','slug' => 'edit-client'],
-                    ['name' => 'delete-client', 'display_name' => 'Delete Client','slug' => 'delete-client'],
-                    ['name' => 'list-client', 'display_name' => 'View Client','slug' => 'list-client'],
-                ],
-                'slug' => 'client-management'
-            ],
+            // 'Client Management' => [
+            //     'permissions' => [
+            //         ['name' => 'create-client', 'display_name' => 'Create Client','slug' => 'create-client'],
+            //         ['name' => 'edit-client', 'display_name' => 'Edit Client','slug' => 'edit-client'],
+            //         ['name' => 'delete-client', 'display_name' => 'Delete Client','slug' => 'delete-client'],
+            //         ['name' => 'list-client', 'display_name' => 'View Client','slug' => 'list-client'],
+            //     ],
+            //     'slug' => 'client-management'
+            // ],
 
             // Hide driver and wordpress user management after discussing with client
             // 'Driver Management' => [
@@ -93,79 +95,57 @@ class ModuleAndPermissionSeeder extends Seeder
             //     'slug' => 'wordpress-user--management'
             // ],
 
-            'Vehicle Management' => [
-                'permissions' => [
-                    ['name' => 'create-vehicle', 'display_name' => 'Create vehicle','slug' => 'create-vehicle'],
-                    ['name' => 'edit-vehicle', 'display_name' => 'Edit vehicle','slug' => 'edit-vehicle'],
-                    ['name' => 'delete-vehicle', 'display_name' => 'Delete vehicle','slug' => 'delete-vehicle'],
-                    ['name' => 'list-vehicle', 'display_name' => 'View vehicle','slug' => 'list-vehicle'],
-                ],
-                'slug' => 'vehicle-management'
-            ],
+            // 'Vehicle Management' => [
+            //     'permissions' => [
+            //         ['name' => 'create-vehicle', 'display_name' => 'Create vehicle','slug' => 'create-vehicle'],
+            //         ['name' => 'edit-vehicle', 'display_name' => 'Edit vehicle','slug' => 'edit-vehicle'],
+            //         ['name' => 'delete-vehicle', 'display_name' => 'Delete vehicle','slug' => 'delete-vehicle'],
+            //         ['name' => 'list-vehicle', 'display_name' => 'View vehicle','slug' => 'list-vehicle'],
+            //     ],
+            //     'slug' => 'vehicle-management'
+            // ],
 
-             'Timesheet Management' => [
-                'permissions' => [
-                    ['name' => 'create-timesheet', 'display_name' => 'Create Timesheet','slug' => 'create-timesheet'],
-                    ['name' => 'edit-timesheet', 'display_name' => 'Edit Timesheet','slug' => 'edit-timesheet'],
-                    ['name' => 'delete-timesheet', 'display_name' => 'Delete Timesheet','slug' => 'delete-timesheet'],
-                    ['name' => 'list-timesheets', 'display_name' => 'View Timesheet','slug' => 'list-timesheets'],
-                ],
-                'slug' => 'timesheet-management'
+            //  'Timesheet Management' => [
+            //     'permissions' => [
+            //         ['name' => 'create-timesheet', 'display_name' => 'Create Timesheet','slug' => 'create-timesheet'],
+            //         ['name' => 'edit-timesheet', 'display_name' => 'Edit Timesheet','slug' => 'edit-timesheet'],
+            //         ['name' => 'delete-timesheet', 'display_name' => 'Delete Timesheet','slug' => 'delete-timesheet'],
+            //         ['name' => 'list-timesheets', 'display_name' => 'View Timesheet','slug' => 'list-timesheets'],
+            //     ],
+            //     'slug' => 'timesheet-management'
 
-            ],
-            'Time Off Request Management' => [
-                'permissions' => [
-                    ['name' => 'create-time-off-request', 'display_name' => 'Create Time Off Request', 'slug' => 'create-time-off-request'],
-                    ['name' => 'edit-time-off-request', 'display_name' => 'Edit Time Off Request', 'slug' => 'edit-time-off-request'],
-                    ['name' => 'delete-time-off-request', 'display_name' => 'Delete Time Off Request', 'slug' => 'delete-time-off-request'],
-                    ['name' => 'list-time-off-requests', 'display_name' => 'List Time Off Requests', 'slug' => 'list-time-off-requests'],
-                    ['name' => 'status-time-off-request', 'display_name' => 'Change Status Time Off Request', 'slug' => 'status-time-off-request'],
-                    ['name' => 'admin-time-off-requests', 'display_name' => 'Admin Time Off Request', 'slug' => 'admin-time-off-requests'],
-                ],
-                'slug' => 'time-off-request-management'
-            ],
-            'Droppoint Management' => [
-                'permissions' => [
-                    ['name' => 'create-dropoint', 'display_name' => 'Create dropoint','slug' => 'create-dropoint'],
-                    ['name' => 'edit-dropoint', 'display_name' => 'Edit dropoint','slug' => 'edit-dropoint'],
-                    ['name' => 'delete-dropoint', 'display_name' => 'Delete dropoint','slug' => 'delete-dropoint'],
-                    ['name' => 'list-dropoint', 'display_name' => 'View dropoint','slug' => 'list-dropoint'],
-                ],
-                'slug' => 'dropoint-management'
-            ],
+            // ],
+            // 'Time Off Request Management' => [
+            //     'permissions' => [
+            //         ['name' => 'create-time-off-request', 'display_name' => 'Create Time Off Request', 'slug' => 'create-time-off-request'],
+            //         ['name' => 'edit-time-off-request', 'display_name' => 'Edit Time Off Request', 'slug' => 'edit-time-off-request'],
+            //         ['name' => 'delete-time-off-request', 'display_name' => 'Delete Time Off Request', 'slug' => 'delete-time-off-request'],
+            //         ['name' => 'list-time-off-requests', 'display_name' => 'List Time Off Requests', 'slug' => 'list-time-off-requests'],
+            //         ['name' => 'status-time-off-request', 'display_name' => 'Change Status Time Off Request', 'slug' => 'status-time-off-request'],
+            //         ['name' => 'admin-time-off-requests', 'display_name' => 'Admin Time Off Request', 'slug' => 'admin-time-off-requests'],
+            //     ],
+            //     'slug' => 'time-off-request-management'
+            // ],
+            // 'Droppoint Management' => [
+            //     'permissions' => [
+            //         ['name' => 'create-dropoint', 'display_name' => 'Create dropoint','slug' => 'create-dropoint'],
+            //         ['name' => 'edit-dropoint', 'display_name' => 'Edit dropoint','slug' => 'edit-dropoint'],
+            //         ['name' => 'delete-dropoint', 'display_name' => 'Delete dropoint','slug' => 'delete-dropoint'],
+            //         ['name' => 'list-dropoint', 'display_name' => 'View dropoint','slug' => 'list-dropoint'],
+            //     ],
+            //     'slug' => 'dropoint-management'
+            // ],
 
             // Location Management Module and Permissions
-            'Location Management' => [
-                'permissions' => [
-                    ['name' => 'create-location', 'display_name' => 'Create Location', 'slug' => 'create-location'],
-                    ['name' => 'edit-location', 'display_name' => 'Edit Location', 'slug' => 'edit-location'],
-                    ['name' => 'delete-location', 'display_name' => 'Delete Location', 'slug' => 'delete-location'],
-                    ['name' => 'list-locations', 'display_name' => 'View Locations', 'slug' => 'list-locations'],
-                ],
-                'slug' => 'location-management'
-            ],
-
-            'Outlet Management' => [
-                'permissions' => [
-                    ['name' => 'create-outlet', 'display_name' => 'Create Outlet', 'slug' => 'create-outlet'],
-                    ['name' => 'edit-outlet', 'display_name' => 'Edit Outlet', 'slug' => 'edit-outlet'],
-                    ['name' => 'toggle-outlet', 'display_name' => 'Active/Inactive Toggle (Outlets)', 'slug' => 'toggle-outlet'],
-                    ['name' => 'delete-outlet', 'display_name' => 'Delete Outlet', 'slug' => 'delete-outlet'],
-                    ['name' => 'list-outlets', 'display_name' => 'View Outlets', 'slug' => 'list-outlets'],
-                ],
-                'slug' => 'outlet-management'
-            ],
-
-            'Vendor Management' => [
-                'permissions' => [
-                    ['name' => 'create-vendor', 'display_name' => 'Create Vendor', 'slug' => 'create-vendor'],
-                    ['name' => 'edit-vendor', 'display_name' => 'Edit Vendor', 'slug' => 'edit-vendor'],
-                    ['name' => 'toggle-vendor', 'display_name' => 'Active/Inactive Toggle (Vendors)', 'slug' => 'toggle-vendor'],
-                    ['name' => 'delete-vendor', 'display_name' => 'Delete Vendor', 'slug' => 'delete-vendor'],
-                    ['name' => 'list-vendors', 'display_name' => 'View Vendors', 'slug' => 'list-vendors'],
-                ],
-                'slug' => 'vendor-management'
-            ],
+            // 'Location Management' => [
+            //     'permissions' => [
+            //         ['name' => 'create-location', 'display_name' => 'Create Location', 'slug' => 'create-location'],
+            //         ['name' => 'edit-location', 'display_name' => 'Edit Location', 'slug' => 'edit-location'],
+            //         ['name' => 'delete-location', 'display_name' => 'Delete Location', 'slug' => 'delete-location'],
+            //         ['name' => 'list-locations', 'display_name' => 'View Locations', 'slug' => 'list-locations'],
+            //     ],
+            //     'slug' => 'location-management'
+            // ],
 
             'Invoice Management' => [
                 'permissions' => [
@@ -173,24 +153,26 @@ class ModuleAndPermissionSeeder extends Seeder
                     ['name' => 'edit-invoice', 'display_name' => 'Edit Invoice', 'slug' => 'edit-invoice'],
                     ['name' => 'delete-invoice', 'display_name' => 'Delete Invoice', 'slug' => 'delete-invoice'],
                     ['name' => 'list-invoices', 'display_name' => 'View Invoices', 'slug' => 'list-invoices'],
+                    ['name' => 'approve-invoice', 'display_name' => 'Approve Invoice', 'slug' => 'approve-invoice'],
                 ],
                 'slug' => 'invoice-management'
             ],
 
-            'Contact Management' => [
-                'permissions' => [
-                    ['name' => 'create-contact', 'display_name' => 'Create contact','slug' => 'create-contact'],
-                    ['name' => 'edit-contact', 'display_name' => 'Edit contact','slug' => 'edit-contact'],
-                    ['name' => 'delete-contact', 'display_name' => 'Delete contact','slug' => 'delete-contact'],
-                    ['name' => 'list-contact', 'display_name' => 'View contact','slug' => 'list-contact'],
-                    ['name' => 'list-contact-item', 'display_name' => 'View contact Items','slug' => 'list-contact-item'],
-                    ['name' => 'create-contact-item', 'display_name' => 'Create contact item','slug' => 'create-contact-item'],
-                    ['name' => 'edit-contact-item', 'display_name' => 'Edit contact item','slug' => 'edit-contact-item'],
-                    ['name' => 'delete-contact-item', 'display_name' => 'Delete contact item','slug' => 'delete-contact-item'],
-                ],
-                'slug' => 'contact-management'
-            ],
+            // 'Contact Management' => [
+            //     'permissions' => [
+            //         ['name' => 'create-contact', 'display_name' => 'Create contact','slug' => 'create-contact'],
+            //         ['name' => 'edit-contact', 'display_name' => 'Edit contact','slug' => 'edit-contact'],
+            //         ['name' => 'delete-contact', 'display_name' => 'Delete contact','slug' => 'delete-contact'],
+            //         ['name' => 'list-contact', 'display_name' => 'View contact','slug' => 'list-contact'],
+            //         ['name' => 'list-contact-item', 'display_name' => 'View contact Items','slug' => 'list-contact-item'],
+            //         ['name' => 'create-contact-item', 'display_name' => 'Create contact item','slug' => 'create-contact-item'],
+            //         ['name' => 'edit-contact-item', 'display_name' => 'Edit contact item','slug' => 'edit-contact-item'],
+            //         ['name' => 'delete-contact-item', 'display_name' => 'Delete contact item','slug' => 'delete-contact-item'],
+            //     ],
+            //     'slug' => 'contact-management'
+            // ],
             'Organization Management' => [
+                'type' => 'system',
                 'permissions' => [
                     ['name' => 'create-organization', 'display_name' => 'Create organization','slug' => 'create-organization'],
                     ['name' => 'edit-organization', 'display_name' => 'Edit organization','slug' => 'edit-organization'],
@@ -200,60 +182,59 @@ class ModuleAndPermissionSeeder extends Seeder
                 ],
                 'slug' => 'organization-management'
             ],
-            'Price Structure Type Management' => [
-                'permissions' => [
-                    ['name' => 'create-price-structure-type', 'display_name' => 'Create Price Structure Type', 'slug' => 'create-price-structure-type'],
-                    ['name' => 'edit-price-structure-type', 'display_name' => 'Edit Price Structure Type', 'slug' => 'edit-price-structure-type'],
-                    ['name' => 'delete-price-structure-type', 'display_name' => 'Delete Price Structure Type', 'slug' => 'delete-price-structure-type'],
-                    ['name' => 'list-price-structure-type', 'display_name' => 'View Price Structure Type', 'slug' => 'list-price-structure-type'],
-                ],
-                'slug' => 'price-structure-type-management'
-            ],
-            'Issue Orientations' => [
-                'permissions' => [
-                    ['name' => 'add-issue-orientation', 'display_name' => 'Add Orientation', 'slug' => 'add-issue-orientation'],
-                    ['name' => 'toggle-issue-orientation', 'display_name' => 'Active/Inactive Toggle (Orientations)', 'slug' => 'toggle-issue-orientation'],
-                    ['name' => 'edit-issue-orientation', 'display_name' => 'Edit Orientation', 'slug' => 'edit-issue-orientation'],
-                    ['name' => 'delete-issue-orientation', 'display_name' => 'Delete Orientation', 'slug' => 'delete-issue-orientation'],
-                ],
-                'slug' => 'issue-orientations'
-            ],
-            'Issue Sections' => [
-                'permissions' => [
-                    ['name' => 'add-issue-section', 'display_name' => 'Add Section', 'slug' => 'add-issue-section'],
-                    ['name' => 'toggle-issue-section', 'display_name' => 'Active/Inactive Toggle (Sections)', 'slug' => 'toggle-issue-section'],
-                    ['name' => 'edit-issue-section', 'display_name' => 'Edit Section', 'slug' => 'edit-issue-section'],
-                    ['name' => 'delete-issue-section', 'display_name' => 'Delete Section', 'slug' => 'delete-issue-section'],
-                ],
-                'slug' => 'issue-sections'
-            ],
+            // 'Price Structure Type Management' => [
+            //     'permissions' => [
+            //         ['name' => 'create-price-structure-type', 'display_name' => 'Create Price Structure Type', 'slug' => 'create-price-structure-type'],
+            //         ['name' => 'edit-price-structure-type', 'display_name' => 'Edit Price Structure Type', 'slug' => 'edit-price-structure-type'],
+            //         ['name' => 'delete-price-structure-type', 'display_name' => 'Delete Price Structure Type', 'slug' => 'delete-price-structure-type'],
+            //         ['name' => 'list-price-structure-type', 'display_name' => 'View Price Structure Type', 'slug' => 'list-price-structure-type'],
+            //     ],
+            //     'slug' => 'price-structure-type-management'
+            // ],
+            // 'Issue Orientations' => [
+            //     'permissions' => [
+            //         ['name' => 'add-issue-orientation', 'display_name' => 'Add Orientation', 'slug' => 'add-issue-orientation'],
+            //         ['name' => 'toggle-issue-orientation', 'display_name' => 'Active/Inactive Toggle (Orientations)', 'slug' => 'toggle-issue-orientation'],
+            //         ['name' => 'edit-issue-orientation', 'display_name' => 'Edit Orientation', 'slug' => 'edit-issue-orientation'],
+            //         ['name' => 'delete-issue-orientation', 'display_name' => 'Delete Orientation', 'slug' => 'delete-issue-orientation'],
+            //     ],
+            //     'slug' => 'issue-orientations'
+            // ],
+            // 'Issue Sections' => [
+            //     'permissions' => [
+            //         ['name' => 'add-issue-section', 'display_name' => 'Add Section', 'slug' => 'add-issue-section'],
+            //         ['name' => 'toggle-issue-section', 'display_name' => 'Active/Inactive Toggle (Sections)', 'slug' => 'toggle-issue-section'],
+            //         ['name' => 'edit-issue-section', 'display_name' => 'Edit Section', 'slug' => 'edit-issue-section'],
+            //         ['name' => 'delete-issue-section', 'display_name' => 'Delete Section', 'slug' => 'delete-issue-section'],
+            //     ],
+            //     'slug' => 'issue-sections'
+            // ],
             'Audit Log' => [
                 'permissions' => [
                     ['name' => 'list-auditlog', 'display_name' => 'View Audit Log','slug' => 'list-auditlog'],
                 ],
                 'slug' => 'auditlog-management'
             ],
-            'Two-Factor Authentication' => [
-                'permissions' => [
-                    ['name' => 'enable-two-factor', 'display_name' => 'Enable Two-Factor Authentication','slug' => 'enable-two-factor']
-                ],
-                'slug' => 'two-factor-authentication'
-            ],
+            // 'Two-Factor Authentication' => [
+            //     'permissions' => [
+            //         ['name' => 'enable-two-factor', 'display_name' => 'Enable Two-Factor Authentication','slug' => 'enable-two-factor']
+            //     ],
+            //     'slug' => 'two-factor-authentication'
+            // ],
             //Master permissions
             'Master Management' => [
                 'permissions' => [
                     ['name' => 'list-master', 'display_name' => 'View Masters','slug' => 'list-master'],
-                    ['name' => 'organization_type', 'display_name' => 'Organization Type','slug' => 'organization_type'],
-                    ['name' => 'seasons', 'display_name' => 'Seasons','slug' => 'seasons'],
+                    ['name' => 'department', 'display_name' => 'Department', 'slug' => 'department'],
+                    ['name' => 'locations', 'display_name' => 'Locations', 'slug' => 'locations'],
+                    ['name' => 'vendors', 'display_name' => 'Vendors', 'slug' => 'vendors'],
+                    ['name' => 'outlets', 'display_name' => 'Outlets', 'slug' => 'outlets'],
                     ['name' => 'country', 'display_name' => 'Country','slug' => 'country'],
                     ['name' => 'state', 'display_name' => 'State','slug' => 'state'],
                     ['name' => 'products', 'display_name' => 'Products','slug' => 'products'],
                     ['name' => 'taxes', 'display_name' => 'Taxes','slug' => 'taxes'],
-                    ['name' => 'list-categories', 'display_name' => 'View Categories','slug' => 'list-categories'],
-                    ['name' => 'add-category', 'display_name' => 'Add Category', 'slug' => 'add-category'],
-                    ['name' => 'edit-category', 'display_name' => 'Edit Category', 'slug' => 'edit-category'],
-                    ['name' => 'delete-category', 'display_name' => 'Delete Category', 'slug' => 'delete-category'],
-                    ['name' => 'toggle-category', 'display_name' => 'Active/Inactive Toggle (Categories)', 'slug' => 'toggle-category'],
+                    ['name' => 'designation', 'display_name' => 'Designation', 'slug' => 'designation'],
+                    
                 ],
                 'slug' => 'master-management'
             ]
@@ -263,14 +244,23 @@ class ModuleAndPermissionSeeder extends Seeder
 
         $guardName = 'web';
 
+      
+
         foreach ($modulesAndPermissions as $moduleName => $data) {
+            $moduleType = $data['type'] ?? 'public';
+
             // Use updateOrCreate to avoid creating duplicates and keep names in sync.
             $module = Module::updateOrCreate(
                 ['slug' => $data['slug']],
-                ['name' => $moduleName]
+                [
+                    'name' => $moduleName,
+                    'type' => $moduleType,
+                ]
             );
 
             foreach ($data['permissions'] as $permissionData) {
+                $permissionType = $permissionData['type'] ?? $moduleType;
+
                 // Use updateOrCreate for permissions as well to prevent duplicates.
                 Permission::updateOrCreate(
                     // Find by the unique name
@@ -282,6 +272,7 @@ class ModuleAndPermissionSeeder extends Seeder
                         'guard_name' => $guardName,
                         'slug' => $permissionData['slug'],
                         'is_active' => true,
+                        'type' => $permissionType,
                     ]
                 );
             }

@@ -25,7 +25,7 @@ protected function setUp(): void
     ]);
 
     Role::firstOrCreate([
-        'name' => 'Super Admin',
+        'name' => 'System Admin',
         'guard_name' => 'web',
     ]);
 

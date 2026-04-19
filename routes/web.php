@@ -20,6 +20,7 @@ use App\Http\Controllers\MasterApp\DashboardController;
 use App\Http\Controllers\MasterApp\UserTimesheetController;
 use App\Http\Controllers\UserController1;
 use App\Http\Controllers\MasterApp\NotificationController as MasterNotificationController;
+use App\Http\Controllers\InvoicePdfController;
 
 
 Route::get('/', function () {
@@ -47,6 +48,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/', function () {
             return view('invoice.index');
         })->name('index')->middleware('can:list-invoices');
+        Route::get('/{invoice}/pdf', InvoicePdfController::class)
+            ->name('pdf')
+            ->middleware('can:list-invoices');
     });
 
 });

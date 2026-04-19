@@ -4,7 +4,7 @@
 
     {{-- ACTION BAR --}}
     <div class="d-flex justify-content-end mb-3">
-        @can('edit-location')
+        @can('locations')
         <a href="{{ route('masterapp.locations.edit', $entity->id) }}" title="Edit" class="btn btn-primary" role="button">
             <i class="fa fa-edit" aria-hidden="true"></i> Edit
         </a>

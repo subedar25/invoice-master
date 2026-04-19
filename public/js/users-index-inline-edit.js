@@ -105,12 +105,6 @@ if (td.hasClass("editable-select")) {
         showValue = found ? found.label : newValue;
     }
 
-    //  DRIVER (1/0 → Yes/No) 
-    else if (field === "driver") {
-        // showValue = (newValue == 1 || newValue === "Yes") ? "Yes" : "No";
-        showValue=newValue==1?"Yes":"No";
-    }
-
     //  ACTIVE 
     else if (field === "active") {
         showValue = (newValue == 1 || newValue === "Active") ? "Active" : "Inactive";

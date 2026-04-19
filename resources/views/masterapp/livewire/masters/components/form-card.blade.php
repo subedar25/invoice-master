@@ -2,12 +2,13 @@
     $formTitleAdd = $formTitleAdd ?? 'Add';
     $formTitleEdit = $formTitleEdit ?? 'Edit';
     $showEditModal = $showEditModal ?? false;
+    $backAction = $backAction ?? 'backFromForm';
 @endphp
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">{{ $showEditModal ? $formTitleEdit : $formTitleAdd }}</h5>
         <div class="ml-auto">
-            <button type="button" class="btn btn-sm btn-secondary" wire:click="backFromForm">
+            <button type="button" class="btn btn-sm btn-secondary" wire:click="{{ $backAction }}">
                 <i class="fa fa-arrow-left"></i> Back to List
             </button>
         </div>

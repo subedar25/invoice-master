@@ -11,18 +11,17 @@ return new class extends Migration
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
             $table->string('invoice_number')->nullable();
-            $table->foreignId('organization_id')->constrained('organizations')->cascadeOnDelete();
+            // FKs to organizations / departments: see 2026_03_08_030000 and 2025_12_29_133000 (created before those tables exist).
+            $table->unsignedBigInteger('organization_id')->nullable();
             $table->foreignId('vendor_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('createdby_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('department_id')->nullable()->constrained()->nullOnDelete();
+            $table->unsignedBigInteger('department_id')->nullable();
             $table->string('pay_term')->nullable();
             $table->date('comp_date')->nullable();
-            $table->date('created_date')->nullable();
             $table->year('year')->nullable();
             $table->text('description')->nullable();
             $table->decimal('total_amount', 15, 2)->default(0);
             $table->decimal('paid_amount', 15, 2)->default(0);
-            $table->timestamp('uploaded_on')->nullable();
             $table->string('status')->default('pending');
             $table->string('order_status')->default('pending'); // Values: pending, approved, cancel, completed
             $table->string('task_status')->default('pending'); // Values: pending, approved, cancel, completed

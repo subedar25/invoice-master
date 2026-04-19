@@ -36,7 +36,7 @@ class TimesheetController extends Controller
             ->latest('start_time')
             ->paginate(20);
 
-        $canManageTimesheets = auth()->user()->hasAnyRole(['Admin User', 'Super Admin']);
+        $canManageTimesheets = auth()->user()->hasAnyRole(['Admin User', 'System Admin']);
 
         return view('masterapp.timesheets.index', compact('timesheets', 'users', 'canManageTimesheets'));
     }
@@ -46,7 +46,7 @@ class TimesheetController extends Controller
         $filters = $request->only(['user_id', 'date_from', 'date_to', 'type']);
 
         // Non-admin / non-super-admin: only their own timesheets
-        if (!auth()->user()->hasAnyRole(['Admin User', 'Super Admin'])) {
+        if (!auth()->user()->hasAnyRole(['Admin User', 'System Admin'])) {
             $filters['user_id'] = auth()->id();
         }
 
@@ -62,7 +62,7 @@ class TimesheetController extends Controller
 
         $result = $this->service->getDataTableData($filters, $search, $start, $length, ['column' => $orderColumn, 'dir' => $orderDir]);
 
-        $canManageTimesheets = auth()->user()->hasAnyRole(['Admin User', 'Super Admin']);
+        $canManageTimesheets = auth()->user()->hasAnyRole(['Admin User', 'System Admin']);
 
         // Transform data for DataTables
         $transformedData = $result['data']->map(function($timesheet) use ($canManageTimesheets) {
@@ -216,7 +216,7 @@ class TimesheetController extends Controller
     {
         // Get all admin and superadmin users
         $adminUsers = User::whereHas('roles', function ($query) {
-            $query->whereIn('name', ['Admin User', 'Super Admin']);
+            $query->whereIn('name', ['Admin User', 'System Admin']);
         })->get();
 
         // Send notification to each admin (excluding the current user if they're an admin)
