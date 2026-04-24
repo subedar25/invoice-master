@@ -367,3 +367,76 @@ body .swal2-popup.swal2-toast { z-index: 100000 !important; }
     box-shadow: 4px 0 18px rgba(8, 15, 35, 0.55) !important;
 }
 
+/* =============================================================================
+   Blue theme: keep listing / DataTables toolbar buttons standard (multicolor)
+   Print, Copy, Excel, PDF, Column visibility — do not inherit “all blue” styling
+   ============================================================================= */
+.dataTables_wrapper .dt-buttons .btn.btn-secondary,
+#invoiceDtButtonsWrap .dt-buttons .btn.btn-secondary {
+    color: #fff !important;
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+}
+.dataTables_wrapper .dt-buttons .btn.btn-secondary:hover,
+#invoiceDtButtonsWrap .dt-buttons .btn.btn-secondary:hover {
+    color: #fff !important;
+    background-color: #5a6268 !important;
+    border-color: #545b62 !important;
+}
+
+.dataTables_wrapper .dt-buttons .btn.btn-primary,
+#invoiceDtButtonsWrap .dt-buttons .btn.btn-primary {
+    color: #fff !important;
+    background-color: #007bff !important;
+    border-color: #007bff !important;
+}
+.dataTables_wrapper .dt-buttons .btn.btn-primary:hover,
+#invoiceDtButtonsWrap .dt-buttons .btn.btn-primary:hover {
+    color: #fff !important;
+    background-color: #0069d9 !important;
+    border-color: #0062cc !important;
+}
+
+.dataTables_wrapper .dt-buttons .btn.btn-success,
+#invoiceDtButtonsWrap .dt-buttons .btn.btn-success {
+    color: #fff !important;
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+}
+.dataTables_wrapper .dt-buttons .btn.btn-success:hover,
+#invoiceDtButtonsWrap .dt-buttons .btn.btn-success:hover {
+    color: #fff !important;
+    background-color: #218838 !important;
+    border-color: #1e7e34 !important;
+}
+
+.dataTables_wrapper .dt-buttons .btn.btn-danger,
+#invoiceDtButtonsWrap .dt-buttons .btn.btn-danger {
+    color: #fff !important;
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+.dataTables_wrapper .dt-buttons .btn.btn-danger:hover,
+#invoiceDtButtonsWrap .dt-buttons .btn.btn-danger:hover {
+    color: #fff !important;
+    background-color: #c82333 !important;
+    border-color: #bd2130 !important;
+}
+
+.dataTables_wrapper .dt-buttons .btn.btn-warning,
+#invoiceDtButtonsWrap .dt-buttons .btn.btn-warning {
+    color: #212529 !important;
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+}
+.dataTables_wrapper .dt-buttons .btn.btn-warning:hover,
+#invoiceDtButtonsWrap .dt-buttons .btn.btn-warning:hover {
+    color: #212529 !important;
+    background-color: #e0a800 !important;
+    border-color: #d39e00 !important;
+}
+
+.content-wrapper {
+    background-color: #ffffff !important;
+}
+

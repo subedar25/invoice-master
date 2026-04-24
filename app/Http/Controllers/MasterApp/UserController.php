@@ -485,6 +485,7 @@ class UserController extends Controller
                 'id' => $m->id,
                 'first_name' => $m->first_name,
                 'last_name' => $m->last_name,
+                'designation_name' => $m->designation?->name,
             ])->values(),
         ]);
     }
@@ -514,7 +515,11 @@ class UserController extends Controller
             $q->whereIn('organizations.id', $organizationIds);
         });
 
-        return $query->orderBy('first_name')->orderBy('last_name')->get(['id', 'first_name', 'last_name']);
+        return $query
+            ->with(['designation:id,name'])
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get(['id', 'first_name', 'last_name', 'designation_id']);
     }
 
     /**

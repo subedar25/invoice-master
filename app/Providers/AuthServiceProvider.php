@@ -12,6 +12,7 @@ use App\Policies\ModulePolicy;
 use App\Models\Timesheet;
 use App\Policies\TimesheetPolicy;
 use App\Policies\NotificationPolicy;
+use App\Models\Notification;
 use Spatie\Permission\Models\Permission;
 
 class AuthServiceProvider extends ServiceProvider
@@ -25,7 +26,7 @@ class AuthServiceProvider extends ServiceProvider
         Audit::class => AuditPolicy::class,
          Module::class => ModulePolicy::class,
          Timesheet::class => TimesheetPolicy::class,
-         DatabaseNotification::class => NotificationPolicy::class,
+         Notification::class => NotificationPolicy::class,
     ];
 
     /**

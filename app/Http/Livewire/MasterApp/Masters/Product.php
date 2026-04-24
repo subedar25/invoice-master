@@ -253,6 +253,23 @@ class Product extends Component
         $this->dispatch('deleteResult', success: true, message: 'Product deleted successfully.');
     }
 
+    public function restoreById(int $id): void
+    {
+        if (! $this->isSystemUser()) {
+            $this->dispatch('deleteResult', success: false, message: 'Only system user can revert deleted records.');
+            return;
+        }
+
+        $record = ProductModel::withTrashed()->find($id);
+        if (! $record || ! $record->trashed()) {
+            $this->dispatch('deleteResult', success: false, message: 'Deleted record not found.');
+            return;
+        }
+
+        $record->restore();
+        $this->dispatch('deleteResult', success: true, message: 'Product reverted successfully.');
+    }
+
     public function getItemsProperty()
     {
         $allowedSorts = ['name', 'unit_price', 'final_price', 'created_at'];
@@ -261,6 +278,9 @@ class Product extends Component
 
         return ProductModel::query()
             ->with('organization')
+            ->when($this->isSystemUser(), function ($q) {
+                $q->withTrashed();
+            })
             ->when($this->organizationFilter !== '', function ($q) {
                 $q->where('organization_id', (int) $this->organizationFilter);
             })
@@ -348,5 +368,10 @@ class Product extends Component
 
         $fallback = auth()->user()?->last_selected_organization_id;
         return ! empty($fallback) ? (int) $fallback : null;
+    }
+
+    private function isSystemUser(): bool
+    {
+        return (auth()->user()?->user_type ?? '') === 'systemuser';
     }
 }

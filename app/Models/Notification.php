@@ -15,6 +15,7 @@ class Notification extends DatabaseNotification
     protected $casts = [
         'data' => 'array',
         'read_at' => 'datetime',
+        'organization_id' => 'integer',
     ];
 
     /**
@@ -103,5 +104,14 @@ class Notification extends DatabaseNotification
     public function scopeUnread($query)
     {
         return $query->whereNull('read_at');
+    }
+
+    public function scopeForOrganization($query, ?int $organizationId)
+    {
+        if ($organizationId === null || $organizationId <= 0) {
+            return $query;
+        }
+
+        return $query->where('organization_id', $organizationId);
     }
 }

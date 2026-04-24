@@ -18,21 +18,29 @@
             </thead>
             <tbody>
                 @foreach($items as $item)
-                    <tr>
+                    <tr @class(['text-muted' => (bool) $item->deleted_at])>
                         <td>{{ $item->tax_name }}</td>
                         <td>{{ number_format((float) $item->tax_value, 2) }}</td>
                         <td>{{ $item->created_at?->format('M j, Y') ?? '—' }}</td>
                         <td>
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" id="tax_status_{{ $item->id }}" @checked($item->tax_status) wire:change="toggleStatus({{ $item->id }})">
-                                <label class="custom-control-label" for="tax_status_{{ $item->id }}"></label>
-                            </div>
+                            @if($item->deleted_at)
+                                <span class="badge badge-secondary">Deleted</span>
+                            @else
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="tax_status_{{ $item->id }}" @checked($item->tax_status) wire:change="toggleStatus({{ $item->id }})">
+                                    <label class="custom-control-label" for="tax_status_{{ $item->id }}"></label>
+                                </div>
+                            @endif
                         </td>
                         <td>
                             <div class="action-div master-actions">
                                 <a href="#" wire:click.prevent="openViewModal({{ $item->id }})" title="View" class="action-icon entity-link"><i class="fa fa-eye" aria-hidden="true"></i></a>
-                                <a href="#" wire:click.prevent="openEditModal({{ $item->id }})" title="Edit" class="action-icon entity-link"><i class="fa fa-edit" aria-hidden="true"></i></a>
-                                <a href="#" data-master-delete-id="{{ $item->id }}" data-master-delete-title="Delete Tax?" title="Delete" class="action-icon entity-link master-delete-link"><i class="fa fa-trash" aria-hidden="true"></i></a>
+                                @if(!$item->deleted_at)
+                                    <a href="#" wire:click.prevent="openEditModal({{ $item->id }})" title="Edit" class="action-icon entity-link"><i class="fa fa-edit" aria-hidden="true"></i></a>
+                                    <a href="#" data-master-delete-id="{{ $item->id }}" data-master-delete-title="Delete Tax?" title="Delete" class="action-icon entity-link master-delete-link"><i class="fa fa-trash" aria-hidden="true"></i></a>
+                                @elseif((auth()->user()?->user_type ?? '') === 'systemuser')
+                                    <a href="#" wire:click.prevent="restoreById({{ $item->id }})" title="Revert" class="action-icon entity-link"><i class="fa fa-undo" aria-hidden="true"></i></a>
+                                @endif
                             </div>
                         </td>
                     </tr>

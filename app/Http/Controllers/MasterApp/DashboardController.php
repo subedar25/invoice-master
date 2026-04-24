@@ -2,28 +2,30 @@
 
 namespace App\Http\Controllers\MasterApp;
 
+use App\Core\Dashboard\Services\DashboardService;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Timesheet;
-use App\Models\User;
-use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-     public function index()
+    public function index(DashboardService $dashboardService)
     {
         $user = auth()->user();
 
         $currentShift = array(); //Timesheet::currentShiftForUser($user->id);
+        $dashboardCounts = $dashboardService->getCounts($user);
+        $dashboardVisibility = $dashboardService->getVisibility($user);
 
-        return view('masterapp.dashboard', compact('currentShift'));
+        return view('masterapp.dashboard', compact('currentShift', 'dashboardCounts', 'dashboardVisibility'));
     }
-    public function dashboard()
-{
-    $user = auth()->user();
+    public function dashboard(DashboardService $dashboardService)
+    {
+        $user = auth()->user();
 
-    $currentShift = Timesheet::currentShiftForUser($user->id);
+        $currentShift = Timesheet::currentShiftForUser($user->id);
+        $dashboardCounts = $dashboardService->getCounts($user);
+        $dashboardVisibility = $dashboardService->getVisibility($user);
 
-    return view('masterapp.dashboard', compact('currentShift'));
-}
+        return view('masterapp.dashboard', compact('currentShift', 'dashboardCounts', 'dashboardVisibility'));
+    }
 }

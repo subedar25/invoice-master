@@ -103,7 +103,7 @@ class Outlet extends Component
 
     public function openEditModal(int $id): void
     {
-        $record = OutletModel::findOrFail($id);
+        $record = OutletModel::withTrashed()->findOrFail($id);
         $selectedOrganizationId = $this->resolveSelectedOrganizationId();
         $this->editId = $id;
         $this->name = $record->name;
@@ -179,7 +179,7 @@ class Outlet extends Component
         }
 
         $this->validate();
-        $record = OutletModel::findOrFail($this->editId);
+        $record = OutletModel::withTrashed()->findOrFail($this->editId);
         
         $data = [
             'name' => $this->name,
@@ -217,6 +217,23 @@ class Outlet extends Component
         }
     }
 
+    public function restoreById(int $id): void
+    {
+        if (! $this->isSystemUser()) {
+            $this->dispatch('deleteResult', success: false, message: 'Only system user can revert deleted records.');
+            return;
+        }
+
+        $record = OutletModel::withTrashed()->find($id);
+        if (! $record || ! $record->trashed()) {
+            $this->dispatch('deleteResult', success: false, message: 'Deleted record not found.');
+            return;
+        }
+
+        $record->restore();
+        $this->dispatch('deleteResult', success: true, message: 'Outlet reverted successfully.');
+    }
+
     public function toggleStatus(int $id): void
     {
         $record = OutletModel::findOrFail($id);
@@ -235,6 +252,9 @@ class Outlet extends Component
     {
         return OutletModel::query()
             ->with(['location.organization', 'areaManager'])
+            ->when($this->isSystemUser(), function ($q) {
+                $q->withTrashed();
+            })
             ->when(filled($this->organizationFilter), function ($q) {
                 $q->where('organization_id', $this->organizationFilter);
             })
@@ -279,7 +299,7 @@ class Outlet extends Component
 
     public function getViewRecordProperty()
     {
-        return $this->viewId ? OutletModel::with(['location.organization', 'areaManager', 'state', 'country'])->find($this->viewId) : null;
+        return $this->viewId ? OutletModel::withTrashed()->with(['location.organization', 'areaManager', 'state', 'country'])->find($this->viewId) : null;
     }
 
     public function render()
@@ -309,5 +329,10 @@ class Outlet extends Component
 
         $fallback = auth()->user()?->last_selected_organization_id;
         return ! empty($fallback) ? (int) $fallback : null;
+    }
+
+    private function isSystemUser(): bool
+    {
+        return (auth()->user()?->user_type ?? '') === 'systemuser';
     }
 }

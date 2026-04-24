@@ -22,6 +22,11 @@ class Organization extends Component
         $this->fileService = $fileService;
     }
 
+    public function mount(): void
+    {
+        abort_unless((auth()->user()?->user_type ?? '') === 'systemuser', 403, 'Only system users can access Organization master.');
+    }
+
     public string $search = '';
     public string $sortField = 'id';
     public string $sortDirection = 'desc';
@@ -219,9 +224,21 @@ class Organization extends Component
         }
     }
 
+    public function restoreById(int $id): void
+    {
+        $record = OrganizationModel::withTrashed()->find($id);
+        if (! $record || ! $record->trashed()) {
+            $this->dispatch('deleteResult', success: false, message: 'Deleted record not found.');
+            return;
+        }
+
+        $record->restore();
+        $this->dispatch('deleteResult', success: true, message: 'Organization reverted successfully.');
+    }
+
     public function render()
     {
-        $query = OrganizationModel::query()
+        $query = OrganizationModel::withTrashed()
             ->when($this->search !== '', function ($q) {
                 $q->where('name', 'like', '%' . $this->search . '%');
             });

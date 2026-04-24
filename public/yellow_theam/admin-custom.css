@@ -367,3 +367,34 @@ body .swal2-popup.swal2-toast { z-index: 100000 !important; }
     box-shadow: 4px 0 18px rgba(42, 36, 8, 0.5) !important;
 }
 
+/* Primary cards: match theme accent (AdminLTE default is #007bff) */
+.card-primary:not(.card-outline) > .card-header {
+    background-color: #eab308;
+}
+.card-primary:not(.card-outline) > .card-header,
+.card-primary:not(.card-outline) > .card-header a {
+    color: #1c1917;
+}
+.card-primary:not(.card-outline) > .card-header a.active {
+    color: #0f172a;
+}
+.card-primary:not(.card-outline) > .card-header .btn-tool {
+    color: rgba(28, 25, 23, 0.75);
+}
+.card-primary:not(.card-outline) > .card-header .btn-tool:hover {
+    color: #1c1917;
+}
+
+/* Buttons: same as dark_theam (AdminLTE / Bootstrap defaults). No yellow/blue overrides. */
+
+/* Active list-group items: yellow theme accent */
+.list-group-item.active {
+    background-color: #eab308 !important;
+    border-color: #eab308 !important;
+    color: #1c1917 !important;
+}
+
+.content-wrapper {
+    background-color: #ffffff !important;
+}
+

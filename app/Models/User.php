@@ -11,12 +11,14 @@ use OwenIt\Auditing\Auditable as AuditableTrait;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Contracts\Role as RoleContract;
 use App\Notifications\NewUserNotification;
 use App\Notifications\RoleUpdatedNotification;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Department;
+use App\Models\Notification;
 use App\Models\Permission;
 use Laragear\TwoFactor\Contracts\TwoFactorAuthenticatable;
 use Laragear\TwoFactor\TwoFactorAuthentication;
@@ -347,6 +349,14 @@ class User extends Authenticatable implements Auditable, TwoFactorAuthenticatabl
     public function organizations(): BelongsToMany
     {
         return $this->belongsToMany(Organization::class, 'organization_user')->withTimestamps();
+    }
+
+    /**
+     * Database notifications (uses app model so custom scopes like forOrganization apply).
+     */
+    public function notifications(): MorphMany
+    {
+        return $this->morphMany(Notification::class, 'notifiable')->latest();
     }
 
     public function reportingManager(): BelongsTo

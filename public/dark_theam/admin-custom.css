@@ -287,3 +287,7 @@ body .swal2-popup.swal2-toast { z-index: 100000 !important; }
     background: #f8f9fa;
 }
 
+.content-wrapper {
+    background-color: #ffffff !important;
+}
+

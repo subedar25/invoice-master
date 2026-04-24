@@ -151,11 +151,31 @@ class ModuleAndPermissionSeeder extends Seeder
                 'permissions' => [
                     ['name' => 'create-invoice', 'display_name' => 'Create Invoice', 'slug' => 'create-invoice'],
                     ['name' => 'edit-invoice', 'display_name' => 'Edit Invoice', 'slug' => 'edit-invoice'],
+                    ['name' => 'after-approval-change-edit-invoice', 'display_name' => 'After Approval Change Edit Invoice', 'slug' => 'after-approval-change-edit-invoice'],
                     ['name' => 'delete-invoice', 'display_name' => 'Delete Invoice', 'slug' => 'delete-invoice'],
                     ['name' => 'list-invoices', 'display_name' => 'View Invoices', 'slug' => 'list-invoices'],
                     ['name' => 'approve-invoice', 'display_name' => 'Approve Invoice', 'slug' => 'approve-invoice'],
+                    ['name' => 'make-payment', 'display_name' => 'Make Payment', 'slug' => 'make-payment'],
+                    ['name' => 'view-payment-history', 'display_name' => 'View Payment History', 'slug' => 'view-payment-history'],
+                    ['name' => 'change-payment-status', 'display_name' => 'Change Payment Status', 'slug' => 'change-payment-status'],
                 ],
                 'slug' => 'invoice-management'
+            ],
+            'Dashboard' => [
+                'permissions' => [
+                    ['name' => 'dashboard-operational-manager', 'display_name' => 'Dashboard Operational Manager', 'slug' => 'dashboard-operational-manager'],
+                    ['name' => 'dashboard-general-manager', 'display_name' => 'Dashboard General Manager', 'slug' => 'dashboard-general-manager'],
+                    ['name' => 'dashboard-area-manager', 'display_name' => 'Dashboard Area Manager', 'slug' => 'dashboard-area-manager'],
+                    ['name' => 'dashboard-accountant', 'display_name' => 'Dashboard Accountant', 'slug' => 'dashboard-accountant'],
+                    ['name' => 'dashboard-outlet', 'display_name' => 'Dashboard Outlet', 'slug' => 'dashboard-outlet'],
+                    ['name' => 'dashboard-vendors', 'display_name' => 'Dashboard Vendors', 'slug' => 'dashboard-vendors'],
+                    ['name' => 'dashboard-total-invoice', 'display_name' => 'Dashboard Total Invoice', 'slug' => 'dashboard-total-invoice'],
+                    ['name' => 'dashboard-completed-invoice', 'display_name' => 'Dashboard Completed Invoice', 'slug' => 'dashboard-completed-invoice'],
+                    ['name' => 'dashboard-pending-invoice', 'display_name' => 'Dashboard Pending Invoice', 'slug' => 'dashboard-pending-invoice'],
+                    ['name' => 'dashboard-in-process-invoice', 'display_name' => 'Dashboard In Process Invoice', 'slug' => 'dashboard-in-process-invoice'],
+                    ['name' => 'dashboard-approved-invoice', 'display_name' => 'Dashboard Approved Invoice', 'slug' => 'dashboard-approved-invoice'],
+                ],
+                'slug' => 'dashboard'
             ],
 
             // 'Contact Management' => [

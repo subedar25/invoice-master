@@ -243,7 +243,7 @@
                                             <option value="">Select reporting manager</option>
                                             @foreach($reportingManagers as $manager)
                                                 <option value="{{ $manager->id }}" {{ old('reporting_manager_id', $user->reporting_manager_id) == $manager->id ? 'selected' : '' }}>
-                                                    {{ trim($manager->first_name . ' ' . $manager->last_name) }}
+                                                    {{ trim($manager->first_name . ' ' . $manager->last_name) }}{{ $manager->designation?->name ? ' (' . $manager->designation->name . ')' : '' }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -421,6 +421,9 @@ $(document).ready(function () {
             $rm.empty().append($('<option></option>').val('').text('Select reporting manager'));
             (res.managers || []).forEach(function (m) {
                 var label = $.trim((m.first_name || '') + ' ' + (m.last_name || ''));
+                if (m.designation_name) {
+                    label += ' (' + m.designation_name + ')';
+                }
                 $rm.append($('<option></option>').attr('value', m.id).text(label));
             });
             if (cur && $rm.find('option[value="' + cur + '"]').length) {
@@ -456,7 +459,9 @@ $(document).ready(function () {
     }
 
     function bindPasswordToggle(toggleSelector, inputSelector) {
-        $(document).on('click', toggleSelector, function () {
+        $(document).on('click', toggleSelector, function (e) {
+            e.preventDefault();
+            e.stopPropagation();
             var $toggle = $(this);
             var $input = $(inputSelector);
             var $icon = $toggle.find('i');
@@ -466,6 +471,7 @@ $(document).ready(function () {
             var show = $input.attr('type') === 'password';
             $input.attr('type', show ? 'text' : 'password');
             $icon.toggleClass('fa-eye', !show).toggleClass('fa-eye-slash', show);
+            $toggle.attr('title', show ? 'Hide password' : 'Show password');
         });
     }
 
@@ -480,8 +486,13 @@ $(document).ready(function () {
             .toggleClass('fa-times text-danger', !isValid);
     }
 
-    function updatePasswordRequirements(value) {
-        var password = String(value || '');
+    var $editPwd = $('#InputPassword');
+    var $editConfirmPwd = $('#InputConfirmPassword');
+    var $editReq = $('#edit-password-requirements');
+    var editPasswordFocused = false;
+
+    function updatePasswordRequirements() {
+        var password = String($editPwd.val() || '');
         var hasValue = password.length > 0;
 
         var hasMinLength = password.length >= 8;
@@ -491,8 +502,10 @@ $(document).ready(function () {
         var hasSpecial = /[^A-Za-z0-9]/.test(password);
         var isAllValid = hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSpecial;
 
-        $('#edit-password-requirements').toggle(hasValue && !isAllValid);
-        if (!hasValue) {
+        var showPanel = (editPasswordFocused || hasValue) && !isAllValid;
+        $editReq.toggle(showPanel);
+
+        if (!hasValue && !editPasswordFocused) {
             setRequirementState('#edit-req-length', false);
             setRequirementState('#edit-req-uppercase', false);
             setRequirementState('#edit-req-lowercase', false);
@@ -508,9 +521,38 @@ $(document).ready(function () {
         setRequirementState('#edit-req-special', hasSpecial);
     }
 
-    $('#InputPassword').on('input', function () {
-        updatePasswordRequirements($(this).val());
+    function updatePasswordMatchMessage() {
+        var password = $editPwd.val() || '';
+        var confirmVal = $editConfirmPwd.val() || '';
+        var $msg = $('#editPasswordMatchMessage');
+
+        if (password && confirmVal) {
+            if (password === confirmVal) {
+                $msg.removeClass('text-danger').addClass('text-success').text('Passwords match.');
+            } else {
+                $msg.removeClass('text-success').addClass('text-danger').text('Passwords do not match.');
+            }
+        } else {
+            $msg.removeClass('text-success text-danger').text('');
+        }
+    }
+
+    $editPwd.on('focus', function () {
+        editPasswordFocused = true;
+        updatePasswordRequirements();
     });
+
+    $editPwd.on('input', function () {
+        updatePasswordRequirements();
+        updatePasswordMatchMessage();
+    });
+
+    $editPwd.on('blur', function () {
+        editPasswordFocused = false;
+        updatePasswordRequirements();
+    });
+
+    $editConfirmPwd.on('input', updatePasswordMatchMessage);
 
     $(document).on('click', '.btn-remove-photo', function() {
         var $btn = $(this);

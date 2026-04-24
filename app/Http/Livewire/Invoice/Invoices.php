@@ -7,10 +7,14 @@ use App\Models\Invoice;
 use App\Models\InvoiceStatusHistory;
 use App\Models\Ledger;
 use App\Models\LedgerStatusHistory;
+use App\Models\Notification as UserNotification;
+use App\Models\User;
+use App\Notifications\GeneralNotification;
 use App\Support\InvoiceDepartmentAuthorization;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -539,6 +543,13 @@ class Invoices extends Component
             ),
             403
         );
+
+        if (
+            $this->normalizeStatus((string) $record->status) === 'Approve'
+            && ! $this->mayEditApprovedInvoices()
+        ) {
+            abort(403, 'This invoice is approved. You do not have permission to edit or change status after approval.');
+        }
         
         $this->organization_id = $record->organization_id;
         $this->invoice_number = $record->invoice_number;
@@ -678,7 +689,7 @@ class Invoices extends Component
 
     public function openPaymentModal(int $id): void
     {
-        abort_unless(auth()->user()->can('edit-invoice'), 403);
+        abort_unless(auth()->user()->can('make-payment'), 403);
 
         $invoice = Invoice::query()->with('vendor')->findOrFail($id);
         abort_unless(
@@ -724,7 +735,7 @@ class Invoices extends Component
 
     public function savePayment(): void
     {
-        abort_unless(auth()->user()->can('edit-invoice'), 403);
+        abort_unless(auth()->user()->can('make-payment'), 403);
 
         if ($this->paymentInvoiceId === null) {
             return;
@@ -797,7 +808,7 @@ class Invoices extends Component
 
     public function openPaymentHistoryModal(int $id): void
     {
-        abort_unless(auth()->user()->can('list-invoices'), 403);
+        abort_unless(auth()->user()->can('view-payment-history'), 403);
 
         $invoice = Invoice::query()
             ->with([
@@ -824,7 +835,7 @@ class Invoices extends Component
 
     public function updateLedgerStatus(int $ledgerId, string $newStatus): void
     {
-        abort_unless(auth()->user()->can('edit-invoice'), 403);
+        abort_unless(auth()->user()->can('change-payment-status'), 403);
 
         $newStatus = strtolower(trim($newStatus));
         if (! in_array($newStatus, ['pending', 'cancelled', 'completed', 'failed', 'invalid'], true)) {
@@ -925,7 +936,7 @@ class Invoices extends Component
      */
     public function revertCompletedLedgerPayment(int $ledgerId): void
     {
-        abort_unless(auth()->user()->can('edit-invoice'), 403);
+        abort_unless(auth()->user()->can('change-payment-status'), 403);
 
         $ledger = Ledger::query()->with('invoice')->findOrFail($ledgerId);
         $invoice = $ledger->invoice;
@@ -1250,7 +1261,8 @@ class Invoices extends Component
             );
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () {
+        $createdInvoiceId = null;
+        \Illuminate\Support\Facades\DB::transaction(function () use (&$createdInvoiceId) {
             $generatedInvoiceNumber = $this->invoice()->nextInvoiceNumberForOrganization((int) $this->organization_id);
 
             $invoice = $this->invoice()->createInvoice([
@@ -1282,10 +1294,105 @@ class Invoices extends Component
             $this->invoice()->syncInvoiceDetails($invoice, $this->invoice_items);
 
             $this->processFileUploads($invoice);
+            $createdInvoiceId = (int) $invoice->id;
         });
+
+        if ($createdInvoiceId) {
+            $createdInvoice = Invoice::query()->with('organization')->find($createdInvoiceId);
+            if ($createdInvoice) {
+                $this->notifyInvoiceCreated($createdInvoice);
+            }
+        }
 
         $this->dispatch('formResult', type: 'success', message: 'Invoice created successfully.');
         $this->closeModals();
+    }
+
+    private function notifyInvoiceCreated(Invoice $invoice): void
+    {
+        $creator = auth()->user();
+        if (! $creator) {
+            return;
+        }
+
+        $organizationId = (int) $invoice->organization_id;
+        $recipientIds = collect();
+
+        $superAdminIds = User::query()
+            ->where('id', '!=', (int) $creator->id)
+            ->where(function ($q) {
+                $q->where('user_type', 'superadmin')
+                    ->orWhereHas('roles', function ($roleQ) {
+                        $roleQ->whereIn('name', ['Super Admin', 'System Admin']);
+                    });
+            })
+            ->whereHas('organizations', function ($orgQ) use ($organizationId) {
+                $orgQ->where('organizations.id', $organizationId);
+            })
+            ->pluck('id');
+        $recipientIds = $recipientIds->merge($superAdminIds);
+
+        $reportingManagerId = (int) ($creator->reporting_manager_id ?? 0);
+        if ($reportingManagerId > 0 && $reportingManagerId !== (int) $creator->id) {
+            $reportingManager = User::query()
+                ->whereKey($reportingManagerId)
+                ->whereHas('organizations', function ($orgQ) use ($organizationId) {
+                    $orgQ->where('organizations.id', $organizationId);
+                })
+                ->first();
+            if ($reportingManager) {
+                $recipientIds->push((int) $reportingManager->id);
+            }
+        }
+
+        $recipientIds = $recipientIds
+            ->map(static fn ($id) => (int) $id)
+            ->filter(static fn ($id) => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($recipientIds->isEmpty()) {
+            return;
+        }
+
+        $now = now();
+        $organizationName = $invoice->organization?->name ?: ('Org #' . $organizationId);
+        $creatorName = trim((string) (($creator->first_name ?? '') . ' ' . ($creator->last_name ?? '')));
+        if ($creatorName === '') {
+            $creatorName = $creator->email ?? 'User';
+        }
+
+        $payload = [
+            'event_key' => 'invoice.created',
+            'title' => 'New Invoice Created',
+            'message' => sprintf(
+                'Invoice %s created by %s for %s.',
+                (string) ($invoice->invoice_number ?: ('#' . $invoice->id)),
+                $creatorName,
+                $organizationName
+            ),
+            'url' => route('invoice.index'),
+            'organization_id' => $organizationId,
+            'invoice_id' => (int) $invoice->id,
+        ];
+
+        $rows = $recipientIds->map(function (int $recipientId) use ($payload, $organizationId, $now) {
+            return [
+                'id' => (string) Str::uuid(),
+                'type' => GeneralNotification::class,
+                'notifiable_type' => User::class,
+                'notifiable_id' => $recipientId,
+                'organization_id' => $organizationId,
+                'data' => json_encode($payload, JSON_UNESCAPED_UNICODE),
+                'read_at' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        })->all();
+
+        if ($rows !== []) {
+            UserNotification::query()->insert($rows);
+        }
     }
 
     public function saveEdit()
@@ -1297,6 +1404,9 @@ class Invoices extends Component
         $this->validate();
         $invoice = $this->invoice()->findForEdit($this->editId);
         $previousStatus = $this->normalizeStatus((string) $invoice->status);
+        if ($previousStatus === 'Approve' && ! $this->mayEditApprovedInvoices()) {
+            abort(403, 'This invoice is approved. You do not have permission to edit or change status after approval.');
+        }
         if (strcasecmp(trim((string) $this->status), 'Approve') === 0) {
             abort_if(
                 (int) $invoice->createdby_id === (int) auth()->id(),
@@ -1408,13 +1518,6 @@ class Invoices extends Component
         $dropdowns = $this->invoice()->getOrganizationDropdownData($this->organization_id);
         $vendors = $dropdowns['vendors'];
         $departments = $dropdowns['departments'];
-        if (is_array($listDeptRestriction)) {
-            if ($listDeptRestriction === []) {
-                $departments = collect();
-            } else {
-                $departments = $departments->whereIn('id', $listDeptRestriction);
-            }
-        }
         $outlets = $dropdowns['outlets'];
         $locations = $dropdowns['locations'];
         $products = $dropdowns['products'];
@@ -1550,6 +1653,36 @@ class Invoices extends Component
             $invoice->department_id !== null ? (int) $invoice->department_id : null,
             $invoice->createdby_id !== null ? (int) $invoice->createdby_id : null
         );
+    }
+
+    public function canEditRow(Invoice $invoice): bool
+    {
+        $user = auth()->user();
+        if (! $user?->can('edit-invoice')) {
+            return false;
+        }
+
+        if (
+            $this->normalizeStatus((string) $invoice->status) === 'Approve'
+            && ! $this->mayEditApprovedInvoices()
+        ) {
+            return false;
+        }
+
+        return InvoiceDepartmentAuthorization::canViewInvoice(
+            $user,
+            (int) $invoice->organization_id,
+            $invoice->department_id !== null ? (int) $invoice->department_id : null,
+            $invoice->createdby_id !== null ? (int) $invoice->createdby_id : null
+        );
+    }
+
+    private function mayEditApprovedInvoices(): bool
+    {
+        $user = auth()->user();
+
+        return ($user?->user_type ?? '') === 'systemuser'
+            || (bool) $user?->can('after-approval-change-edit-invoice');
     }
 
     private function resolveDefaultOrganizationId(): ?int

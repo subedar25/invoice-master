@@ -160,7 +160,7 @@ class Vendor extends Component
 
     public function openEditModal(int $id): void
     {
-        $record = VendorModel::findOrFail($id);
+        $record = VendorModel::withTrashed()->findOrFail($id);
         $selectedOrganizationId = $this->resolveSelectedOrganizationId();
         $this->editId = $id;
         $this->name = $record->name;
@@ -233,7 +233,7 @@ class Vendor extends Component
         }
 
         $this->validate();
-        $record = VendorModel::findOrFail($this->editId);
+        $record = VendorModel::withTrashed()->findOrFail($this->editId);
         $data = $this->all();
         $data['category_id'] = $this->category_id ?: null;
         $data['organization_id'] = $this->organization_id ?: null;
@@ -252,8 +252,31 @@ class Vendor extends Component
 
     public function deleteById(int $id): void
     {
-        VendorModel::destroy($id);
+        $record = VendorModel::find($id);
+        if (! $record) {
+            $this->dispatch('deleteResult', success: false, message: 'Record not found.');
+            return;
+        }
+
+        $record->delete();
         $this->dispatch('deleteResult', success: true, message: 'Vendor deleted successfully.');
+    }
+
+    public function restoreById(int $id): void
+    {
+        if (! $this->isSystemUser()) {
+            $this->dispatch('deleteResult', success: false, message: 'Only system user can revert deleted records.');
+            return;
+        }
+
+        $record = VendorModel::withTrashed()->find($id);
+        if (! $record || ! $record->trashed()) {
+            $this->dispatch('deleteResult', success: false, message: 'Deleted record not found.');
+            return;
+        }
+
+        $record->restore();
+        $this->dispatch('deleteResult', success: true, message: 'Vendor reverted successfully.');
     }
 
     public function closeModals(): void
@@ -284,6 +307,9 @@ class Vendor extends Component
     {
         $items = VendorModel::query()
             ->with(['category', 'organization', 'banks'])
+            ->when($this->isSystemUser(), function ($q) {
+                $q->withTrashed();
+            })
             ->when($this->organizationFilter, function($q) {
                 $q->where('organization_id', $this->organizationFilter);
             })
@@ -301,7 +327,7 @@ class Vendor extends Component
         return view('masterapp.livewire.masters.vendor', [
             'items' => $items,
             'categoryOptions' => VendorCategory::orderBy('name')->get(['id', 'name']),
-            'viewRecord' => $this->viewId ? VendorModel::with(['category', 'organization', 'banks'])->find($this->viewId) : null
+            'viewRecord' => $this->viewId ? VendorModel::withTrashed()->with(['category', 'organization', 'banks'])->find($this->viewId) : null
         ]);
     }
 
@@ -314,5 +340,10 @@ class Vendor extends Component
 
         $fallback = auth()->user()?->last_selected_organization_id;
         return ! empty($fallback) ? (int) $fallback : null;
+    }
+
+    private function isSystemUser(): bool
+    {
+        return (auth()->user()?->user_type ?? '') === 'systemuser';
     }
 }

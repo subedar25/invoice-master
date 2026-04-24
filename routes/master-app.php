@@ -22,6 +22,7 @@ Route::get('/', function () {
 });
 use App\Http\Controllers\AuditController;
 use App\Http\Middleware\EnsureCanViewAudits;
+use App\Http\Middleware\EnsureSystemUser;
 
 // Protected Routes
 Route::middleware('auth')->group(function () {
@@ -129,7 +130,7 @@ Route::prefix('master-app')
         });
 
         /* ORGANIZATIONS (Client model-backed) */
-        Route::prefix('organizations')->name('organizations.')->group(function () {
+        Route::prefix('organizations')->name('organizations.')->middleware([EnsureSystemUser::class])->group(function () {
             Route::get('/', [OrganizationController::class, 'index'])->name('index')->middleware('can:list-organization');
             Route::get('/data', [OrganizationController::class, 'data'])->name('data')->middleware('can:list-organization');
             Route::get('/locations/suggest', [OrganizationController::class, 'suggestLocations'])->name('locations.suggest')->middleware('can:list-organization');

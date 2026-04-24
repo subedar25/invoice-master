@@ -17,20 +17,28 @@
             </thead>
             <tbody>
                 @foreach($items as $item)
-                    <tr>
+                    <tr @class(['text-muted' => (bool) $item->deleted_at])>
                         <td>{{ $item->name }}</td>
                         <td>{{ $item->created_date ? $item->created_date->format('M j, Y') : '—' }}</td>
                         <td>
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" id="status_toggle_{{ $item->id }}" @if($item->status) checked @endif wire:change="toggleStatus({{ $item->id }})">
-                                <label class="custom-control-label" for="status_toggle_{{ $item->id }}"></label>
-                            </div>
+                            @if($item->deleted_at)
+                                <span class="badge badge-secondary">Deleted</span>
+                            @else
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="status_toggle_{{ $item->id }}" @if($item->status) checked @endif wire:change="toggleStatus({{ $item->id }})">
+                                    <label class="custom-control-label" for="status_toggle_{{ $item->id }}"></label>
+                                </div>
+                            @endif
                         </td>
                         <td>
                             <div class="action-div master-actions">
                                 <a href="#" wire:click.prevent="openViewModal({{ $item->id }})" title="View" class="action-icon entity-link"><i class="fa fa-eye" aria-hidden="true"></i></a>
-                                <a href="#" wire:click.prevent="openEditModal({{ $item->id }})" title="Edit" class="action-icon entity-link"><i class="fa fa-edit" aria-hidden="true"></i></a>
-                                <a href="#" data-master-delete-id="{{ $item->id }}" data-master-delete-title="Delete Organization?" title="Delete" class="action-icon entity-link master-delete-link"><i class="fa fa-trash" aria-hidden="true"></i></a>
+                                @if(!$item->deleted_at)
+                                    <a href="#" wire:click.prevent="openEditModal({{ $item->id }})" title="Edit" class="action-icon entity-link"><i class="fa fa-edit" aria-hidden="true"></i></a>
+                                    <a href="#" data-master-delete-id="{{ $item->id }}" data-master-delete-title="Delete Organization?" title="Delete" class="action-icon entity-link master-delete-link"><i class="fa fa-trash" aria-hidden="true"></i></a>
+                                @else
+                                    <a href="#" wire:click.prevent="restoreById({{ $item->id }})" title="Revert" class="action-icon entity-link"><i class="fa fa-undo" aria-hidden="true"></i></a>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -117,7 +125,7 @@
         @endcomponent
     @endif
 
-    @if($showViewModal && ($viewRecord = \App\Models\Organization::find($viewId)))
+    @if($showViewModal && ($viewRecord = \App\Models\Organization::withTrashed()->find($viewId)))
         @component('masterapp.livewire.masters.components.view-card', ['viewTitle' => 'View Organization'])
             <dl class="row mb-0">
                 <dt class="col-sm-3">Name</dt>

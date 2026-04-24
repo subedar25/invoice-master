@@ -11,18 +11,21 @@ class NotificationService
         private NotificationRepository $notifications
     ) {}
 
-    public function getUserNotifications(int $userId, int $perPage = 10): LengthAwarePaginator
+    public function getUserNotifications(int $userId, int $perPage = 10, ?int $organizationId = null, bool $systemUserGlobalFeed = false): LengthAwarePaginator
     {
-        return $this->notifications->paginateForUser($userId, $perPage);
+        return $this->notifications->paginateForUser($userId, $perPage, $organizationId, $systemUserGlobalFeed);
     }
 
-    public function markAsRead(int $userId, string $notificationId): void
+    /**
+     * @return array{notification: \App\Models\Notification, marked: bool}
+     */
+    public function markAsRead(int $userId, string $notificationId, ?int $organizationId = null, bool $isSystemUser = false): array
     {
-        $this->notifications->markAsRead($userId, $notificationId);
+        return $this->notifications->markAsRead($userId, $notificationId, $organizationId, $isSystemUser);
     }
 
-    public function markAllAsRead(int $userId): void
+    public function markAllAsRead(int $userId, ?int $organizationId = null, bool $isSystemUser = false): void
     {
-        $this->notifications->markAllAsRead($userId);
+        $this->notifications->markAllAsRead($userId, $organizationId, $isSystemUser);
     }
 }

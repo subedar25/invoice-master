@@ -236,13 +236,19 @@
                                                     @can('list-invoices')
                                                     <a href="{{ route('invoice.pdf', $invoice->id) }}" class="action-icon text-danger" target="_blank" rel="noopener noreferrer" title="Preview PDF"><i class="fas fa-file-pdf"></i></a>
                                                     <a href="#" wire:click.prevent="openViewModal({{ $invoice->id }})" class="action-icon"><i class="fa fa-eye"></i></a>
+                                                    @endcan
+                                                    @can('view-payment-history')
                                                     <a href="#" wire:click.prevent="openPaymentHistoryModal({{ $invoice->id }})" class="action-icon text-info" title="Payment history"><i class="fas fa-history"></i></a>
                                                     @endcan
                                                     @can('edit-invoice')
                                                     @if($invoicePending > 0)
+                                                    @can('make-payment')
                                                     <a href="#" wire:click.prevent="openPaymentModal({{ $invoice->id }})" class="action-icon text-success" title="Record payment"><i class="fas fa-money-check-alt"></i></a>
+                                                    @endcan
                                                     @endif
+                                                    @if($this->canEditRow($invoice))
                                                     <a href="#" wire:click.prevent="openEditModal({{ $invoice->id }})" class="action-icon"><i class="fa fa-edit"></i></a>
+                                                    @endif
                                                     @endcan
                                                     @can('approve-invoice')
                                                     @if($this->canApproveRow($invoice))
@@ -594,37 +600,6 @@
                     <div class="mt-1 text-break" style="white-space: pre-wrap;">{{ $viewRecord->pay_term ? $viewRecord->pay_term : 'N/A' }}</div>
                 </div>
 
-                <div class="col-md-12 mb-3">
-                    <strong>Status history:</strong>
-                    @if($viewRecord->statusHistories->isEmpty())
-                        <div class="text-muted mt-1">No status updates recorded yet.</div>
-                    @else
-                        <div class="table-responsive mt-2">
-                            <table class="table table-sm table-bordered mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>When</th>
-                                        <th>From</th>
-                                        <th>To</th>
-                                        <th>Comment</th>
-                                        <th>By</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($viewRecord->statusHistories as $statusRow)
-                                        <tr>
-                                            <td>{{ optional($statusRow->created_at)->format('Y-m-d H:i') ?? '—' }}</td>
-                                            <td>{{ $statusRow->from_status ?: '—' }}</td>
-                                            <td>{{ $statusRow->to_status }}</td>
-                                            <td>{{ $statusRow->comment ?: '—' }}</td>
-                                            <td>{{ trim((string) (($statusRow->user?->first_name ?? '') . ' ' . ($statusRow->user?->last_name ?? ''))) ?: ($statusRow->user?->email ?? '—') }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
-                </div>
             </div>
 
             <div class="table-responsive mt-2">
@@ -714,6 +689,39 @@
                             </a>
                         </div>
                     @endforeach
+                @endif
+            </div>
+
+            <hr class="mt-3 mb-3">
+            <div class="mt-3">
+                <strong>Status history:</strong>
+                @if($viewRecord->statusHistories->isEmpty())
+                    <div class="text-muted mt-1">No status updates recorded yet.</div>
+                @else
+                    <div class="table-responsive mt-2">
+                        <table class="table table-sm table-bordered mb-0">
+                            <thead>
+                                <tr>
+                                    <th>When</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Comment</th>
+                                    <th>By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($viewRecord->statusHistories as $statusRow)
+                                    <tr>
+                                        <td>{{ optional($statusRow->created_at)->format('Y-m-d H:i') ?? '—' }}</td>
+                                        <td>{{ $statusRow->from_status ?: '—' }}</td>
+                                        <td>{{ $statusRow->to_status }}</td>
+                                        <td>{{ $statusRow->comment ?: '—' }}</td>
+                                        <td>{{ trim((string) (($statusRow->user?->first_name ?? '') . ' ' . ($statusRow->user?->last_name ?? ''))) ?: ($statusRow->user?->email ?? '—') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 @endif
             </div>
         @endcomponent
@@ -993,7 +1001,7 @@
                                             <td class="text-right font-weight-bold">{{ number_format($row['total_amount'], 2) }}</td>
                                             <td>
                                                 @php $rowSt = strtolower((string) ($row['status'] ?? '')); @endphp
-                                                @can('edit-invoice')
+                                                @can('change-payment-status')
                                                     @if($rowSt === 'completed')
                                                         <div class="d-flex flex-wrap align-items-center" style="gap: 0.35rem;">
                                                             <span class="badge badge-success text-uppercase">Completed</span>

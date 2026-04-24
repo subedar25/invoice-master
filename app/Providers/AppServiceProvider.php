@@ -40,6 +40,8 @@ use App\Core\Season\Contracts\SeasonRepository;
 use App\Infrastructure\Persistence\Season\EloquentSeasonRepository;
 use App\Core\Invoice\Contracts\InvoiceRepository;
 use App\Infrastructure\Persistence\Invoice\EloquentInvoiceRepository;
+use App\Core\Dashboard\Contracts\DashboardRepository;
+use App\Infrastructure\Persistence\Dashboard\EloquentDashboardRepository;
 use App\Http\Livewire\MasterApp\Masters\OrganizationType as OrganizationTypeComponent;
 use App\Http\Livewire\MasterApp\Masters\Seasons as SeasonsComponent;
 use App\Http\Livewire\MasterApp\Masters\Department as DepartmentComponent;
@@ -83,6 +85,7 @@ class AppServiceProvider extends ServiceProvider
             OrganizationRepository::class => EloquentOrganizationRepository::class,
             LocationRepository::class => EloquentLocationRepository::class,
             InvoiceRepository::class => EloquentInvoiceRepository::class,
+            DashboardRepository::class => EloquentDashboardRepository::class,
         ];
 
         foreach ($bindings as $abstract => $concrete) {

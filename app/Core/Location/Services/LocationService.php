@@ -3,9 +3,8 @@
 namespace App\Core\Location\Services;
 
 use App\Core\Location\Contracts\LocationRepository;
-use App\Http\Requests\MasterApp\Location\LocationStoreRequest;
-use App\Http\Requests\MasterApp\Location\LocationUpdateRequest;
 use App\Models\Location;
+use Illuminate\Support\Collection;
 
 class LocationService
 {
@@ -25,6 +24,40 @@ class LocationService
     public function getLocation(int $id): Location
     {
         return $this->locations->find($id);
+    }
+
+    public function getLocationWithTrashed(int $id): Location
+    {
+        return $this->locations->findWithTrashed($id);
+    }
+
+    /**
+     * @return array{locations:\Illuminate\Contracts\Pagination\LengthAwarePaginator, countries:Collection, defaultCountryId:mixed, statesByCountry:array}
+     */
+    public function getIndexData(int $perPage = 20): array
+    {
+        $locations = $this->locations->paginateLatest($perPage);
+        $countries = $this->locations->getActiveCountries();
+        $defaultCountryId = optional($countries->firstWhere('name', 'India'))->id
+            ?? optional($countries->firstWhere('id', 101))->id
+            ?? optional($countries->first())->id;
+
+        return [
+            'locations' => $locations,
+            'countries' => $countries,
+            'defaultCountryId' => $defaultCountryId,
+            'statesByCountry' => $this->locations->getActiveStatesGroupedByCountry(),
+        ];
+    }
+
+    public function locationNameExists(string $name, ?int $excludeId = null): bool
+    {
+        return $this->locations->nameExists($name, $excludeId);
+    }
+
+    public function getAdminUsersForLocationNotification(): Collection
+    {
+        return $this->locations->adminUsersForLocationNotification();
     }
 
     public function updateLocation(int $id, array $data): Location

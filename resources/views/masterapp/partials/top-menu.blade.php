@@ -77,28 +77,43 @@
 
       <!-- Notifications Dropdown Menu -->
        @php
-            $unreadCount = auth()->user()->unreadNotifications()->count();
-            $notifications = auth()->user()->notifications()->latest()->take(5)->get();
+            // Distinct names: avoid overwriting $notifications / $unreadCount from child views (e.g. notifications index).
+            $isSystemUser = (auth()->user()?->user_type ?? '') === 'systemuser';
+            if ($isSystemUser) {
+                $topMenuNotificationsQuery = \App\Models\Notification::query()
+                    ->where('notifiable_type', \App\Models\User::class)
+                    ->with(['notifiable:id,first_name,last_name,email']);
+                $topMenuUnreadCount = auth()->user()->notifications()->whereNull('read_at')->count();
+                $topMenuNotifications = (clone $topMenuNotificationsQuery)->latest()->take(5)->get();
+            } else {
+                $currentOrgId = (int) session('current_organization_id', 0);
+                $topMenuNotificationsQuery = auth()->user()->notifications()
+                    ->when($currentOrgId > 0, function ($q) use ($currentOrgId) {
+                        $q->where('organization_id', $currentOrgId);
+                    });
+                $topMenuUnreadCount = (clone $topMenuNotificationsQuery)->whereNull('read_at')->count();
+                $topMenuNotifications = (clone $topMenuNotificationsQuery)->latest()->take(5)->get();
+            }
         @endphp
 
-        <li class="nav-item dropdown">
+        <li class="nav-item dropdown notif-hover-dropdown">
     <a class="nav-link" data-toggle="dropdown" href="#">
         <i class="far fa-bell"></i>
 
-        @if ($unreadCount > 0)
-            <span id="topMenuNotifCount" class="badge badge-warning navbar-badge">{{ $unreadCount }}</span>
+        @if ($topMenuUnreadCount > 0)
+            <span id="topMenuNotifCount" class="badge badge-warning navbar-badge">{{ $topMenuUnreadCount }}</span>
         @endif
     </a>
 
     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="topMenuNotifDropdown">
         <div class="dropdown-item dropdown-header d-flex justify-content-between align-items-center flex-wrap">
-            <span>{{ $unreadCount }} Notifications</span>
-            @if ($unreadCount > 0)
+            <span>{{ $topMenuUnreadCount }} Notifications</span>
+            @if ($topMenuUnreadCount > 0)
                 <a href="#" id="topMenuMarkAllRead" class="ml-2 text-primary small">Mark All as Read</a>
             @endif
         </div>
 
-        @forelse ($notifications as $notification)
+        @forelse ($topMenuNotifications as $notification)
             <div class="dropdown-divider"></div>
 
             <a href="{{ route('masterapp.notifications.read', $notification->id) }}"
@@ -106,6 +121,9 @@
                data-id="{{ $notification->id }}">
                 <i class="fas fa-bell mr-2"></i>
                 {{ $notification->data['message'] ?? 'Notification' }}
+                @if($isSystemUser && $notification->relationLoaded('notifiable'))
+                    <span class="d-block small text-muted">{{ $notification->notifiable?->name ?? '' }}</span>
+                @endif
                 <span class="float-right text-muted text-sm">
                     {{ $notification->created_at->diffForHumans() }}
                 </span>
@@ -120,7 +138,7 @@
 
         <a href="{{ route('masterapp.notifications.index') }}"
            class="dropdown-item dropdown-footer">
-            See All Notifications
+            View All
         </a>
     </div>
 </li>
@@ -147,14 +165,6 @@
                 </div>
 
                 <div class="dropdown-divider"></div>
-
-                <a href="{{ route('masterapp.profile.edit') }}" class="dropdown-item">
-                    <i class="fas fa-user mr-2"></i> Profile
-                </a>
-
-                <a href="{{ route('masterapp.profile.changepassword') }}" class="dropdown-item">
-                    <i class="fas fa-key mr-2"></i> Change Password
-                </a>
 
                 <a href="{{ route('masterapp.settings') }}" class="dropdown-item">
                     <i class="fas fa-cog mr-2"></i> Settings
@@ -219,4 +229,13 @@
     });
 })();
 </script>
+@endpush
+
+@push('styles')
+<style>
+    .notif-hover-dropdown:hover .dropdown-menu {
+        display: block;
+        margin-top: 0;
+    }
+</style>
 @endpush

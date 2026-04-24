@@ -17,10 +17,12 @@ interface SeasonRepository
 
     public function delete(int $id): void;
 
+    public function restore(int $id): void;
+
     /**
      * @return LengthAwarePaginator<Season>
      */
-    public function list(string $search, string $statusFilter, string $sortField, string $sortDirection, int $perPage, int $page = 1): LengthAwarePaginator;
+    public function list(string $search, string $statusFilter, string $sortField, string $sortDirection, int $perPage, int $page = 1, bool $includeDeleted = false): LengthAwarePaginator;
 
     public function getForView(int $id): ?Season;
 }

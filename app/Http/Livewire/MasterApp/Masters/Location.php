@@ -226,10 +226,30 @@ class Location extends Component
         $this->dispatch('deleteResult', success: true, message: 'Location deleted successfully.');
     }
 
+    public function restoreById(int $id): void
+    {
+        if (! $this->isSystemUser()) {
+            $this->dispatch('deleteResult', success: false, message: 'Only system user can revert deleted records.');
+            return;
+        }
+
+        $record = LocationModel::withTrashed()->find($id);
+        if (! $record || ! $record->trashed()) {
+            $this->dispatch('deleteResult', success: false, message: 'Deleted record not found.');
+            return;
+        }
+
+        $record->restore();
+        $this->dispatch('deleteResult', success: true, message: 'Location reverted successfully.');
+    }
+
     public function getItemsProperty()
     {
         return LocationModel::query()
             ->with('organization')
+            ->when($this->isSystemUser(), function ($q) {
+                $q->withTrashed();
+            })
             ->when(filled($this->organizationFilter), function ($q) {
                 $q->where('organization_id', $this->organizationFilter);
             })
@@ -305,5 +325,10 @@ class Location extends Component
 
         $fallback = auth()->user()?->last_selected_organization_id;
         return ! empty($fallback) ? (int) $fallback : null;
+    }
+
+    private function isSystemUser(): bool
+    {
+        return (auth()->user()?->user_type ?? '') === 'systemuser';
     }
 }

@@ -6,9 +6,16 @@
 <div class="container py-4">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="mb-0">Notifications</h3>
+        <div>
+            <h3 class="mb-0">Notifications</h3>
+            @if((auth()->user()?->user_type ?? '') === 'systemuser')
+                <p class="mb-0 small text-muted">
+                    All users and organizations. Only your own notifications can be marked read.
+                </p>
+            @endif
+        </div>
 
-        @if(auth()->user()->unreadNotifications->count() > 0)
+        @if(($unreadCount ?? 0) > 0)
             <button class="btn btn-sm btn-primary mark-all-read-btn">
                 Mark All as Read
             </button>
@@ -36,6 +43,13 @@
                                     {{ $data['message'] ?? '' }}
                                 </p>
 
+                                @if((auth()->user()?->user_type ?? '') === 'systemuser' && $notification->relationLoaded('notifiable'))
+                                    <small class="text-muted d-block">
+                                        Recipient:
+                                        {{ $notification->notifiable?->name ?? ('User #' . $notification->notifiable_id) }}
+                                    </small>
+                                @endif
+
                                 <small class="text-secondary">
                                     {{ $notification->created_at->diffForHumans() }}
                                 </small>
@@ -43,7 +57,9 @@
 
                             <div class="ml-3 text-right">
                                 {{-- Mark Read --}}
-                                @if(is_null($notification->read_at))
+                                @if(is_null($notification->read_at)
+                                    && ((auth()->user()?->user_type ?? '') !== 'systemuser'
+                                        || (int) $notification->notifiable_id === (int) auth()->id()))
                                     <button class="btn btn-sm btn-outline-success mark-read-btn"
                                             data-id="{{ $notification->id }}">
                                         Mark Read
@@ -120,6 +136,9 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    if (data.marked === false) {
+                        return;
+                    }
                     // Remove background color and hide the button
                     listItem.classList.remove('bg-light');
                     this.style.display = 'none';

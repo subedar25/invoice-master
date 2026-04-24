@@ -83,7 +83,7 @@ class VendorCategory extends Component
 
     public function openEditModal(int $id): void
     {
-        $record = VendorCategoryModel::findOrFail($id);
+        $record = VendorCategoryModel::withTrashed()->findOrFail($id);
         $selectedOrganizationId = $this->resolveSelectedOrganizationId();
 
         $this->editId = $id;
@@ -162,7 +162,7 @@ class VendorCategory extends Component
             throw $e;
         }
 
-        $record = VendorCategoryModel::findOrFail((int) $this->editId);
+        $record = VendorCategoryModel::withTrashed()->findOrFail((int) $this->editId);
         $record->update([
             'organization_id' => (int) $this->organization_id,
             'name' => $this->name,
@@ -205,10 +205,30 @@ class VendorCategory extends Component
         $this->dispatch('deleteResult', success: true, message: 'Vendor category deleted successfully.');
     }
 
+    public function restoreById(int $id): void
+    {
+        if (! $this->isSystemUser()) {
+            $this->dispatch('deleteResult', success: false, message: 'Only system user can revert deleted records.');
+            return;
+        }
+
+        $record = VendorCategoryModel::withTrashed()->find($id);
+        if (! $record || ! $record->trashed()) {
+            $this->dispatch('deleteResult', success: false, message: 'Deleted record not found.');
+            return;
+        }
+
+        $record->restore();
+        $this->dispatch('deleteResult', success: true, message: 'Vendor category reverted successfully.');
+    }
+
     public function getItemsProperty()
     {
         return VendorCategoryModel::query()
             ->with('organization')
+            ->when($this->isSystemUser(), function ($q) {
+                $q->withTrashed();
+            })
             ->when($this->organizationFilter !== '', function ($q) {
                 $q->where('organization_id', (int) $this->organizationFilter);
             })
@@ -229,7 +249,7 @@ class VendorCategory extends Component
             return null;
         }
 
-        return VendorCategoryModel::with('organization')->find($this->viewId);
+        return VendorCategoryModel::withTrashed()->with('organization')->find($this->viewId);
     }
 
     public function render()
@@ -258,6 +278,11 @@ class VendorCategory extends Component
 
         $fallback = auth()->user()?->last_selected_organization_id;
         return ! empty($fallback) ? (int) $fallback : null;
+    }
+
+    private function isSystemUser(): bool
+    {
+        return (auth()->user()?->user_type ?? '') === 'systemuser';
     }
 }
 

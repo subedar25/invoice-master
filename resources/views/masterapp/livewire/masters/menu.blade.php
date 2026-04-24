@@ -9,10 +9,12 @@
             </li>
              @endcan
              @can('list-organization')
+             @if((auth()->user()?->user_type ?? '') === 'systemuser')
             <li class="nav-item">
                 <a href="#" wire:click.prevent="setActive('organization')"
                     class="nav-link {{ $active == 'organization' ? 'active' : '' }}">Organizations</a>
             </li>
+             @endif
              @endcan
              @can('country')
             <li class="nav-item">

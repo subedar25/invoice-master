@@ -4,6 +4,10 @@ namespace App\Infrastructure\Persistence\Location;
 
 use App\Core\Location\Contracts\LocationRepository;
 use App\Models\Location;
+use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class EloquentLocationRepository implements LocationRepository
 {
@@ -30,6 +34,57 @@ class EloquentLocationRepository implements LocationRepository
     public function find(int $id): Location
     {
         return Location::findOrFail($id);
+    }
+
+    public function findWithTrashed(int $id): Location
+    {
+        return Location::withTrashed()->findOrFail($id);
+    }
+
+    public function paginateLatest(int $perPage = 20): LengthAwarePaginator
+    {
+        return Location::latest('created_at')->paginate($perPage);
+    }
+
+    public function getActiveCountries(): Collection
+    {
+        return DB::table('countries')
+            ->select('id', 'name')
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get();
+    }
+
+    public function getActiveStatesGroupedByCountry(): array
+    {
+        return DB::table('states')
+            ->select('id', 'country_id', 'name')
+            ->where('status', 1)
+            ->orderBy('name')
+            ->get()
+            ->groupBy('country_id')
+            ->map(fn ($items) => $items->map(fn ($item) => [
+                'id' => (int) $item->id,
+                'name' => (string) $item->name,
+            ])->values())
+            ->toArray();
+    }
+
+    public function nameExists(string $name, ?int $excludeId = null): bool
+    {
+        $query = Location::query()->where('name', $name);
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        return $query->exists();
+    }
+
+    public function adminUsersForLocationNotification(): Collection
+    {
+        return User::whereHas('roles', function ($query) {
+            $query->whereIn('name', ['Admin User', 'System Admin']);
+        })->get();
     }
 
     public function getForDataTable(array $filters = [], ?string $search = null, int $start = 0, int $length = 10, string $sortColumn = 'id', string $sortDir = 'desc')

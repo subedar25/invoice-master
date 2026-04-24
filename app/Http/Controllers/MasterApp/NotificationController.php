@@ -4,7 +4,6 @@ namespace App\Http\Controllers\MasterApp;
 
 use App\Http\Controllers\Controller;
 use App\Core\Notification\Services\NotificationService;
-use App\Http\Requests\MasterApp\Notification\MarkNotificationReadRequest;
 use App\Http\Requests\MasterApp\Notification\MarkAllNotificationsReadRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -14,28 +13,61 @@ class NotificationController extends Controller
 {
     public function index(NotificationService $service): View
     {
-        $notifications = $service->getUserNotifications(auth()->id(), 10);
+        $user = auth()->user();
+        $isSystemUser = $user->isSystemUser();
+        $currentOrganizationId = (int) session('current_organization_id', 0);
+        $organizationScope = $currentOrganizationId > 0 ? $currentOrganizationId : null;
+        $notifications = $service->getUserNotifications(
+            $user->id,
+            10,
+            $organizationScope,
+            $isSystemUser
+        );
+        $unreadCount = $user
+            ->notifications()
+            ->when(! $isSystemUser, fn ($q) => $q->forOrganization($organizationScope))
+            ->whereNull('read_at')
+            ->count();
 
-        return view('masterapp.notifications.index', compact('notifications'));
+        return view('masterapp.notifications.index', compact('notifications', 'unreadCount'));
     }
 
     public function markAsRead(string $id, NotificationService $service): JsonResponse | RedirectResponse 
     {
-        $service->markAsRead(auth()->id(), $id);
+        $user = auth()->user();
+        $isSystemUser = $user->isSystemUser();
+        $currentOrganizationId = (int) session('current_organization_id', 0);
+        $organizationScope = $currentOrganizationId > 0 ? $currentOrganizationId : null;
+        ['notification' => $notification, 'marked' => $marked] = $service->markAsRead(
+            $user->id,
+            $id,
+            $organizationScope,
+            $isSystemUser
+        );
+        $targetUrl = $notification->data['url'] ?? null;
 
-        // return response()->json(['success' => true]);
-           //  If request expects JSON (AJAX)
-    if (request()->expectsJson()) {
-        return response()->json(['success' => true]);
-    }
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'marked' => $marked,
+                'url' => $targetUrl,
+            ]);
+        }
 
-    //  Otherwise redirect to notifications index
-    return redirect()->route('masterapp.notifications.index');
+        if (! empty($targetUrl)) {
+            return redirect()->to($targetUrl);
+        }
+
+        return redirect()->route('masterapp.notifications.index');
     }
 
     public function markAllRead(MarkAllNotificationsReadRequest $request, NotificationService $service): JsonResponse 
     {
-        $service->markAllAsRead(auth()->id());
+        $user = auth()->user();
+        $isSystemUser = $user->isSystemUser();
+        $currentOrganizationId = (int) session('current_organization_id', 0);
+        $organizationScope = $currentOrganizationId > 0 ? $currentOrganizationId : null;
+        $service->markAllAsRead($user->id, $organizationScope, $isSystemUser);
 
         return response()->json(['success' => true]);
     }

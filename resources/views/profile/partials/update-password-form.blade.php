@@ -92,8 +92,8 @@
         </div>
     </div>
 
-    <div class="card-footer">
-        <a href="{{ url()->previous() }}" class="btn btn-secondary">Cancel</a>
-        <button type="submit" class="btn btn-primary">Submit</button>
+    <div class="pt-3 mt-3 d-flex flex-wrap align-items-center">
+        <a href="{{ $cancelUrl ?? url()->previous() }}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary ml-2">Submit</button>
     </div>
 </form>

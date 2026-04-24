@@ -13,9 +13,9 @@
     </div>
 </div>
 
-<section class="content">
+<section class="content settings-page">
     <div class="container-fluid">
-        <div class="card">
+        <div class="card settings-page-card">
             <div class="card-body">
                 <livewire:master-app.settings.menu />
             </div>
@@ -24,6 +24,10 @@
 </section>
 
 <style>
+.settings-page-card,
+.settings-page-card .card-body {
+    overflow: visible !important;
+}
 .settings-menu { border-right: 1px solid #eee; }
 .settings-menu .nav-link { color: #444; padding: 6px 0; }
 .settings-menu .nav-link.active { font-weight: 600; color: #000; }
@@ -46,3 +50,7 @@ function copyAllCodes() {
 </script>
 
 @endsection
+
+@push('scripts')
+@include('profile.partials.update-password-form-scripts')
+@endpush

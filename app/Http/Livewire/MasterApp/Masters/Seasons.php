@@ -58,7 +58,8 @@ class Seasons extends Component
             'created_at',
             'desc',
             15,
-            request()->integer('page', 1)
+            request()->integer('page', 1),
+            $this->isSystemUser()
         );
     }
 
@@ -189,6 +190,29 @@ class Seasons extends Component
         $this->dispatch('deleteResult', success: true, message: 'Season deleted successfully.');
     }
 
+    public function restoreById(int $id): void
+    {
+        if (! $this->isSystemUser()) {
+            $this->dispatch('deleteResult', success: false, message: 'Only system user can revert deleted records.');
+            return;
+        }
+
+        try {
+            $record = $this->seasonService->findWithTrashed($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            $this->dispatch('deleteResult', success: false, message: 'Deleted record not found.');
+            return;
+        }
+
+        if (! $record->trashed()) {
+            $this->dispatch('deleteResult', success: false, message: 'Deleted record not found.');
+            return;
+        }
+
+        $this->seasonService->restore($id);
+        $this->dispatch('deleteResult', success: true, message: 'Season reverted successfully.');
+    }
+
     public function render()
     {
         return view('masterapp.livewire.masters.seasons', [
@@ -202,5 +226,10 @@ class Seasons extends Component
         $this->description = '';
         $this->status = true;
         $this->resetValidation();
+    }
+
+    private function isSystemUser(): bool
+    {
+        return (auth()->user()?->user_type ?? '') === 'systemuser';
     }
 }

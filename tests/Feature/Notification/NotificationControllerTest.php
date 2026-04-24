@@ -44,13 +44,65 @@ class NotificationControllerTest extends TestCase
 
         $this->actingAs($user);
 
-        $response = $this->patch(
+        $response = $this->patchJson(
             route('masterapp.notifications.read', $notification->id)
         );
 
-        $response->assertJson(['success' => true]);
+        $response->assertJson(['success' => true, 'marked' => true]);
 
         $notification->refresh();
         $this->assertNotNull($notification->read_at);
+    }
+
+    #[Test]
+    public function user_cannot_mark_another_users_notification(): void
+    {
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+
+        NotificationHelper::create($user2, 'Other user notification', 'Message');
+        $notification = $user2->notifications()->first();
+
+        $this->actingAs($user1);
+
+        $this->patchJson(route('masterapp.notifications.read', $notification->id))
+            ->assertNotFound();
+    }
+
+    #[Test]
+    public function system_user_sees_notifications_for_all_users(): void
+    {
+        $systemUser = User::factory()->create(['user_type' => 'systemuser']);
+        $otherUser = User::factory()->create();
+
+        NotificationHelper::create($systemUser, 'Mine', 'Message A');
+        NotificationHelper::create($otherUser, 'Theirs', 'Message B');
+
+        $this->actingAs($systemUser);
+
+        $response = $this->get(route('masterapp.notifications.index'));
+
+        $response->assertStatus(200);
+        $response->assertViewHas('notifications', function ($notifications) {
+            return $notifications->total() >= 2;
+        });
+    }
+
+    #[Test]
+    public function system_user_does_not_mark_another_users_notification_as_read(): void
+    {
+        $systemUser = User::factory()->create(['user_type' => 'systemuser']);
+        $otherUser = User::factory()->create();
+
+        NotificationHelper::create($otherUser, 'Theirs', 'Message');
+        $notification = $otherUser->notifications()->first();
+
+        $this->actingAs($systemUser);
+
+        $this->patchJson(route('masterapp.notifications.read', $notification->id))
+            ->assertJson(['success' => true, 'marked' => false]);
+
+        $notification->refresh();
+        $this->assertNull($notification->read_at);
     }
 }

@@ -166,6 +166,23 @@ class Tax extends Component
         $this->dispatch('deleteResult', success: true, message: 'Tax deleted successfully.');
     }
 
+    public function restoreById(int $id): void
+    {
+        if (! $this->isSystemUser()) {
+            $this->dispatch('deleteResult', success: false, message: 'Only system user can revert deleted records.');
+            return;
+        }
+
+        $record = TaxModel::withTrashed()->find($id);
+        if (! $record || ! $record->trashed()) {
+            $this->dispatch('deleteResult', success: false, message: 'Deleted record not found.');
+            return;
+        }
+
+        $record->restore();
+        $this->dispatch('deleteResult', success: true, message: 'Tax reverted successfully.');
+    }
+
     public function getItemsProperty()
     {
         $allowedSorts = ['tax_name', 'tax_value', 'created_at'];
@@ -173,6 +190,9 @@ class Tax extends Component
         $sortDirection = $this->sortDirection === 'asc' ? 'asc' : 'desc';
 
         return TaxModel::query()
+            ->when($this->isSystemUser(), function ($q) {
+                $q->withTrashed();
+            })
             ->when($this->search !== '', function ($q) {
                 $search = $this->search;
                 $q->where(function ($sub) use ($search) {
@@ -206,5 +226,10 @@ class Tax extends Component
         $this->tax_value = '';
         $this->tax_status = true;
         $this->resetValidation();
+    }
+
+    private function isSystemUser(): bool
+    {
+        return (auth()->user()?->user_type ?? '') === 'systemuser';
     }
 }

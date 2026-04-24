@@ -3,22 +3,14 @@
 namespace App\Http\Controllers\MasterApp;
 
 use App\Http\Controllers\Controller;
-use App\Models\Location;
-use Illuminate\Support\Carbon;
-use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use App\Core\Location\Services\LocationService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use App\Http\Requests\MasterApp\Location\LocationStoreRequest;
 use App\Http\Requests\MasterApp\Location\LocationUpdateRequest;
 use App\Helpers\NotificationHelper;
 use App\Helpers\AppNotification;
-use Spatie\Permission\Models\Role;
-use App\Models\User;
 
 class LocationController extends Controller
 {
@@ -31,32 +23,14 @@ class LocationController extends Controller
 
     public function index(): View
     {
-        $locations = Location::latest('created_at')
-            ->paginate(20);
+        $data = $this->service->getIndexData(20);
 
-        $countries = DB::table('countries')
-            ->select('id', 'name')
-            ->where('status', 1)
-            ->orderBy('name')
-            ->get();
-
-        $defaultCountryId = optional($countries->firstWhere('name', 'India'))->id
-            ?? optional($countries->firstWhere('id', 101))->id
-            ?? optional($countries->first())->id;
-
-        $statesByCountry = DB::table('states')
-            ->select('id', 'country_id', 'name')
-            ->where('status', 1)
-            ->orderBy('name')
-            ->get()
-            ->groupBy('country_id')
-            ->map(fn ($items) => $items->map(fn ($item) => [
-                'id' => $item->id,
-                'name' => $item->name,
-            ])->values())
-            ->toArray();
-
-        return view('masterapp.locations.index', compact('locations', 'countries', 'defaultCountryId', 'statesByCountry'));
+        return view('masterapp.locations.index', [
+            'locations' => $data['locations'],
+            'countries' => $data['countries'],
+            'defaultCountryId' => $data['defaultCountryId'],
+            'statesByCountry' => $data['statesByCountry'],
+        ]);
     }
 
     public function getLocations(Request $request)
@@ -112,7 +86,7 @@ class LocationController extends Controller
 
     public function destroy(int $id, LocationService $service): JsonResponse
     {
-        $location = Location::findOrFail($id);
+        $location = $service->getLocation($id);
         $locationName = $location->name;
 
         $service->deleteLocation($id);
@@ -181,7 +155,7 @@ class LocationController extends Controller
 
     public function json($id)
     {
-        $location = Location::withTrashed()->findOrFail($id);
+        $location = $this->service->getLocationWithTrashed((int) $id);
 
         return response()->json([
             'id' => $location->id,
@@ -203,17 +177,9 @@ class LocationController extends Controller
      */
     public function checkUnique(Request $request): JsonResponse
     {
-        $name = $request->input('name');
-        $excludeId = $request->input('exclude_id');
-
-        $query = Location::query()
-            ->where('name', $name);
-
-        if ($excludeId) {
-            $query->where('id', '!=', $excludeId);
-        }
-
-        $exists = $query->exists();
+        $name = (string) $request->input('name', '');
+        $excludeId = $request->filled('exclude_id') ? (int) $request->input('exclude_id') : null;
+        $exists = $this->service->locationNameExists($name, $excludeId);
 
         return response()->json(!$exists);
     }
@@ -223,10 +189,7 @@ class LocationController extends Controller
      */
     private function notifyAdminsAboutLocation(string $title, string $message, string $url): void
     {
-        // Get all admin and superadmin users
-        $adminUsers = User::whereHas('roles', function ($query) {
-            $query->whereIn('name', ['Admin User', 'System Admin']);
-        })->get();
+        $adminUsers = $this->service->getAdminUsersForLocationNotification();
 
         // Send notification to each admin (excluding the current user if they're an admin)
         foreach ($adminUsers as $admin) {

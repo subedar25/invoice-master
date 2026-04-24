@@ -73,9 +73,17 @@ class EloquentSeasonRepository implements SeasonRepository
         Season::findOrFail($id)->delete();
     }
 
-    public function list(string $search, string $statusFilter, string $sortField, string $sortDirection, int $perPage, int $page = 1): LengthAwarePaginator
+    public function restore(int $id): void
+    {
+        Season::withTrashed()->findOrFail($id)->restore();
+    }
+
+    public function list(string $search, string $statusFilter, string $sortField, string $sortDirection, int $perPage, int $page = 1, bool $includeDeleted = false): LengthAwarePaginator
     {
         $query = Season::query()
+            ->when($includeDeleted, function ($q) {
+                $q->withTrashed();
+            })
             ->when($search !== '', function ($q) use ($search) {
                 $q->where(function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%')

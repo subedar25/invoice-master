@@ -235,15 +235,15 @@ table.dataTable.nowrap td {
 
 .page-item:last-child .page-link {
 
-  background-color: #042DA9;
-  color: var(--white);
+  background-color: #eab308;
+  color: #1c1917;
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
 }
 
 .page-item:first-child .page-link {
-  background-color: #457ED7;
-  color: var(--white);
+  background-color: #eab308;
+  color: #1c1917;
   border-top-left-radius: 5px;
   border-bottom-left-radius: 5px;
 
@@ -697,15 +697,15 @@ div.dt-datetime-error {
 }
 
 .page-item:last-child .page-link {
-  background-color: #457ED7;
-  color: var(--white);
+  background-color: #eab308;
+  color: #1c1917;
   border-top-left-radius: 5px;
   border-bottom-left-radius: 5px;
 }
 
 .page-item:last-child .page-link {
-  background-color: #457ED7;
-  color: var(--white);
+  background-color: #eab308;
+  color: #1c1917;
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
 }

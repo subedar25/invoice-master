@@ -220,10 +220,30 @@ class Department extends Component
         $this->dispatch('deleteResult', success: true, message: 'Department deleted successfully.');
     }
 
+    public function restoreById(int $id): void
+    {
+        if (! $this->isSystemUser()) {
+            $this->dispatch('deleteResult', success: false, message: 'Only system user can revert deleted records.');
+            return;
+        }
+
+        $record = DepartmentModel::withTrashed()->find($id);
+        if (! $record || ! $record->trashed()) {
+            $this->dispatch('deleteResult', success: false, message: 'Deleted record not found.');
+            return;
+        }
+
+        $record->restore();
+        $this->dispatch('deleteResult', success: true, message: 'Department reverted successfully.');
+    }
+
     public function getItemsProperty()
     {
         $query = DepartmentModel::query()
             ->with(['parent', 'organization'])
+            ->when($this->isSystemUser(), function ($q) {
+                $q->withTrashed();
+            })
             ->when($this->organizationFilter !== '', function ($q) {
                 $q->where('organization_id', (int) $this->organizationFilter);
             })
@@ -300,5 +320,10 @@ class Department extends Component
 
         $fallback = auth()->user()?->last_selected_organization_id;
         return ! empty($fallback) ? (int) $fallback : null;
+    }
+
+    private function isSystemUser(): bool
+    {
+        return (auth()->user()?->user_type ?? '') === 'systemuser';
     }
 }

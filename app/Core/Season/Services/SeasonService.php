@@ -37,9 +37,14 @@ class SeasonService
         $this->seasons->delete($id);
     }
 
-    public function list(string $search, string $statusFilter, string $sortField, string $sortDirection, int $perPage = 15, int $page = 1): LengthAwarePaginator
+    public function restore(int $id): void
     {
-        return $this->seasons->list($search, $statusFilter, $sortField, $sortDirection, $perPage, $page);
+        $this->seasons->restore($id);
+    }
+
+    public function list(string $search, string $statusFilter, string $sortField, string $sortDirection, int $perPage = 15, int $page = 1, bool $includeDeleted = false): LengthAwarePaginator
+    {
+        return $this->seasons->list($search, $statusFilter, $sortField, $sortDirection, $perPage, $page, $includeDeleted);
     }
 
     public function getForView(int $id): ?Season
