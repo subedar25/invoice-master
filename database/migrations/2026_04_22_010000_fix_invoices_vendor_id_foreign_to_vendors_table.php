@@ -17,20 +17,22 @@ return new class extends Migration
         }
 
         $vendorIds = DB::table('vendors')->pluck('id')->all();
-        if ($vendorIds === []) {
-            throw new \RuntimeException(
-                'Cannot fix invoices.vendor_id: add at least one vendor before running this migration.'
-            );
-        }
+        $hasInvoices = DB::table('invoices')->exists();
 
         Schema::table('invoices', function (Blueprint $table) {
             $table->dropForeign(['vendor_id']);
         });
 
-        $firstVendorId = (int) $vendorIds[0];
-        DB::table('invoices')
-            ->whereNotIn('vendor_id', $vendorIds)
-            ->update(['vendor_id' => $firstVendorId]);
+        if ($vendorIds !== []) {
+            $firstVendorId = (int) $vendorIds[0];
+            DB::table('invoices')
+                ->whereNotIn('vendor_id', $vendorIds)
+                ->update(['vendor_id' => $firstVendorId]);
+        } elseif ($hasInvoices) {
+            throw new \RuntimeException(
+                'Cannot fix invoices.vendor_id because invoices exist but vendors table is empty. Add at least one vendor, then re-run migration.'
+            );
+        }
 
         Schema::table('invoices', function (Blueprint $table) {
             $table->foreign('vendor_id')
