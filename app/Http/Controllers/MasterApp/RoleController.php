@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Role;
 use App\Models\Permission;
-use App\Models\Department;
 use App\Models\RoleInvoiceDepartmentScope;
 use App\Models\User;
 use Yajra\DataTables\Facades\DataTables;
@@ -22,9 +21,9 @@ use Illuminate\Support\Collection;
 
 class RoleController extends Controller
 {
-    public function index()
+    public function index(RolesService $service)
     {
-        $departments = $this->departmentsForCurrentOrganization();
+        $departments = $service->getDepartmentsForOrganization(CurrentOrganization::id());
         return view('masterapp.roles.index', compact('departments'));
     }
 
@@ -32,39 +31,15 @@ class RoleController extends Controller
      * Return data for the Roles DataTable.
      * This method handles the AJAX requests from the DataTable.
      */
-    public function getRoles(Request $request)
+    public function getRoles(Request $request, RolesService $service)
     {
         if ($request->ajax()) {
-
-            // $data = Role::with('permissions')->latest()->get(); 
-
-
-            $query = Role::with(['permissions.module', 'department']);
-
             $orgId = CurrentOrganization::id();
-            if ($orgId === null) {
-                $query->whereRaw('1 = 0');
-            } else {
-                $query->where('organization_id', $orgId);
-            }
-
-            // --- DEPARTMENT FILTER ---
-            if ($request->filled('department_id')) {
-                $departmentId = $request->input('department_id');
-
-                if (is_array($departmentId)) {
-                    $query->whereIn('department_id', $departmentId);
-                } else {
-                    $query->where('department_id', $departmentId);
-                }
-            }
-
-            // --- SEARCH FILTER ---
-            if ($request->filled('search')) {
-                $searchTerm = $request->get('search');
-
-                $query->where('name', 'like', '%' . $searchTerm . '%');
-            }
+            $query = $service->queryForDatatable(
+                $orgId,
+                $request->input('department_id'),
+                $request->filled('search') ? (string) $request->get('search') : null
+            );
 
 
             return DataTables::of($query)
@@ -155,19 +130,11 @@ class RoleController extends Controller
         return response()->json(['error' => 'Invalid request'], 400);
     }
 
-    public function create()
+    public function create(RolesService $service)
     {
-        $departments = $this->departmentsForCurrentOrganization();
-        $groupedPermissions = Permission::with('module')
-            ->where('is_active', true)
-            ->assignableForViewer(auth()->user())
-            ->orderBy('name')
-            ->get()
-            ->groupBy(function ($permission) {
-                return optional($permission->module)->name ?? 'Uncategorized';
-            });
-
-        $allDepartmentsForInvoiceScope = $this->departmentsCollectionForCurrentOrganization();
+        $departments = $service->getDepartmentsForOrganization(CurrentOrganization::id());
+        $groupedPermissions = $service->getActiveAssignablePermissionsGrouped(auth()->user());
+        $allDepartmentsForInvoiceScope = $service->getDepartmentRecordsForOrganization(CurrentOrganization::id());
         $invoiceDepartmentScopes = $this->defaultInvoiceDepartmentScopes();
         $invoicePermissionIds = InvoiceDepartmentAuthorization::invoicePermissionIdsByName();
         $listInvoicesPermissionId = $invoicePermissionIds['list-invoices'] ?? null;
@@ -197,18 +164,14 @@ class RoleController extends Controller
     }
 
 
-    public function edit(Role $role)
+    public function edit(Role $role, RolesService $service)
     {
         $this->assertRoleInCurrentOrganization($role);
 
-        $departments = $this->departmentsForCurrentOrganization();
+        $departments = $service->getDepartmentsForOrganization(CurrentOrganization::id());
 
         // Active permissions this viewer may assign (public/public for normal users; all for system users)
-        $activePermissions = Permission::with('module')
-            ->where('is_active', true)
-            ->assignableForViewer(auth()->user())
-            ->orderBy('name')
-            ->get();
+        $activePermissions = $service->getActiveAssignablePermissions(auth()->user());
         $groupedPermissions = $activePermissions->groupBy(function ($permission) {
             return optional($permission->module)->name ?? 'Uncategorized';
         });
@@ -220,7 +183,7 @@ class RoleController extends Controller
             ->pluck('id')
             ->toArray();
 
-        $allDepartmentsForInvoiceScope = $this->departmentsCollectionForCurrentOrganization();
+        $allDepartmentsForInvoiceScope = $service->getDepartmentRecordsForOrganization(CurrentOrganization::id());
         $defaults = $this->defaultInvoiceDepartmentScopes();
         $loaded = RoleInvoiceDepartmentScope::mapByPermissionNameForRole($role->id);
         $invoiceDepartmentScopes = array_replace_recursive($defaults, $loaded);
@@ -268,12 +231,11 @@ class RoleController extends Controller
         return response()->json(['message' => 'Role deleted successfully!'], 200);
     }
 
-    public function toggleActive(int $id): JsonResponse
+    public function toggleActive(int $id, RolesService $service): JsonResponse
     {
-        $role = Role::findOrFail($id);
+        $role = $service->get($id);
         $this->assertRoleInCurrentOrganization($role);
-        $role->is_active = ! (bool) $role->is_active;
-        $role->save();
+        $role = $service->toggleActive($id);
 
         return response()->json([
             'message' => $role->is_active ? 'Role activated successfully.' : 'Role deactivated successfully.',
@@ -283,7 +245,7 @@ class RoleController extends Controller
 
 
 
-    public function bulkDestroy(Request $request)
+    public function bulkDestroy(Request $request, RolesService $service)
     {
         try {
             // Validate the incoming request data
@@ -299,9 +261,7 @@ class RoleController extends Controller
                 return response()->json(['message' => 'Select an organization first.'], 403);
             }
 
-            $deletedCount = Role::where('organization_id', $orgId)
-                ->whereIn('id', array_map('intval', $ids))
-                ->delete();
+            $deletedCount = $service->bulkDeleteForOrganization($orgId, $ids);
 
             return response()->json([
                 'message' => "{$deletedCount} role(s) deleted successfully!"
@@ -317,12 +277,7 @@ class RoleController extends Controller
 
     protected function departmentsForCurrentOrganization(): Collection
     {
-        $orgId = CurrentOrganization::id();
-        if ($orgId === null) {
-            return collect();
-        }
-
-        return Department::where('organization_id', $orgId)->orderBy('name')->pluck('name', 'id');
+        return app(RolesService::class)->getDepartmentsForOrganization(CurrentOrganization::id());
     }
 
     /**
@@ -330,15 +285,7 @@ class RoleController extends Controller
      */
     protected function departmentsCollectionForCurrentOrganization(): Collection
     {
-        $orgId = CurrentOrganization::id();
-        if ($orgId === null) {
-            return collect();
-        }
-
-        return Department::query()
-            ->where('organization_id', $orgId)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        return app(RolesService::class)->getDepartmentRecordsForOrganization(CurrentOrganization::id());
     }
 
     /**

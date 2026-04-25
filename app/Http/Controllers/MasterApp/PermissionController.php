@@ -5,9 +5,7 @@ namespace App\Http\Controllers\MasterApp;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Permission;
-use App\Models\Module;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Gate;
 use App\Core\Permissions\Services\PermissionsService;
 use App\Http\Requests\MasterApp\Permissions\PermissionsStoreRequest;
@@ -20,12 +18,10 @@ class PermissionController extends Controller
     //
 
 
-    public function index()
+    public function index(PermissionsService $service)
     {
-        $modules = Module::all();
-
-        $permissions = Permission::with('module')->latest()->paginate(200);
-        // No longer fetching modules here. The view will be empty initially.
+        $modules = $service->getAllModules();
+        $permissions = $service->paginateWithModuleLatest(200);
         return view('masterapp.permissions.index', compact('modules', 'permissions'));
 
         // Pass the $modules variable to the view
@@ -60,9 +56,9 @@ class PermissionController extends Controller
     //     return response()->json(['error' => 'Not an AJAX request'], 400);
     // }
 
-    public function create()
+    public function create(PermissionsService $service)
     {
-        $modules = Module::orderBy('name')->pluck('name', 'id');
+        $modules = $service->getModuleNameOptions();
 
         // Pass the modules to the view
         return view('masterapp.permissions.create', compact('modules'));
@@ -117,7 +113,7 @@ class PermissionController extends Controller
 
     public function edit(int $id, PermissionsService $service)
     {
-        $modules = Module::orderBy('name')->pluck('name', 'id');
+        $modules = $service->getModuleNameOptions();
         $permission = $service->get($id);
 
         return view('masterapp.permissions.edit',  compact('permission', 'modules'));
@@ -143,11 +139,9 @@ class PermissionController extends Controller
         return response()->json(['message' => 'Permission deleted successfully!'], 200);
     }
 
-    public function toggleActive(int $id): JsonResponse
+    public function toggleActive(int $id, PermissionsService $service): JsonResponse
     {
-        $permission = Permission::findOrFail($id);
-        $permission->is_active = ! (bool) $permission->is_active;
-        $permission->save();
+        $permission = $service->toggleActive($id);
 
         // Clear permission cache so list/delete (and all) checks use fresh is_active
         app(PermissionRegistrar::class)->forgetCachedPermissions();
@@ -160,7 +154,7 @@ class PermissionController extends Controller
         ]);
     }
 
-    public function bulkDestroy(Request $request)
+    public function bulkDestroy(Request $request, PermissionsService $service)
     {
         try {
 
@@ -174,7 +168,7 @@ class PermissionController extends Controller
 
             // Use the Permission model to delete the selected permissions
             // The 'delete()' method returns the number of deleted rows
-            $deletedCount = Permission::whereIn('id', $ids)->delete();
+            $deletedCount = $service->bulkDelete($ids);
 
             return response()->json([
                 'message' => "{$deletedCount} permission(s) deleted successfully!"

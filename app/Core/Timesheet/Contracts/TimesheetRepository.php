@@ -6,6 +6,7 @@ use App\Models\Timesheet;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Carbon;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 interface TimesheetRepository
 {
     public function hasOpenShift(int $userId): bool;
@@ -26,7 +27,11 @@ interface TimesheetRepository
     
     public function updateByFilter(array $filters, array $data);
 
+    public function getAllUsers(): Collection;
 
+    public function paginateVisibleToUser(User $viewer, int $perPage = 20): LengthAwarePaginator;
 
-    
+    public function getUsersOrderedByFirstName(): Collection;
+
+    public function getAdminUsersForNotifications(): Collection;
 }

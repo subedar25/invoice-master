@@ -110,6 +110,11 @@ class Location extends Component
 
     public function openEditModal(int $id): void
     {
+        if (! $this->canEditRecord()) {
+            $this->dispatch('formResult', type: 'error', message: 'You are not authorized to edit this record.');
+            return;
+        }
+
         $record = LocationModel::withTrashed()->findOrFail($id);
         $selectedOrganizationId = $this->resolveSelectedOrganizationId();
 
@@ -214,6 +219,11 @@ class Location extends Component
 
     public function deleteById(int $id): void
     {
+        if (! $this->canDeleteRecord()) {
+            $this->dispatch('deleteResult', success: false, message: 'You are not authorized to delete this record.');
+            return;
+        }
+
         $record = LocationModel::find($id);
         if (! $record) {
             $this->dispatch('deleteResult', success: false, message: 'Record not found.');
@@ -330,5 +340,15 @@ class Location extends Component
     private function isSystemUser(): bool
     {
         return (auth()->user()?->user_type ?? '') === 'systemuser';
+    }
+
+    private function canEditRecord(): bool
+    {
+        return (bool) (auth()->user()?->can('edit-location') ?? false);
+    }
+
+    private function canDeleteRecord(): bool
+    {
+        return (bool) (auth()->user()?->can('delete-location') ?? false);
     }
 }

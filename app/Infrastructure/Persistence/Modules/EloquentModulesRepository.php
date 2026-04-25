@@ -3,7 +3,7 @@ namespace App\Infrastructure\Persistence\Modules;
 
 use App\Core\Modules\Contracts\ModulesRepository;
 use App\Models\Module;
-use Spatie\Permission\Models\Role;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class EloquentModulesRepository implements ModulesRepository
 {
@@ -34,5 +34,24 @@ class EloquentModulesRepository implements ModulesRepository
     public function delete(int $id): void
     {
         Module::findOrFail($id)->delete();
+    }
+
+    public function paginateByLatest(int $perPage = 200): LengthAwarePaginator
+    {
+        return Module::orderBy('id', 'desc')->paginate($perPage);
+    }
+
+    public function toggleActive(int $id): Module
+    {
+        $module = Module::findOrFail($id);
+        $module->is_active = ! (bool) $module->is_active;
+        $module->save();
+
+        return $module;
+    }
+
+    public function bulkDelete(array $ids): int
+    {
+        return Module::whereIn('id', $ids)->delete();
     }
 }

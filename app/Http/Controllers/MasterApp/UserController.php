@@ -12,9 +12,6 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Department;
-use App\Models\Organization;
-use App\Models\UserDesignation;
 use App\Helpers\AppNotification;
 use App\Notifications\RoleUpdatedNotification;
 use App\Core\Email\Services\EmailService;
@@ -36,44 +33,14 @@ class UserController extends Controller
     public function index(UserService $service): View
     {
         $authUser = auth()->user();
-        $isSystemUser = ($authUser?->user_type ?? '') === 'systemuser';
         $currentOrganizationId = (int) session('current_organization_id', 0);
 
-        $accessibleOrganizations = $isSystemUser
-            ? Organization::orderBy('name')->get(['id', 'name'])
-            : $authUser->organizations()->orderBy('name')->get(['organizations.id', 'organizations.name']);
-
-        // Users list follows the org selected from the top switcher.
-        $users = $service->getAll()
-            ->reject(fn (User $u) => ($u->user_type ?? '') === 'systemuser')
-            ->filter(function (User $user) use ($currentOrganizationId, $isSystemUser, $accessibleOrganizations) {
-                if ($currentOrganizationId > 0) {
-                    return $user->organizations->contains('id', $currentOrganizationId);
-                }
-
-                if ($isSystemUser) {
-                    return true;
-                }
-
-                $allowedOrgIds = $accessibleOrganizations->pluck('id')->all();
-                if (empty($allowedOrgIds)) {
-                    return false;
-                }
-
-                return $user->organizations->pluck('id')->intersect($allowedOrgIds)->isNotEmpty();
-            })
-            ->values();
-
+        $users = $service->getUsersForIndex($authUser, $currentOrganizationId);
         $filterDepartments = $currentOrganizationId > 0
-            ? Department::where('organization_id', $currentOrganizationId)->orderBy('name')->get()
+            ? $service->getDepartmentsByOrganization($currentOrganizationId)
             : collect();
-
         $filterDesignations = $currentOrganizationId > 0
-            ? UserDesignation::query()
-                ->where('status', true)
-                ->where('organization_id', $currentOrganizationId)
-                ->orderBy('name')
-                ->get(['id', 'name'])
+            ? $service->getDesignationsByOrganization($currentOrganizationId)
             : collect();
 
         return view('masterapp.users.index', compact(
@@ -86,6 +53,7 @@ class UserController extends Controller
 
     public function create()
     {
+        $service = app(UserService::class);
         $orgIds = [];
         $oid = CurrentOrganization::idForUserAssignment();
         if ($oid) {
@@ -97,7 +65,7 @@ class UserController extends Controller
             'roles' => $this->rolesForOrganizationIds($orgIds)->pluck('name', 'id'),
             'departments' => $this->departmentsForCurrentContext(),
             'designations' => $this->designationsForCurrentContext(),
-            'organizations' => Organization::orderBy('name')->get(['id', 'name']),
+            'organizations' => $service->getAccessibleOrganizations(auth()->user()),
             'reportingManagers' => $reportingManagers,
         ]);
     }
@@ -148,7 +116,7 @@ class UserController extends Controller
         $orgIds = $user->organizations->pluck('id')->toArray();
         $reportingManagers = $this->reportingManagersForOrganizationIds($orgIds, $user->id);
 
-        $organizations = Organization::orderBy('name')->get(['id', 'name']);
+        $organizations = $service->getAccessibleOrganizations(auth()->user());
 
         return view('masterapp.users.edit', [
             'user' => $user,
@@ -317,7 +285,8 @@ class UserController extends Controller
 
     public function updatePassword(Request $request, $id): JsonResponse
     {
-    $user = User::findOrFail($id);
+    $service = app(UserService::class);
+    $user = $service->get((int) $id);
 
         $validated = $request->validate([
             'password' => 'required|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/',
@@ -336,6 +305,7 @@ class UserController extends Controller
 
     public function checkEmail(Request $request): JsonResponse
     {
+        $service = app(UserService::class);
         $request->validate([
             'email' => 'required|email',
         ]);
@@ -343,12 +313,7 @@ class UserController extends Controller
         $email = $request->email;
         $userId = $request->user_id ?? null;
 
-        $exists = User::withTrashed()
-            ->where('email', $email)
-            ->when($userId, function ($query) use ($userId) {
-                return $query->where('id', '!=', $userId);
-            })
-            ->exists();
+        $exists = $service->emailExistsWithTrashed($email, $userId ? (int) $userId : null);
 
         return response()->json([
             'exists' => $exists,
@@ -358,9 +323,8 @@ class UserController extends Controller
 
     private function notifyAdminsAboutRoleUpdate(User $user, array $oldRoles, array $newRoles): void
     {
-        $admins = User::whereHas('roles', function ($query) {
-            $query->whereIn('name', ['Admin User', 'System Admin']);
-        })->where('id', '!=', auth()->id())->get();
+        $service = app(UserService::class);
+        $admins = $service->getAdminUsersExcluding(auth()->id());
 
         foreach ($admins as $admin) {
             $admin->notify(new RoleUpdatedNotification($user, $oldRoles, $newRoles, auth()->user()));
@@ -408,55 +372,18 @@ class UserController extends Controller
 
     private function departmentsForCurrentContext(): \Illuminate\Database\Eloquent\Collection
     {
+        $service = app(UserService::class);
         $currentOrgId = (int) session('current_organization_id', 0);
-        if ($currentOrgId > 0) {
-            return Department::where('organization_id', $currentOrgId)->orderBy('name')->get();
-        }
-
         $authUser = auth()->user();
-        $isSystemUser = ($authUser?->user_type ?? '') === 'systemuser';
-        if ($isSystemUser) {
-            return Department::orderBy('name')->get();
-        }
-
-        $orgIds = $authUser->organizations()->pluck('organizations.id');
-        if ($orgIds->isEmpty()) {
-            return new \Illuminate\Database\Eloquent\Collection;
-        }
-
-        return Department::whereIn('organization_id', $orgIds)->orderBy('name')->get();
+        return $service->getDepartmentsForUserContext($authUser, $currentOrgId);
     }
 
     private function designationsForCurrentContext(): \Illuminate\Database\Eloquent\Collection
     {
+        $service = app(UserService::class);
         $currentOrgId = (int) session('current_organization_id', 0);
-        if ($currentOrgId > 0) {
-            return UserDesignation::query()
-                ->where('status', true)
-                ->where('organization_id', $currentOrgId)
-                ->orderBy('name')
-                ->get(['id', 'name']);
-        }
-
         $authUser = auth()->user();
-        $isSystemUser = ($authUser?->user_type ?? '') === 'systemuser';
-        if ($isSystemUser) {
-            return UserDesignation::query()
-                ->where('status', true)
-                ->orderBy('name')
-                ->get(['id', 'name']);
-        }
-
-        $orgIds = $authUser->organizations()->pluck('organizations.id');
-        if ($orgIds->isEmpty()) {
-            return new \Illuminate\Database\Eloquent\Collection;
-        }
-
-        return UserDesignation::query()
-            ->where('status', true)
-            ->whereIn('organization_id', $orgIds)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        return $service->getDesignationsForUserContext($authUser, $currentOrgId);
     }
 
     /**
@@ -495,31 +422,8 @@ class UserController extends Controller
      */
     protected function reportingManagersForOrganizationIds(array $organizationIds, ?int $excludeUserId = null)
     {
-        $organizationIds = array_values(array_unique(array_filter(array_map('intval', $organizationIds))));
-
-        $query = User::query()
-            ->where(function ($q) {
-                $q->whereNull('user_type')
-                    ->orWhere('user_type', '!=', 'systemuser');
-            });
-
-        if ($excludeUserId !== null) {
-            $query->where('id', '!=', $excludeUserId);
-        }
-
-        if ($organizationIds === []) {
-            return collect();
-        }
-
-        $query->whereHas('organizations', function ($q) use ($organizationIds) {
-            $q->whereIn('organizations.id', $organizationIds);
-        });
-
-        return $query
-            ->with(['designation:id,name'])
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get(['id', 'first_name', 'last_name', 'designation_id']);
+        $service = app(UserService::class);
+        return $service->getReportingManagersForOrganizationIds($organizationIds, $excludeUserId);
     }
 
     /**
@@ -554,16 +458,7 @@ class UserController extends Controller
      */
     protected function rolesForOrganizationIds(array $organizationIds)
     {
-        $organizationIds = array_values(array_unique(array_filter(array_map('intval', $organizationIds))));
-
-        if ($organizationIds === []) {
-            return collect();
-        }
-
-        return Role::query()
-            ->where('is_active', true)
-            ->whereIn('organization_id', $organizationIds)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        $service = app(UserService::class);
+        return $service->getRolesForOrganizationIds($organizationIds);
     }
 }

@@ -84,6 +84,11 @@ class Designation extends Component
 
     public function openEditModal(int $id): void
     {
+        if (! $this->canEditRecord()) {
+            $this->dispatch('formResult', type: 'error', message: 'You are not authorized to edit this record.');
+            return;
+        }
+
         $record = UserDesignation::findOrFail($id);
         $selectedOrganizationId = $this->resolveSelectedOrganizationId();
 
@@ -183,6 +188,11 @@ class Designation extends Component
 
     public function deleteById(int $id): void
     {
+        if (! $this->canDeleteRecord()) {
+            $this->dispatch('deleteResult', success: false, message: 'You are not authorized to delete this record.');
+            return;
+        }
+
         $record = UserDesignation::find($id);
         if (! $record) {
             $this->dispatch('deleteResult', success: false, message: 'Record not found.');
@@ -247,5 +257,15 @@ class Designation extends Component
         $fallback = auth()->user()?->last_selected_organization_id;
 
         return ! empty($fallback) ? (int) $fallback : null;
+    }
+
+    private function canEditRecord(): bool
+    {
+        return (bool) (auth()->user()?->can('edit-designation') ?? false);
+    }
+
+    private function canDeleteRecord(): bool
+    {
+        return (bool) (auth()->user()?->can('delete-designation') ?? false);
     }
 }

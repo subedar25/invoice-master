@@ -4,7 +4,6 @@ namespace App\Http\Controllers\MasterApp;
 
 use App\Http\Controllers\Controller;
 use App\Models\Timesheet;
-use App\Models\User;
 use Illuminate\Support\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Validation\Rule;
@@ -30,11 +29,8 @@ class TimesheetController extends Controller
     }
     public function index(): View
     {
-        $users = User::all();
-        $timesheets = Timesheet::with('user')
-            ->visibleTo(auth()->user())
-            ->latest('start_time')
-            ->paginate(20);
+        $users = $this->service->getAllUsers();
+        $timesheets = $this->service->paginateVisibleToUser(auth()->user(), 20);
 
         $canManageTimesheets = auth()->user()->hasAnyRole(['Admin User', 'System Admin']);
 
@@ -123,7 +119,7 @@ class TimesheetController extends Controller
     // }
     public function destroy(int $id, TimesheetService $service): JsonResponse
     {
-        $timesheet = Timesheet::findOrFail($id);
+        $timesheet = $service->find($id);
         $userName = $timesheet->user->name;
         $date = $timesheet->start_time->format('M d, Y');
 
@@ -170,7 +166,7 @@ class TimesheetController extends Controller
     {
     return view('masterapp.timesheets.edit', [
         'timesheet' => $timesheet,
-        'users'     => User::orderBy('first_name')->get(),
+        'users'     => $this->service->getUsersOrderedByFirstName(),
     ]);
     }
 
@@ -215,9 +211,7 @@ class TimesheetController extends Controller
     private function notifyAdminsAboutTimesheet(string $title, string $message, string $url): void
     {
         // Get all admin and superadmin users
-        $adminUsers = User::whereHas('roles', function ($query) {
-            $query->whereIn('name', ['Admin User', 'System Admin']);
-        })->get();
+        $adminUsers = $this->service->getAdminUsersForNotifications();
 
         // Send notification to each admin (excluding the current user if they're an admin)
         foreach ($adminUsers as $admin) {

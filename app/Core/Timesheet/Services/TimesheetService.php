@@ -8,6 +8,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use App\Http\Requests\MasterApp\Timesheet\TimesheetStoreRequest;
 use App\Http\Requests\MasterApp\Timesheet\TimesheetUpdateRequest;
 use App\Models\Timesheet;
+use App\Models\User;
 class TimesheetService
 {
     public function __construct(
@@ -84,28 +85,24 @@ class TimesheetService
     }
     public function updateTimesheet(int $id, array $data): Timesheet
     {
-        $timesheet = Timesheet::findOrFail($id);
-        $timesheet->update($data);
-
-        return $timesheet;
+        $timesheet = $this->timesheets->find($id);
+        return $this->timesheets->update($timesheet, $data);
     }
 
     public function update(int $id, array $data): Timesheet
     {
-        $timesheet = Timesheet::findOrFail($id);
-        $timesheet->update($data);
-
-        return $timesheet;
+        $timesheet = $this->timesheets->find($id);
+        return $this->timesheets->update($timesheet, $data);
     }
 
     public function delete(int $id): void
     {
-        Timesheet::findOrFail($id)->delete();
+        $this->timesheets->delete($id);
     }
 
     public function create(array $data): Timesheet
     {
-        return Timesheet::create($data);
+        return $this->timesheets->create($data);
     }
 
     public function getDataTableData(array $filters, ?string $search, int $start, int $length, array $order)
@@ -122,5 +119,30 @@ class TimesheetService
             'recordsFiltered' => $totalDisplay, // DataTables expects this for pagination
             'recordsTotal' => $totalAll,
         ];
+    }
+
+    public function getAllUsers()
+    {
+        return $this->timesheets->getAllUsers();
+    }
+
+    public function paginateVisibleToUser(User $viewer, int $perPage = 20)
+    {
+        return $this->timesheets->paginateVisibleToUser($viewer, $perPage);
+    }
+
+    public function getUsersOrderedByFirstName()
+    {
+        return $this->timesheets->getUsersOrderedByFirstName();
+    }
+
+    public function find(int $id): Timesheet
+    {
+        return $this->timesheets->find($id);
+    }
+
+    public function getAdminUsersForNotifications()
+    {
+        return $this->timesheets->getAdminUsersForNotifications();
     }
 }

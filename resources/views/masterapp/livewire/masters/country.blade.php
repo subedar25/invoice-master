@@ -32,8 +32,12 @@
                             <td>
                                 <div class="action-div master-actions">
                                     <a href="#" wire:click.prevent="openViewModal({{ $item->id }})" title="View" class="action-icon entity-link"><i class="fa fa-eye" aria-hidden="true"></i></a>
+                                    @can('edit-country')
                                     <a href="#" wire:click.prevent="openEditModal({{ $item->id }})" title="Edit" class="action-icon entity-link"><i class="fa fa-edit" aria-hidden="true"></i></a>
+                                    @endcan
+                                    @can('delete-country')
                                     <a href="#" data-master-delete-id="{{ $item->id }}" data-master-delete-title="Delete Country?" title="Delete" class="action-icon entity-link master-delete-link"><i class="fa fa-trash" aria-hidden="true"></i></a>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

@@ -4,6 +4,8 @@ namespace App\Infrastructure\Persistence\Timesheet;
 
 use App\Core\Timesheet\Contracts\TimesheetRepository;
 use App\Models\Timesheet;
+use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 
@@ -147,5 +149,30 @@ class EloquentTimesheetRepository implements TimesheetRepository
         }
 
         return $query->update($data);
+    }
+
+    public function getAllUsers(): Collection
+    {
+        return User::all();
+    }
+
+    public function paginateVisibleToUser(User $viewer, int $perPage = 20): LengthAwarePaginator
+    {
+        return Timesheet::with('user')
+            ->visibleTo($viewer)
+            ->latest('start_time')
+            ->paginate($perPage);
+    }
+
+    public function getUsersOrderedByFirstName(): Collection
+    {
+        return User::orderBy('first_name')->get();
+    }
+
+    public function getAdminUsersForNotifications(): Collection
+    {
+        return User::whereHas('roles', function ($query) {
+            $query->whereIn('name', ['Admin User', 'System Admin']);
+        })->get();
     }
 }

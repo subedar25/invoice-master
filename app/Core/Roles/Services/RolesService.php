@@ -32,4 +32,39 @@ class RolesService
         $this->roles->delete($id);
     }
 
+    public function queryForDatatable(?int $organizationId, mixed $departmentId = null, ?string $search = null)
+    {
+        return $this->roles->queryForDatatable($organizationId, $departmentId, $search);
+    }
+
+    public function getDepartmentsForOrganization(?int $organizationId)
+    {
+        return $this->roles->getDepartmentsForOrganization($organizationId);
+    }
+
+    public function getDepartmentRecordsForOrganization(?int $organizationId)
+    {
+        return $this->roles->getDepartmentRecordsForOrganization($organizationId);
+    }
+
+    public function getActiveAssignablePermissionsGrouped($viewer)
+    {
+        return $this->roles->getActiveAssignablePermissionsGrouped($viewer);
+    }
+
+    public function getActiveAssignablePermissions($viewer)
+    {
+        return $this->roles->getActiveAssignablePermissions($viewer);
+    }
+
+    public function toggleActive(int $id)
+    {
+        return $this->roles->toggleActive($id);
+    }
+
+    public function bulkDeleteForOrganization(int $organizationId, array $ids): int
+    {
+        return $this->roles->bulkDeleteForOrganization($organizationId, $ids);
+    }
+
 }

@@ -130,6 +130,11 @@ class Product extends Component
 
     public function openEditModal(int $id): void
     {
+        if (! $this->canEditRecord()) {
+            $this->dispatch('formResult', type: 'error', message: 'You are not authorized to edit this record.');
+            return;
+        }
+
         $record = ProductModel::withTrashed()->findOrFail($id);
         $selectedOrganizationId = $this->resolveSelectedOrganizationId();
 
@@ -231,6 +236,11 @@ class Product extends Component
 
     public function deleteById(int $id): void
     {
+        if (! $this->canDeleteRecord()) {
+            $this->dispatch('deleteResult', success: false, message: 'You are not authorized to delete this record.');
+            return;
+        }
+
         $record = ProductModel::find($id);
         if (! $record) {
             $this->dispatch('deleteResult', success: false, message: 'Record not found.');
@@ -373,5 +383,15 @@ class Product extends Component
     private function isSystemUser(): bool
     {
         return (auth()->user()?->user_type ?? '') === 'systemuser';
+    }
+
+    private function canEditRecord(): bool
+    {
+        return (bool) (auth()->user()?->can('edit-product') ?? false);
+    }
+
+    private function canDeleteRecord(): bool
+    {
+        return (bool) (auth()->user()?->can('delete-product') ?? false);
     }
 }

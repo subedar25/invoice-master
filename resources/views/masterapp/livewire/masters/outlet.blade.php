@@ -38,8 +38,12 @@
                             <div class="action-div master-actions">
                                 <a href="#" wire:click.prevent="openViewModal({{ $item->id }})" title="View" class="action-icon entity-link"><i class="fa fa-eye"></i></a>
                                 @if(!$item->deleted_at)
+                                    @can('edit-outlet')
                                     <a href="#" wire:click.prevent="openEditModal({{ $item->id }})" title="Edit" class="action-icon entity-link"><i class="fa fa-edit"></i></a>
+                                    @endcan
+                                    @can('delete-outlet')
                                     <a href="#" data-master-delete-id="{{ $item->id }}" data-master-delete-title="Delete Outlet?" title="Delete" class="action-icon entity-link master-delete-link"><i class="fa fa-trash"></i></a>
+                                    @endcan
                                 @elseif((auth()->user()?->user_type ?? '') === 'systemuser')
                                     <a href="#" wire:click.prevent="restoreById({{ $item->id }})" title="Revert" class="action-icon entity-link"><i class="fa fa-undo"></i></a>
                                 @endif

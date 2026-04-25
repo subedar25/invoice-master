@@ -2,6 +2,8 @@
 namespace App\Core\Permissions\Contracts;
 
 use App\Models\Permission;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 interface PermissionsRepository
 {
@@ -11,5 +13,15 @@ interface PermissionsRepository
 
     public function update(int $id, array $data): Permission;
 
-     public function delete(int $id): void;
+    public function delete(int $id): void;
+
+    public function getAllModules(): Collection;
+
+    public function getModuleNameOptions(): Collection;
+
+    public function paginateWithModuleLatest(int $perPage = 200): LengthAwarePaginator;
+
+    public function toggleActive(int $id): Permission;
+
+    public function bulkDelete(array $ids): int;
 }

@@ -31,4 +31,19 @@ class ModulesService
     {
         $this->modules->delete($id);
     }
+
+    public function paginateByLatest(int $perPage = 200)
+    {
+        return $this->modules->paginateByLatest($perPage);
+    }
+
+    public function toggleActive(int $id)
+    {
+        return $this->modules->toggleActive($id);
+    }
+
+    public function bulkDelete(array $ids): int
+    {
+        return $this->modules->bulkDelete($ids);
+    }
 }

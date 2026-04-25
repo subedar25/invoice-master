@@ -31,4 +31,29 @@ class PermissionsService
     {
         $this->Permission->delete($id);
     }
+
+    public function getAllModules()
+    {
+        return $this->Permission->getAllModules();
+    }
+
+    public function getModuleNameOptions()
+    {
+        return $this->Permission->getModuleNameOptions();
+    }
+
+    public function paginateWithModuleLatest(int $perPage = 200)
+    {
+        return $this->Permission->paginateWithModuleLatest($perPage);
+    }
+
+    public function toggleActive(int $id)
+    {
+        return $this->Permission->toggleActive($id);
+    }
+
+    public function bulkDelete(array $ids): int
+    {
+        return $this->Permission->bulkDelete($ids);
+    }
 }

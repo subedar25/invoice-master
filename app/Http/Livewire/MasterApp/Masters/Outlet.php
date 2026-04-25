@@ -103,6 +103,11 @@ class Outlet extends Component
 
     public function openEditModal(int $id): void
     {
+        if (! $this->canEditRecord()) {
+            $this->dispatch('formResult', type: 'error', message: 'You are not authorized to edit this record.');
+            return;
+        }
+
         $record = OutletModel::withTrashed()->findOrFail($id);
         $selectedOrganizationId = $this->resolveSelectedOrganizationId();
         $this->editId = $id;
@@ -209,6 +214,11 @@ class Outlet extends Component
 
     public function deleteById(int $id): void
     {
+        if (! $this->canDeleteRecord()) {
+            $this->dispatch('deleteResult', success: false, message: 'You are not authorized to delete this record.');
+            return;
+        }
+
         $record = OutletModel::find($id);
         if ($record) {
             $this->fileService->delete($record->photo);
@@ -334,5 +344,15 @@ class Outlet extends Component
     private function isSystemUser(): bool
     {
         return (auth()->user()?->user_type ?? '') === 'systemuser';
+    
+    private function canEditRecord(): bool
+    {
+        return (bool) (auth()->user()?->can('edit-outlet') ?? false);
     }
+
+    private function canDeleteRecord(): bool
+    {
+        return (bool) (auth()->user()?->can('delete-outlet') ?? false);
+    }
+}
 }

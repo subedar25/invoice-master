@@ -1,14 +1,9 @@
 <?php
 namespace App\Http\Controllers\MasterApp;
 
-use App\Models\Module;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Yajra\DataTables\Facades\DataTables;
-use App\Policies\ModulePolicy;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Core\Modules\Services\ModulesService;
 use App\Http\Requests\MasterApp\Modules\ModulesStoreRequest;
 use App\Http\Requests\MasterApp\Modules\ModulesUpdateRequest;
@@ -22,10 +17,9 @@ class  ModuleController extends Controller
      * Display a listing of the resource.
      */
 
-    public function index()
+    public function index(ModulesService $service)
     { 
-         $modules = Module::orderBy('id', 'desc')->paginate(200);
-        // No longer fetching modules here. The view will be empty initially.
+        $modules = $service->paginateByLatest(200);
         return view('masterapp.modules.index', compact('modules'));
     }
 
@@ -100,18 +94,18 @@ class  ModuleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Module $module)
+    public function show(int $id, ModulesService $service)
     {
-        // For this CRUD, we can redirect to the edit page or index.
-        // Let's redirect to the edit page for simplicity.
+        $module = $service->get($id);
         return redirect()->route('masterapp.modules.edit', $module);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Module $module)
+    public function edit(int $id, ModulesService $service)
     {
+        $module = $service->get($id);
         return view('masterapp.modules.edit', compact('module'));
     }
 
@@ -128,10 +122,9 @@ class  ModuleController extends Controller
         ], 200);
     }
 
-    public function toggleActive(Module $module): JsonResponse
+    public function toggleActive(int $id, ModulesService $service): JsonResponse
     {
-        $module->is_active = ! (bool) $module->is_active;
-        $module->save();
+        $module = $service->toggleActive($id);
 
         return response()->json([
             'message' => $module->is_active
@@ -152,7 +145,7 @@ class  ModuleController extends Controller
         }
 
 
-    public function bulkDestroy(Request $request)
+    public function bulkDestroy(Request $request, ModulesService $service)
     {
         // $this->authorize('modules.bulk-delete');
 
@@ -163,7 +156,7 @@ class  ModuleController extends Controller
             ]);
 
             $ids = $request->input('ids');
-            $deletedCount = Module::whereIn('id', $ids)->delete();
+            $deletedCount = $service->bulkDelete($ids);
 
             return response()->json([
                 'message' => "{$deletedCount} module(s) deleted successfully!"

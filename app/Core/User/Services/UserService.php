@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use App\Models\User;
 use App\Notifications\NewUserNotification;
+use Illuminate\Support\Collection;
 
 class UserService
 {
@@ -31,6 +32,56 @@ class UserService
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
         return $this->users->getAll();
+    }
+
+    public function getUsersForIndex(User $authUser, int $currentOrganizationId): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->users->getUsersForIndex($authUser, $currentOrganizationId);
+    }
+
+    public function getAccessibleOrganizations(User $authUser): Collection
+    {
+        return $this->users->getAccessibleOrganizations($authUser);
+    }
+
+    public function getDepartmentsByOrganization(int $organizationId): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->users->getDepartmentsByOrganization($organizationId);
+    }
+
+    public function getDesignationsByOrganization(int $organizationId): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->users->getDesignationsByOrganization($organizationId);
+    }
+
+    public function getDepartmentsForUserContext(User $authUser, int $currentOrganizationId): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->users->getDepartmentsForUserContext($authUser, $currentOrganizationId);
+    }
+
+    public function getDesignationsForUserContext(User $authUser, int $currentOrganizationId): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->users->getDesignationsForUserContext($authUser, $currentOrganizationId);
+    }
+
+    public function getReportingManagersForOrganizationIds(array $organizationIds, ?int $excludeUserId = null): Collection
+    {
+        return $this->users->getReportingManagersForOrganizationIds($organizationIds, $excludeUserId);
+    }
+
+    public function getRolesForOrganizationIds(array $organizationIds): Collection
+    {
+        return $this->users->getRolesForOrganizationIds($organizationIds);
+    }
+
+    public function emailExistsWithTrashed(string $email, ?int $excludeUserId = null): bool
+    {
+        return $this->users->emailExistsWithTrashed($email, $excludeUserId);
+    }
+
+    public function getAdminUsersExcluding(?int $excludeUserId = null): Collection
+    {
+        return $this->users->getAdminUsersExcluding($excludeUserId);
     }
     // Create user with notification to admins
     public function create(array $data)

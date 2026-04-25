@@ -80,6 +80,11 @@ class Country extends Component
 
     public function openEditModal(int $id): void
     {
+        if (! $this->canEditRecord()) {
+            $this->dispatch('formResult', type: 'error', message: 'You are not authorized to edit this record.');
+            return;
+        }
+
         $record = CountryModel::findOrFail($id);
 
         $this->editId = $id;
@@ -166,6 +171,11 @@ class Country extends Component
 
     public function deleteById(int $id): void
     {
+        if (! $this->canDeleteRecord()) {
+            $this->dispatch('deleteResult', success: false, message: 'You are not authorized to delete this record.');
+            return;
+        }
+
         $record = CountryModel::find($id);
         if (! $record) {
             $this->dispatch('deleteResult', success: false, message: 'Record not found.');
@@ -231,5 +241,15 @@ class Country extends Component
         $this->code = '';
         $this->status = true;
         $this->resetValidation();
+    }
+
+    private function canEditRecord(): bool
+    {
+        return (bool) (auth()->user()?->can('edit-country') ?? false);
+    }
+
+    private function canDeleteRecord(): bool
+    {
+        return (bool) (auth()->user()?->can('delete-country') ?? false);
     }
 }

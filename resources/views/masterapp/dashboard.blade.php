@@ -11,90 +11,6 @@
     $dashboardVisibility = $dashboardVisibility ?? [];
 @endphp
 <div class="row mt-5 justify-content-center dashboard-stats-row">
-    @if(!empty($dashboardVisibility['operational_general_manager']))
-    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
-        <a href="{{ $usersUrl }}" class="dashboard-stat-card-link">
-        <div class="dashboard-stat-card dashboard-stat-card--blue">
-            <div class="dashboard-stat-card__content">
-                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['operational_general_manager'] ?? 0) }}</h2>
-                <div class="dashboard-stat-card__label">Operational General Managers</div>
-            </div>
-            <div class="dashboard-stat-card__icon"><i class="fas fa-user-tie"></i></div>
-        </div>
-        </a>
-    </div>
-    @endif
-
-    @if(!empty($dashboardVisibility['general_manager']))
-    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
-        <a href="{{ $usersUrl }}" class="dashboard-stat-card-link">
-        <div class="dashboard-stat-card dashboard-stat-card--violet">
-            <div class="dashboard-stat-card__content">
-                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['general_manager'] ?? 0) }}</h2>
-                <div class="dashboard-stat-card__label">General Managers</div>
-            </div>
-            <div class="dashboard-stat-card__icon"><i class="fas fa-user"></i></div>
-        </div>
-        </a>
-    </div>
-    @endif
-
-    @if(!empty($dashboardVisibility['area_manager']))
-    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
-        <a href="{{ $usersUrl }}" class="dashboard-stat-card-link">
-        <div class="dashboard-stat-card dashboard-stat-card--green">
-            <div class="dashboard-stat-card__content">
-                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['area_manager'] ?? 0) }}</h2>
-                <div class="dashboard-stat-card__label">Area Manager</div>
-            </div>
-            <div class="dashboard-stat-card__icon"><i class="fas fa-user-cog"></i></div>
-        </div>
-        </a>
-    </div>
-    @endif
-
-    @if(!empty($dashboardVisibility['accountant']))
-    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
-        <a href="{{ $usersUrl }}" class="dashboard-stat-card-link">
-        <div class="dashboard-stat-card dashboard-stat-card--orange">
-            <div class="dashboard-stat-card__content">
-                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['accountant'] ?? 0) }}</h2>
-                <div class="dashboard-stat-card__label">Accountant</div>
-            </div>
-            <div class="dashboard-stat-card__icon"><i class="fas fa-calculator"></i></div>
-        </div>
-        </a>
-    </div>
-    @endif
-
-    @if(!empty($dashboardVisibility['outlets']))
-    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
-        <a href="{{ $outletsUrl }}" class="dashboard-stat-card-link">
-        <div class="dashboard-stat-card dashboard-stat-card--teal">
-            <div class="dashboard-stat-card__content">
-                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['outlets'] ?? 0) }}</h2>
-                <div class="dashboard-stat-card__label">Outlets</div>
-            </div>
-            <div class="dashboard-stat-card__icon"><i class="fas fa-store"></i></div>
-        </div>
-        </a>
-    </div>
-    @endif
-
-    @if(!empty($dashboardVisibility['vendors']))
-    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
-        <a href="{{ $vendorsUrl }}" class="dashboard-stat-card-link">
-        <div class="dashboard-stat-card dashboard-stat-card--slate">
-            <div class="dashboard-stat-card__content">
-                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['vendors'] ?? 0) }}</h2>
-                <div class="dashboard-stat-card__label">Vendors</div>
-            </div>
-            <div class="dashboard-stat-card__icon"><i class="fas fa-truck"></i></div>
-        </div>
-        </a>
-    </div>
-    @endif
-
     @if(!empty($dashboardVisibility['total_invoice']))
     <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
         <a href="{{ $invoiceUrl }}" class="dashboard-stat-card-link">
@@ -104,20 +20,6 @@
                 <div class="dashboard-stat-card__label">Total Invoice</div>
             </div>
             <div class="dashboard-stat-card__icon"><i class="fas fa-file-invoice"></i></div>
-        </div>
-        </a>
-    </div>
-    @endif
-
-    @if(!empty($dashboardVisibility['completed_invoice']))
-    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
-        <a href="{{ $invoiceUrl }}" class="dashboard-stat-card-link">
-        <div class="dashboard-stat-card dashboard-stat-card--emerald">
-            <div class="dashboard-stat-card__content">
-                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['completed_invoice'] ?? 0) }}</h2>
-                <div class="dashboard-stat-card__label">Completed Invoice</div>
-            </div>
-            <div class="dashboard-stat-card__icon"><i class="fas fa-check-circle"></i></div>
         </div>
         </a>
     </div>
@@ -160,6 +62,104 @@
                 <div class="dashboard-stat-card__label">Approved Invoice</div>
             </div>
             <div class="dashboard-stat-card__icon"><i class="fas fa-thumbs-up"></i></div>
+        </div>
+        </a>
+    </div>
+    @endif
+
+    @if(!empty($dashboardVisibility['outlets']))
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
+        <a href="{{ $outletsUrl }}" class="dashboard-stat-card-link">
+        <div class="dashboard-stat-card dashboard-stat-card--teal">
+            <div class="dashboard-stat-card__content">
+                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['outlets'] ?? 0) }}</h2>
+                <div class="dashboard-stat-card__label">Outlets</div>
+            </div>
+            <div class="dashboard-stat-card__icon"><i class="fas fa-store"></i></div>
+        </div>
+        </a>
+    </div>
+    @endif
+
+    @if(!empty($dashboardVisibility['vendors']))
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
+        <a href="{{ $vendorsUrl }}" class="dashboard-stat-card-link">
+        <div class="dashboard-stat-card dashboard-stat-card--slate">
+            <div class="dashboard-stat-card__content">
+                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['vendors'] ?? 0) }}</h2>
+                <div class="dashboard-stat-card__label">Vendors</div>
+            </div>
+            <div class="dashboard-stat-card__icon"><i class="fas fa-truck"></i></div>
+        </div>
+        </a>
+    </div>
+    @endif
+
+    @if(!empty($dashboardVisibility['accountant']))
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
+        <a href="{{ $usersUrl }}" class="dashboard-stat-card-link">
+        <div class="dashboard-stat-card dashboard-stat-card--orange">
+            <div class="dashboard-stat-card__content">
+                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['accountant'] ?? 0) }}</h2>
+                <div class="dashboard-stat-card__label">Accountant</div>
+            </div>
+            <div class="dashboard-stat-card__icon"><i class="fas fa-calculator"></i></div>
+        </div>
+        </a>
+    </div>
+    @endif
+
+    @if(!empty($dashboardVisibility['area_manager']))
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
+        <a href="{{ $usersUrl }}" class="dashboard-stat-card-link">
+        <div class="dashboard-stat-card dashboard-stat-card--green">
+            <div class="dashboard-stat-card__content">
+                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['area_manager'] ?? 0) }}</h2>
+                <div class="dashboard-stat-card__label">Area Manager</div>
+            </div>
+            <div class="dashboard-stat-card__icon"><i class="fas fa-user-cog"></i></div>
+        </div>
+        </a>
+    </div>
+    @endif
+
+    @if(!empty($dashboardVisibility['general_manager']))
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
+        <a href="{{ $usersUrl }}" class="dashboard-stat-card-link">
+        <div class="dashboard-stat-card dashboard-stat-card--violet">
+            <div class="dashboard-stat-card__content">
+                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['general_manager'] ?? 0) }}</h2>
+                <div class="dashboard-stat-card__label">General Managers</div>
+            </div>
+            <div class="dashboard-stat-card__icon"><i class="fas fa-user"></i></div>
+        </div>
+        </a>
+    </div>
+    @endif
+
+    @if(!empty($dashboardVisibility['operational_general_manager']))
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
+        <a href="{{ $usersUrl }}" class="dashboard-stat-card-link">
+        <div class="dashboard-stat-card dashboard-stat-card--blue">
+            <div class="dashboard-stat-card__content">
+                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['operational_general_manager'] ?? 0) }}</h2>
+                <div class="dashboard-stat-card__label">Operational General Managers</div>
+            </div>
+            <div class="dashboard-stat-card__icon"><i class="fas fa-user-tie"></i></div>
+        </div>
+        </a>
+    </div>
+    @endif
+
+    @if(!empty($dashboardVisibility['completed_invoice']))
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-10 mb-3">
+        <a href="{{ $invoiceUrl }}" class="dashboard-stat-card-link">
+        <div class="dashboard-stat-card dashboard-stat-card--emerald">
+            <div class="dashboard-stat-card__content">
+                <h2 class="dashboard-stat-card__count mb-1">{{ (int) ($dashboardCounts['completed_invoice'] ?? 0) }}</h2>
+                <div class="dashboard-stat-card__label">Completed Invoice</div>
+            </div>
+            <div class="dashboard-stat-card__icon"><i class="fas fa-check-circle"></i></div>
         </div>
         </a>
     </div>

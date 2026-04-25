@@ -4,7 +4,8 @@ namespace App\Infrastructure\Persistence\Permissions;
 use App\Core\Permissions\Contracts\PermissionsRepository;
 use App\Models\Module;
 use App\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class EloquentPermissionsRepository implements PermissionsRepository
@@ -55,5 +56,34 @@ class EloquentPermissionsRepository implements PermissionsRepository
     public function delete(int $id): void
     {
         Permission::findOrFail($id)->delete();
+    }
+
+    public function getAllModules(): Collection
+    {
+        return Module::all();
+    }
+
+    public function getModuleNameOptions(): Collection
+    {
+        return Module::orderBy('name')->pluck('name', 'id');
+    }
+
+    public function paginateWithModuleLatest(int $perPage = 200): LengthAwarePaginator
+    {
+        return Permission::with('module')->latest()->paginate($perPage);
+    }
+
+    public function toggleActive(int $id): Permission
+    {
+        $permission = Permission::findOrFail($id);
+        $permission->is_active = ! (bool) $permission->is_active;
+        $permission->save();
+
+        return $permission;
+    }
+
+    public function bulkDelete(array $ids): int
+    {
+        return Permission::whereIn('id', $ids)->delete();
     }
 }
