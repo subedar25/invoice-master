@@ -3,12 +3,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: pulse-app
+    container_name: invoice-master-app
     volumes:
        - ./:/var/www/html:cached
        - vendor:/var/www/html/vendor
     ports:
-      - "8082:80"
+      - "8083:80"
     depends_on:
       - db
     environment:
@@ -16,13 +16,13 @@ services:
 
   db:
     image: mysql:8.0
-    container_name: pulse-db
+    container_name: invoice-master-db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: pulse-data
-      MYSQL_USER: pulse
-      MYSQL_PASSWORD: publication
+      MYSQL_DATABASE: invoice-master-data
+      MYSQL_USER: invoice-master
+      MYSQL_PASSWORD: invoicepass
     ports:
       - "3307:3306"
     volumes:
