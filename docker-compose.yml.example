@@ -19,7 +19,7 @@ services:
     container_name: invoice-master-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: Admin@321!
       MYSQL_DATABASE: invoice-master-data
       MYSQL_USER: invoice-master
       MYSQL_PASSWORD: invoicepass

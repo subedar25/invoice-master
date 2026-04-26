@@ -1,0 +1,25 @@
+<IfModule mod_authz_core.c>
+    # Restrict phpMyAdmin access to local/private ranges by default.
+    # Update this list for your office/VPN public IP if needed.
+    Require ip 127.0.0.1
+    Require ip ::1
+    Require ip 10.0.0.0/8
+    Require ip 172.16.0.0/12
+    Require ip 192.168.0.0/16
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    Order Deny,Allow
+    Deny from all
+    Allow from 127.0.0.1
+    Allow from ::1
+    Allow from 10.
+    Allow from 172.16.
+    Allow from 172.17.
+    Allow from 172.18.
+    Allow from 172.19.
+    Allow from 172.2
+    Allow from 172.30.
+    Allow from 172.31.
+    Allow from 192.168.
+</IfModule>
