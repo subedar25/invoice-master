@@ -78,6 +78,9 @@ class Invoices extends Component
     /** @var array<int, int|string> */
     public array $filterDepartmentIds = [];
 
+    /** @var array<int, int|string> */
+    public array $filterOutletIds = [];
+
     /** @var string current_month|last_month|last_3_months|last_6_months|last_12_months|custom — default last 3 months */
     public string $invoiceDateFilterPreset = 'last_3_months';
 
@@ -167,6 +170,10 @@ class Invoices extends Component
         $resolved = $this->resolveDefaultOrganizationId();
         if ($resolved !== $this->organization_id) {
             $this->organization_id = $resolved;
+            // Keep filter options aligned with top organization switcher.
+            $this->filterOutletIds = [];
+            $this->filterDepartmentIds = [];
+            $this->resetPage();
         }
         $this->assertMayViewInvoiceIndex();
     }
@@ -190,9 +197,11 @@ class Invoices extends Component
         );
 
         $restriction = InvoiceDepartmentAuthorization::mergedListDepartmentRestriction($user, $orgId);
+        $reportingOnly = InvoiceDepartmentAuthorization::listReportingInvoicesOnly($user, $orgId);
         if (
             $restriction === []
             && ! InvoiceDepartmentAuthorization::listOwnInvoicesOnly($user, $orgId)
+            && ! $reportingOnly
         ) {
             abort(403, 'You do not have access to invoices for this organization.');
         }
@@ -250,6 +259,11 @@ class Invoices extends Component
         $this->resetPage();
     }
 
+    public function updatedFilterOutletIds(): void
+    {
+        $this->resetPage();
+    }
+
     /**
      * Called from invoice filter Select2 (change) — wire:model does not sync reliably with Select2.
      *
@@ -277,6 +291,18 @@ class Invoices extends Component
         $this->resetPage();
     }
 
+    /**
+     * @param  array<int, int|string>|int|string|null  $raw
+     */
+    public function syncFilterOutletIdsFromSelect(mixed $raw): void
+    {
+        if (! is_array($raw)) {
+            $raw = ($raw === null || $raw === '') ? [] : [$raw];
+        }
+        $this->filterOutletIds = array_values(array_unique(array_filter(array_map('intval', $raw))));
+        $this->resetPage();
+    }
+
     public function removeInvoiceFilterStatus(string $key): void
     {
         $this->filterStatuses = array_values(array_filter(
@@ -290,6 +316,15 @@ class Invoices extends Component
     {
         $this->filterDepartmentIds = array_values(array_filter(
             array_map('intval', $this->filterDepartmentIds),
+            fn ($d) => $d !== $id
+        ));
+        $this->resetPage();
+    }
+
+    public function removeInvoiceFilterOutlet(int $id): void
+    {
+        $this->filterOutletIds = array_values(array_filter(
+            array_map('intval', $this->filterOutletIds),
             fn ($d) => $d !== $id
         ));
         $this->resetPage();
@@ -1512,6 +1547,10 @@ class Invoices extends Component
         $orgId = $this->organization_id;
         $user = auth()->user();
         $ownInvoicesOnly = InvoiceDepartmentAuthorization::listOwnInvoicesOnly($user, $orgId);
+        $reportingOnly = InvoiceDepartmentAuthorization::listReportingInvoicesOnly($user, $orgId);
+        $reportingUserIds = $reportingOnly
+            ? InvoiceDepartmentAuthorization::reportingUserIds($user)
+            : null;
         $listDeptRestriction = InvoiceDepartmentAuthorization::mergedListDepartmentRestriction($user, $orgId);
         $listDeptRestrictionForQuery = $ownInvoicesOnly ? null : $listDeptRestriction;
 
@@ -1533,7 +1572,9 @@ class Invoices extends Component
                 $this->search,
                 $this->filterStatuses,
                 $ownInvoicesOnly ? [] : $this->filterDepartmentIds,
+                $this->filterOutletIds,
                 $this->perPage,
+                $reportingUserIds,
                 $listDeptRestrictionForQuery,
                 $ownInvoicesOnly,
                 $invoicePeriodStart,

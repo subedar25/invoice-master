@@ -49,7 +49,8 @@ class RoleInvoiceDepartmentScope extends Model
             $payload = $scopesByPermissionName[$permName] ?? [];
             $all = (bool) ($payload['all_departments'] ?? true);
             $ownOnly = $permName === 'list-invoices' && (bool) ($payload['own_invoices'] ?? false);
-            $reportingOnly = $permName === 'approve-invoice' && (bool) ($payload['reporting_only'] ?? false);
+            $reportingOnly = in_array($permName, ['list-invoices', 'approve-invoice'], true)
+                && (bool) ($payload['reporting_only'] ?? false);
             $ids = isset($payload['department_ids']) && is_array($payload['department_ids'])
                 ? array_values(array_unique(array_filter(array_map('intval', $payload['department_ids']))))
                 : [];

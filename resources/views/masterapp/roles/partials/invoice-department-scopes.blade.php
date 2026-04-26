@@ -1,11 +1,13 @@
 @php
-    $listScope = $invoiceDepartmentScopes['list-invoices'] ?? ['all_departments' => true, 'own_invoices' => false, 'department_ids' => []];
+    $listScope = $invoiceDepartmentScopes['list-invoices'] ?? ['all_departments' => true, 'own_invoices' => false, 'reporting_only' => false, 'department_ids' => []];
     $approveScope = $invoiceDepartmentScopes['approve-invoice'] ?? ['all_departments' => true, 'own_invoices' => false, 'reporting_only' => false, 'department_ids' => []];
     $listDeptIds = array_map('intval', $listScope['department_ids'] ?? []);
     $approveDeptIds = array_map('intval', $approveScope['department_ids'] ?? []);
-    $listScopeMode = !empty($listScope['own_invoices'] ?? false)
+    $listScopeMode = !empty($listScope['reporting_only'] ?? false)
+        ? 'reporting'
+        : (!empty($listScope['own_invoices'] ?? false)
         ? 'own'
-        : (!empty($listScope['all_departments'] ?? true) ? 'all' : 'selected');
+        : (!empty($listScope['all_departments'] ?? true) ? 'all' : 'selected'));
     $approveScopeMode = !empty($approveScope['reporting_only'] ?? false)
         ? 'reporting'
         : (!empty($approveScope['all_departments'] ?? true) ? 'all' : 'selected');
@@ -15,7 +17,7 @@
 <div class="col-12 mt-3 pt-3 border-top">
     <div class="small font-weight-bold text-secondary mb-2">Invoice — department access</div>
     <p class="small text-muted mb-3">
-        For <strong>View Invoices</strong>, choose <em>Own Invoices</em>, <em>All departments</em>, or <em>Selected departments</em>.
+        For <strong>View Invoices</strong>, choose <em>Reporting Only</em>, <em>Own Invoices</em>, <em>All departments</em>, or <em>Selected departments</em>.
         For <strong>Approve Invoice</strong>, choose <em>Reporting Only</em>, <em>All departments</em>, or <em>Selected departments</em>.
         If you limit departments, pick at least one department for each permission you assign.
     </p>
@@ -26,6 +28,14 @@
         @error('invoice_department_scopes.list-invoices')
             <div class="text-danger small mb-2">{{ $message }}</div>
         @enderror
+        <div class="custom-control custom-radio mb-2">
+            <input type="radio" class="custom-control-input js-invoice-scope-mode-list"
+                id="inv_scope_list_reporting"
+                name="invoice_department_scopes[list-invoices][scope_mode]"
+                value="reporting"
+                @checked($listScopeMode === 'reporting')>
+            <label class="custom-control-label" for="inv_scope_list_reporting">Reporting Only</label>
+        </div>
         <div class="custom-control custom-radio mb-2">
             <input type="radio" class="custom-control-input js-invoice-scope-mode-list"
                 id="inv_scope_list_own"

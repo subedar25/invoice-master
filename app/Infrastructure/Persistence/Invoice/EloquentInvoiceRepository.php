@@ -23,14 +23,16 @@ class EloquentInvoiceRepository implements InvoiceRepository
         string $search,
         array $filterStatuses,
         array $filterDepartmentIds,
+        array $filterOutletIds,
         int $perPage = 15,
+        ?array $restrictCreatedByUserIds = null,
         ?array $restrictDepartmentIds = null,
         bool $ownInvoicesOnly = false,
         ?Carbon $createdFrom = null,
         ?Carbon $createdTo = null,
     ): LengthAwarePaginator {
         $query = Invoice::query()
-            ->with(['vendor', 'organization', 'department', 'outlet']);
+            ->with(['vendor', 'organization', 'department', 'outlet', 'createdBy']);
 
         if ($organizationId) {
             $query->where('organization_id', $organizationId);
@@ -45,11 +47,25 @@ class EloquentInvoiceRepository implements InvoiceRepository
             $query->where('createdby_id', (int) auth()->id());
         }
 
+        if (is_array($restrictCreatedByUserIds)) {
+            $creatorIds = array_values(array_unique(array_map('intval', $restrictCreatedByUserIds)));
+            if ($creatorIds === []) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->whereIn('createdby_id', $creatorIds);
+            }
+        }
+
         $effectiveDeptIds = $this->effectiveDepartmentIds($restrictDepartmentIds, $filterDepartmentIds);
         if ($effectiveDeptIds === []) {
             $query->whereRaw('1 = 0');
         } elseif ($effectiveDeptIds !== null) {
             $query->whereIn('department_id', $effectiveDeptIds);
+        }
+
+        $effectiveOutletIds = array_values(array_unique(array_filter(array_map('intval', $filterOutletIds))));
+        if ($effectiveOutletIds !== []) {
+            $query->whereIn('outlet_id', $effectiveOutletIds);
         }
 
         $search = trim($search);

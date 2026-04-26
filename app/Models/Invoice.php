@@ -75,6 +75,11 @@ class Invoice extends Model implements AuditableContract
         return $this->belongsTo(Department::class);
     }
 
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'createdby_id');
+    }
+
     public function details(): HasMany
     {
         return $this->hasMany(InvoiceDetail::class);

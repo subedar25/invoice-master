@@ -22,13 +22,16 @@ class InvoiceService
     /**
      * @param  array<int, string>  $filterStatuses
      * @param  array<int, int|string>  $filterDepartmentIds
+     * @param  array<int, int|string>  $filterOutletIds
      */
     public function paginateForList(
         ?int $organizationId,
         string $search,
         array $filterStatuses,
         array $filterDepartmentIds,
+        array $filterOutletIds,
         int $perPage = 15,
+        ?array $restrictCreatedByUserIds = null,
         ?array $restrictDepartmentIds = null,
         bool $ownInvoicesOnly = false,
         ?Carbon $createdFrom = null,
@@ -39,7 +42,9 @@ class InvoiceService
             $search,
             $filterStatuses,
             $filterDepartmentIds,
+            $filterOutletIds,
             $perPage,
+            $restrictCreatedByUserIds,
             $restrictDepartmentIds,
             $ownInvoicesOnly,
             $createdFrom,

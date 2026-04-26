@@ -344,7 +344,8 @@ class Outlet extends Component
     private function isSystemUser(): bool
     {
         return (auth()->user()?->user_type ?? '') === 'systemuser';
-    
+    }
+
     private function canEditRecord(): bool
     {
         return (bool) (auth()->user()?->can('edit-outlet') ?? false);
@@ -354,5 +355,4 @@ class Outlet extends Component
     {
         return (bool) (auth()->user()?->can('delete-outlet') ?? false);
     }
-}
 }

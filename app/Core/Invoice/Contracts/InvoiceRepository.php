@@ -17,6 +17,8 @@ interface InvoiceRepository
     /**
      * @param  array<int, string>  $filterStatuses  Lowercase keys: approve, pending, in_process, complete. Empty = all statuses.
      * @param  array<int, int|string>  $filterDepartmentIds  Empty = all departments (within restriction).
+     * @param  array<int, int|string>  $filterOutletIds  Empty = all outlets.
+     * @param  array<int>|null  $restrictCreatedByUserIds  null = no creator restriction; [] = no rows; non-empty = only these creators.
      * @param  array<int>|null  $restrictDepartmentIds  null = no restriction; [] = no rows; non-empty = whitelist merged with filters.
      */
     public function paginateForList(
@@ -24,7 +26,9 @@ interface InvoiceRepository
         string $search,
         array $filterStatuses,
         array $filterDepartmentIds,
+        array $filterOutletIds,
         int $perPage = 15,
+        ?array $restrictCreatedByUserIds = null,
         ?array $restrictDepartmentIds = null,
         bool $ownInvoicesOnly = false,
         ?Carbon $createdFrom = null,

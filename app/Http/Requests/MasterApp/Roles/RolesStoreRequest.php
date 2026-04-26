@@ -18,13 +18,20 @@ class RolesStoreRequest extends FormRequest
             }
             if ($key === 'list-invoices') {
                 $mode = (string) ($scopes[$key]['scope_mode'] ?? '');
-                if ($mode === 'own') {
+                if ($mode === 'reporting') {
+                    $scopes[$key]['reporting_only'] = true;
+                    $scopes[$key]['own_invoices'] = false;
+                    $scopes[$key]['all_departments'] = false;
+                } elseif ($mode === 'own') {
+                    $scopes[$key]['reporting_only'] = false;
                     $scopes[$key]['own_invoices'] = true;
                     $scopes[$key]['all_departments'] = false;
                 } elseif ($mode === 'selected') {
+                    $scopes[$key]['reporting_only'] = false;
                     $scopes[$key]['own_invoices'] = false;
                     $scopes[$key]['all_departments'] = false;
                 } else {
+                    $scopes[$key]['reporting_only'] = false;
                     $scopes[$key]['own_invoices'] = false;
                     $scopes[$key]['all_departments'] = true;
                 }
@@ -109,6 +116,7 @@ class RolesStoreRequest extends FormRequest
             'invoice_department_scopes.list-invoices' => ['nullable', 'array'],
             'invoice_department_scopes.list-invoices.all_departments' => ['nullable', 'boolean'],
             'invoice_department_scopes.list-invoices.own_invoices' => ['nullable', 'boolean'],
+            'invoice_department_scopes.list-invoices.reporting_only' => ['nullable', 'boolean'],
             'invoice_department_scopes.list-invoices.department_ids' => ['nullable', 'array'],
             'invoice_department_scopes.list-invoices.department_ids.*' => ['integer', $deptExists],
             'invoice_department_scopes.approve-invoice' => ['nullable', 'array'],
@@ -132,11 +140,12 @@ class RolesStoreRequest extends FormRequest
                 $list = $scopes['list-invoices'] ?? [];
                 $all = (bool) ($list['all_departments'] ?? true);
                 $own = (bool) ($list['own_invoices'] ?? false);
+                $reporting = (bool) ($list['reporting_only'] ?? false);
                 $depts = array_filter(array_map('intval', $list['department_ids'] ?? []));
-                if (! $all && ! $own && $depts === []) {
+                if (! $all && ! $own && ! $reporting && $depts === []) {
                     $validator->errors()->add(
                         'invoice_department_scopes.list-invoices',
-                        __('Choose Own Invoices, All departments, or select at least one department for View Invoices.')
+                        __('Choose Reporting Only, Own Invoices, All departments, or select at least one department for View Invoices.')
                     );
                 }
             }

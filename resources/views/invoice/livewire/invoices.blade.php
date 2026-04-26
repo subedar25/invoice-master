@@ -21,6 +21,7 @@
             $hasInvoiceActiveFilters = trim($search) !== ''
                 || count($filterStatuses) > 0
                 || count($filterDepartmentIds) > 0
+                || count($filterOutletIds) > 0
                 || $invoiceDateFilterPreset !== 'last_3_months';
         @endphp
 
@@ -80,19 +81,34 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                @if($invoiceDateFilterPreset === 'custom')
-                                    <div class="col-md-3 col-lg-4">
+                                <div class="col-md-6 col-lg-4">
+                                    <label class="font-weight-bold">Outlet</label>
+                                    <select
+                                        id="invoice_filter_outlet"
+                                        class="form-control filter-input w-100 select2 select2-invoice-filter"
+                                        multiple
+                                        data-placeholder="All outlets"
+                                    >
+                                        @foreach($outlets as $outlet)
+                                            <option value="{{ $outlet->id }}" @selected(in_array((int) $outlet->id, array_map('intval', (array) $filterOutletIds), true))>{{ $outlet->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            @if($invoiceDateFilterPreset === 'custom')
+                                <div class="row align-items-end mb-3">
+                                    <div class="col-md-6 col-lg-4">
                                         <label class="font-weight-bold">From</label>
                                         <input type="date" wire:model.live="dateFrom" class="form-control filter-input" aria-label="From date">
                                     </div>
-                                    <div class="col-md-3 col-lg-4">
+                                    <div class="col-md-6 col-lg-4">
                                         <label class="font-weight-bold">To</label>
                                         <input type="date" wire:model.live="dateTo" class="form-control filter-input" aria-label="To date">
                                     </div>
-                                @endif
-                            </div>
+                                </div>
+                            @endif
                             <div class="row align-items-end">
-                                <div class="col-md-6">
+                                <div class="col-md-6 col-lg-4">
                                     <label class="font-weight-bold">Status</label>
                                     <select
                                         id="invoice_filter_status"
@@ -106,7 +122,7 @@
                                         <option value="complete" @selected(in_array('complete', $filterStatuses, true))>Complete</option>
                                     </select>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6 col-lg-4">
                                     <label class="font-weight-bold">Department</label>
                                     <select
                                         id="invoice_filter_department"
@@ -145,6 +161,13 @@
                                 <span class="users-active-filter-chip badge badge-info mr-1 mb-1" wire:key="inv-fd-{{ $did }}">
                                     {{ optional($deptRow)->name ?? ('#'.$did) }}
                                     <i class="fa fa-times remove-filter-chip" wire:click="removeInvoiceFilterDepartment({{ $did }})" role="button" tabindex="0" title="Remove"></i>
+                                </span>
+                            @endforeach
+                            @foreach($filterOutletIds as $oid)
+                                @php $oid = (int) $oid; $outletRow = $outlets->firstWhere('id', $oid); @endphp
+                                <span class="users-active-filter-chip badge badge-info mr-1 mb-1" wire:key="inv-fo-{{ $oid }}">
+                                    {{ optional($outletRow)->name ?? ('#'.$oid) }}
+                                    <i class="fa fa-times remove-filter-chip" wire:click="removeInvoiceFilterOutlet({{ $oid }})" role="button" tabindex="0" title="Remove"></i>
                                 </span>
                             @endforeach
                             @if($invoiceDateFilterPreset !== 'last_3_months')
@@ -191,6 +214,7 @@
                                         <th>Priority</th>
                                         <th>Status</th>
                                         <th>Department</th>
+                                        <th>Created By</th>
                                         <th>Created</th>
                                         <th class="master-table-actions no-vis">Actions</th>
                                     </tr>
@@ -230,6 +254,7 @@
                                                 <span class="badge badge-info">{{ $statusLabel }}</span>
                                             </td>
                                             <td>{{ $invoice->department?->name ?? 'N/A' }}</td>
+                                            <td>{{ trim((string) (($invoice->createdBy?->first_name ?? '') . ' ' . ($invoice->createdBy?->last_name ?? ''))) ?: ($invoice->createdBy?->email ?? 'N/A') }}</td>
                                             <td>{{ optional($invoice->created_at)->format('Y-m-d') ?? 'N/A' }}</td>
                                             <td>
                                                 <div class="action-div master-actions">
@@ -1100,7 +1125,7 @@
         if (!$t.length) return;
         destroyInvoiceDt();
 
-        var exportCols = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+        var exportCols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
         var exportOpts = {
             columns: exportCols,
             format: {
@@ -1117,7 +1142,7 @@
             searching: false,
             info: false,
             ordering: true,
-            order: [[8, 'desc']],
+            order: [[9, 'desc']],
             dom: 'Brt',
             buttons: [
                 { extend: 'print', title: title, text: '<i class="fa fa-print"></i> Print', className: 'btn btn-secondary btn-sm', exportOptions: exportOpts },
@@ -1127,7 +1152,7 @@
                 { extend: 'colvis', text: '<i class="fa fa-columns"></i> Column visibility', className: 'btn btn-warning btn-sm', columns: ':not(.no-vis)' }
             ],
             columnDefs: [
-                { orderable: false, targets: [9] }
+                { orderable: false, targets: [10] }
             ],
             initComplete: function () {
                 var $wrap = jQuery('#invoiceTable').closest('.dataTables_wrapper');
@@ -1158,8 +1183,10 @@
         if (!cmp || !window.jQuery || typeof cmp.call !== 'function') return;
         var $status = jQuery('#invoice_filter_status');
         var $dept = jQuery('#invoice_filter_department');
+        var $outlet = jQuery('#invoice_filter_outlet');
         $status.off('change.invoiceFilterSync');
         $dept.off('change.invoiceFilterSync');
+        $outlet.off('change.invoiceFilterSync');
         $status.on('change.invoiceFilterSync', function () {
             var raw = jQuery(this).val();
             var v = raw == null ? [] : (Array.isArray(raw) ? raw : [raw]);
@@ -1171,6 +1198,12 @@
             var nums = arr.map(function (x) { return parseInt(x, 10); }).filter(function (n) { return !isNaN(n); });
             cmp.call('syncFilterDepartmentIdsFromSelect', nums);
         });
+        $outlet.on('change.invoiceFilterSync', function () {
+            var raw = jQuery(this).val();
+            var arr = raw == null ? [] : (Array.isArray(raw) ? raw : [raw]);
+            var nums = arr.map(function (x) { return parseInt(x, 10); }).filter(function (n) { return !isNaN(n); });
+            cmp.call('syncFilterOutletIdsFromSelect', nums);
+        });
     }
 
     /** Select2 multi filters (Users module pattern); re-init after Livewire morphs DOM. */
@@ -1180,6 +1213,7 @@
         if (!$wrap.length) return;
         var $status = jQuery('#invoice_filter_status');
         var $dept = jQuery('#invoice_filter_department');
+        var $outlet = jQuery('#invoice_filter_outlet');
         var cfg = {
             width: '100%',
             allowClear: true,
@@ -1200,6 +1234,14 @@
             }
             $dept.select2(jQuery.extend({
                 placeholder: $dept.data('placeholder') || 'All departments'
+            }, cfg));
+        }
+        if ($outlet.length) {
+            if ($outlet.hasClass('select2-hidden-accessible')) {
+                $outlet.select2('destroy');
+            }
+            $outlet.select2(jQuery.extend({
+                placeholder: $outlet.data('placeholder') || 'All outlets'
             }, cfg));
         }
         bindInvoiceFilterSelectsToLivewire();
