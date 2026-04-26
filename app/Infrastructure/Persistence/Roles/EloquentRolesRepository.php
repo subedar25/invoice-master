@@ -187,6 +187,19 @@ class EloquentRolesRepository implements RolesRepository
             ->get(['id', 'name']);
     }
 
+    public function getRoleRecordsForOrganization(?int $organizationId): Collection
+    {
+        if ($organizationId === null) {
+            return collect();
+        }
+
+        return Role::query()
+            ->where('organization_id', $organizationId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+
     public function getActiveAssignablePermissionsGrouped(?User $viewer): Collection
     {
         return $this->getActiveAssignablePermissions($viewer)

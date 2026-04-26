@@ -25,8 +25,30 @@
 
 
 <style>
-.settings-menu { border-right: 1px solid #eee; }
-.settings-menu .nav-link { color: #444; padding: 6px 0; }
+.settings-menu {
+    border-right: 1px solid #eee;
+    position: relative;
+    z-index: 5;
+    pointer-events: auto;
+}
+.settings-content {
+    position: relative;
+    z-index: 1;
+}
+.settings-menu .nav-item {
+    position: relative;
+    z-index: 6;
+}
+.settings-menu .nav-link {
+    color: #444;
+    padding: 6px 0;
+    cursor: pointer;
+    pointer-events: auto;
+    position: relative;
+    z-index: 7;
+    -webkit-appearance: none;
+    appearance: none;
+}
 .settings-menu .nav-link.active { font-weight: 600; color: #000; }
 </style>
 

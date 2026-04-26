@@ -4,70 +4,70 @@
         <ul class="nav flex-column">
              @can('department')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('department')"
-                    class="nav-link {{ $active == 'department' ? 'active' : '' }}">Departments</a>
+                <button type="button" wire:click="setActive('department')" wire:key="menu-department"
+                    class="nav-link text-left w-100 bg-transparent border-0 {{ $active == 'department' ? 'active' : '' }}">Departments</button>
             </li>
              @endcan
              @can('list-organization')
              @if((auth()->user()?->user_type ?? '') === 'systemuser')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('organization')"
-                    class="nav-link {{ $active == 'organization' ? 'active' : '' }}">Organizations</a>
+                <button type="button" wire:click="setActive('organization')" wire:key="menu-organization"
+                    class="nav-link text-left w-100 bg-transparent border-0 {{ $active == 'organization' ? 'active' : '' }}">Organizations</button>
             </li>
              @endif
              @endcan
              @can('country')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('country')"
-                    class="nav-link {{ $active == 'country' ? 'active' : '' }}">Country</a>
+                <button type="button" wire:click="setActive('country')" wire:key="menu-country"
+                    class="nav-link text-left w-100 bg-transparent border-0 {{ $active == 'country' ? 'active' : '' }}">Country</button>
             </li>
              @endcan
              @can('state')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('state')"
-                    class="nav-link {{ $active == 'state' ? 'active' : '' }}">State</a>
+                <button type="button" wire:click="setActive('state')" wire:key="menu-state"
+                    class="nav-link text-left w-100 bg-transparent border-0 {{ $active == 'state' ? 'active' : '' }}">State</button>
             </li>
              @endcan
              @can('locations')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('location')"
-                    class="nav-link {{ $active == 'location' ? 'active' : '' }}">Locations</a>
+                <button type="button" wire:click="setActive('location')" wire:key="menu-location"
+                    class="nav-link text-left w-100 bg-transparent border-0 {{ $active == 'location' ? 'active' : '' }}">Locations</button>
             </li>
              @endcan
              @can('vendors')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('vendor')"
-                    class="nav-link {{ $active == 'vendor' ? 'active' : '' }}">Vendors</a>
+                <button type="button" wire:click="setActive('vendor')" wire:key="menu-vendor"
+                    class="nav-link text-left w-100 bg-transparent border-0 {{ $active == 'vendor' ? 'active' : '' }}">Vendors</button>
             </li>
              @endcan
              @can('vendors')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('vendor-category')"
-                    class="nav-link {{ $active == 'vendor-category' ? 'active' : '' }}">Vendor Category</a>
+                <button type="button" wire:click="setActive('vendor-category')" wire:key="menu-vendor-category"
+                    class="nav-link text-left w-100 bg-transparent border-0 {{ $active == 'vendor-category' ? 'active' : '' }}">Vendor Category</button>
             </li>
              @endcan
              @can('outlets')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('outlet')"
-                    class="nav-link {{ $active == 'outlet' ? 'active' : '' }}">Outlets</a>
+                <button type="button" wire:click="setActive('outlet')" wire:key="menu-outlet"
+                    class="nav-link text-left w-100 bg-transparent border-0 {{ $active == 'outlet' ? 'active' : '' }}">Outlets</button>
             </li>
              @endcan
              @can('products')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('product')"
-                    class="nav-link {{ $active == 'product' ? 'active' : '' }}">Products</a>
+                <button type="button" wire:click="setActive('product')" wire:key="menu-product"
+                    class="nav-link text-left w-100 bg-transparent border-0 {{ $active == 'product' ? 'active' : '' }}">Products</button>
             </li>
              @endcan
              @can('taxes')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('tax')"
-                    class="nav-link {{ $active == 'tax' ? 'active' : '' }}">Taxes</a>
+                <button type="button" wire:click="setActive('tax')" wire:key="menu-tax"
+                    class="nav-link text-left w-100 bg-transparent border-0 {{ $active == 'tax' ? 'active' : '' }}">Taxes</button>
             </li>
              @endcan
             @can('designation')
             <li class="nav-item">
-                <a href="#" wire:click.prevent="setActive('designation')"
-                    class="nav-link {{ $active == 'designation' ? 'active' : '' }}">Designation</a>
+                <button type="button" wire:click="setActive('designation')" wire:key="menu-designation"
+                    class="nav-link text-left w-100 bg-transparent border-0 {{ $active == 'designation' ? 'active' : '' }}">Designation</button>
             </li>
             @endcan
         </ul>

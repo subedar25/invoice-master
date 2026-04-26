@@ -96,6 +96,16 @@ class RolesUpdateRequest extends FormRequest
                 $userScopes['list-users']['own_invoices'] = false;
                 $userScopes['list-users']['all_departments'] = true;
             }
+            $roleScopeMode = (string) ($userScopes['list-users']['role_scope_mode'] ?? 'all_roles');
+            if ($roleScopeMode === 'selected_roles') {
+                $ids = isset($userScopes['list-users']['role_ids']) && is_array($userScopes['list-users']['role_ids'])
+                    ? array_values(array_unique(array_filter(array_map('intval', $userScopes['list-users']['role_ids']))))
+                    : [];
+                $userScopes['list-users']['role_ids'] = $ids;
+            } else {
+                $userScopes['list-users']['role_ids'] = [];
+            }
+            unset($userScopes['list-users']['role_scope_mode']);
             unset($userScopes['list-users']['scope_mode']);
         }
         $this->merge(['user_department_scopes' => $userScopes]);
@@ -144,6 +154,15 @@ class RolesUpdateRequest extends FormRequest
             'user_department_scopes.list-users.reporting_only' => ['nullable', 'boolean'],
             'user_department_scopes.list-users.department_ids' => ['nullable', 'array'],
             'user_department_scopes.list-users.department_ids.*' => ['integer', $deptExists],
+            'user_department_scopes.list-users.role_ids' => ['nullable', 'array'],
+            'user_department_scopes.list-users.role_ids.*' => ['integer', Rule::exists('roles', 'id')->where(function ($query) {
+                $orgId = CurrentOrganization::id();
+                if ($orgId === null) {
+                    return $query->whereRaw('1 = 0');
+                }
+
+                return $query->where('organization_id', $orgId);
+            })],
         ];
 
         $base = [
@@ -259,6 +278,14 @@ class RolesUpdateRequest extends FormRequest
                     $validator->errors()->add(
                         'user_department_scopes.list-users',
                         __('Choose reporting mode, all departments, or select at least one department for View Users.')
+                    );
+                }
+                $roleIds = array_filter(array_map('intval', $usr['role_ids'] ?? []));
+                $roleScopeMode = (string) $this->input('user_department_scopes.list-users.role_scope_mode', 'all_roles');
+                if ($roleScopeMode === 'selected_roles' && $roleIds === []) {
+                    $validator->errors()->add(
+                        'user_department_scopes.list-users',
+                        __('Choose at least one role when "View selected user roles" is selected.')
                     );
                 }
             }

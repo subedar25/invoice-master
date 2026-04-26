@@ -136,6 +136,7 @@ class RoleController extends Controller
         $departments = $service->getDepartmentsForOrganization(CurrentOrganization::id());
         $groupedPermissions = $service->getActiveAssignablePermissionsGrouped(auth()->user());
         $allDepartmentsForInvoiceScope = $service->getDepartmentRecordsForOrganization(CurrentOrganization::id());
+        $allRolesForUserScope = $service->getRoleRecordsForOrganization(CurrentOrganization::id());
         $invoiceDepartmentScopes = $this->defaultInvoiceDepartmentScopes();
         $userDepartmentScopes = $this->defaultUserDepartmentScopes();
         $invoicePermissionIds = InvoiceDepartmentAuthorization::invoicePermissionIdsByName();
@@ -148,6 +149,7 @@ class RoleController extends Controller
             'groupedPermissions',
             'departments',
             'allDepartmentsForInvoiceScope',
+            'allRolesForUserScope',
             'invoiceDepartmentScopes',
             'userDepartmentScopes',
             'listUsersPermissionId',
@@ -190,6 +192,7 @@ class RoleController extends Controller
             ->toArray();
 
         $allDepartmentsForInvoiceScope = $service->getDepartmentRecordsForOrganization(CurrentOrganization::id());
+        $allRolesForUserScope = $service->getRoleRecordsForOrganization(CurrentOrganization::id());
         $defaults = $this->defaultInvoiceDepartmentScopes();
         $userDefaults = $this->defaultUserDepartmentScopes();
         $loaded = RoleInvoiceDepartmentScope::mapByPermissionNameForRole($role->id);
@@ -207,6 +210,7 @@ class RoleController extends Controller
             'rolePermissions',
             'departments',
             'allDepartmentsForInvoiceScope',
+            'allRolesForUserScope',
             'invoiceDepartmentScopes',
             'userDepartmentScopes',
             'listUsersPermissionId',
@@ -334,6 +338,7 @@ class RoleController extends Controller
                 'own_invoices' => false,
                 'reporting_only' => false,
                 'department_ids' => [],
+                'role_ids' => [],
             ],
         ];
     }

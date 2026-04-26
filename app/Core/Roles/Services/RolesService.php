@@ -47,6 +47,11 @@ class RolesService
         return $this->roles->getDepartmentRecordsForOrganization($organizationId);
     }
 
+    public function getRoleRecordsForOrganization(?int $organizationId)
+    {
+        return $this->roles->getRoleRecordsForOrganization($organizationId);
+    }
+
     public function getActiveAssignablePermissionsGrouped($viewer)
     {
         return $this->roles->getActiveAssignablePermissionsGrouped($viewer);

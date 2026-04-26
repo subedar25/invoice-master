@@ -18,6 +18,7 @@ use App\Core\Email\Services\EmailService;
 use App\Core\File\Services\FileManagementService;
 use App\Models\UserDocument;
 use App\Support\CurrentOrganization;
+use App\Support\UserDepartmentAuthorization;
 
 class UserController extends Controller
 {
@@ -459,6 +460,23 @@ class UserController extends Controller
     protected function rolesForOrganizationIds(array $organizationIds)
     {
         $service = app(UserService::class);
-        return $service->getRolesForOrganizationIds($organizationIds);
+        $roles = $service->getRolesForOrganizationIds($organizationIds);
+
+        $authUser = auth()->user();
+        $currentOrganizationId = (int) session('current_organization_id', 0);
+        if (! $authUser || $currentOrganizationId <= 0) {
+            return $roles;
+        }
+
+        $allowedRoleIds = UserDepartmentAuthorization::mergedListRoleRestriction($authUser, $currentOrganizationId);
+        if ($allowedRoleIds === null) {
+            return $roles;
+        }
+        if ($allowedRoleIds === []) {
+            return collect();
+        }
+
+        $allowedMap = array_flip(array_map('intval', $allowedRoleIds));
+        return $roles->filter(fn ($role) => isset($allowedMap[(int) $role->id]))->values();
     }
 }

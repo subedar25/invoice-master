@@ -22,6 +22,8 @@ interface RolesRepository
 
     public function getDepartmentRecordsForOrganization(?int $organizationId): Collection;
 
+    public function getRoleRecordsForOrganization(?int $organizationId): Collection;
+
     public function getActiveAssignablePermissionsGrouped(?User $viewer): Collection;
 
     public function getActiveAssignablePermissions(?User $viewer): Collection;

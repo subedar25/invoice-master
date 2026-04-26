@@ -230,6 +230,64 @@ class UserDepartmentAuthorization
     }
 
     /**
+     * @return null|array<int> null means all roles allowed
+     */
+    public static function mergedListRoleRestriction(User $user, ?int $organizationId): ?array
+    {
+        if ($organizationId === null) {
+            return [];
+        }
+
+        if (self::systemUserMayListUsers($user)) {
+            return null;
+        }
+
+        if ($user->hasDirectPermission(self::LIST_USERS)) {
+            return null;
+        }
+
+        $listId = Permission::query()
+            ->where('name', self::LIST_USERS)
+            ->where('guard_name', 'web')
+            ->value('id');
+        if (! $listId) {
+            return [];
+        }
+
+        $orgRoles = $user->roles()
+            ->where('roles.is_active', true)
+            ->where('roles.organization_id', $organizationId)
+            ->get();
+
+        $hasListInOrg = $orgRoles->contains(fn ($role) => $role->hasPermissionTo(self::LIST_USERS));
+        if (! $hasListInOrg) {
+            return [];
+        }
+
+        $scopes = RoleInvoiceDepartmentScope::query()
+            ->whereIn('role_id', $orgRoles->pluck('id'))
+            ->where('permission_id', $listId)
+            ->get();
+
+        if ($scopes->isEmpty()) {
+            return null;
+        }
+
+        $merged = [];
+        foreach ($scopes as $scope) {
+            $ids = array_values(array_unique(array_filter(array_map('intval', $scope->role_ids ?? []))));
+            if ($ids === []) {
+                return null;
+            }
+            foreach ($ids as $id) {
+                $merged[$id] = true;
+            }
+        }
+
+        return array_map('intval', array_keys($merged));
+    }
+
+    /**
      * Direct + subordinate reportees.
      *
      * @return array<int>

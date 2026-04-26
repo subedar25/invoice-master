@@ -135,6 +135,16 @@ class EloquentUserRepository implements UserRepository
                     $query->whereIn('department_id', array_map('intval', $restriction));
                 }
             }
+
+            $roleRestriction = UserDepartmentAuthorization::mergedListRoleRestriction($authUser, $currentOrganizationId);
+            if ($roleRestriction === []) {
+                return new \Illuminate\Database\Eloquent\Collection();
+            }
+            if (is_array($roleRestriction)) {
+                $query->whereHas('roles', function ($q) use ($roleRestriction) {
+                    $q->whereIn('roles.id', array_map('intval', $roleRestriction));
+                });
+            }
         } elseif (! $isSystemUser) {
             $allowedOrgIds = $authUser->organizations()->pluck('organizations.id')->all();
             if (empty($allowedOrgIds)) {
