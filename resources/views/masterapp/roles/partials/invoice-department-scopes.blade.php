@@ -3,22 +3,26 @@
     $approveScope = $invoiceDepartmentScopes['approve-invoice'] ?? ['all_departments' => true, 'own_invoices' => false, 'reporting_only' => false, 'department_ids' => []];
     $listDeptIds = array_map('intval', $listScope['department_ids'] ?? []);
     $approveDeptIds = array_map('intval', $approveScope['department_ids'] ?? []);
-    $listScopeMode = !empty($listScope['reporting_only'] ?? false)
+    $listScopeMode = (!empty($listScope['reporting_only'] ?? false) && !empty($listScope['own_invoices'] ?? false))
+        ? 'reporting_with_subordinate'
+        : (!empty($listScope['reporting_only'] ?? false)
         ? 'reporting'
         : (!empty($listScope['own_invoices'] ?? false)
         ? 'own'
-        : (!empty($listScope['all_departments'] ?? true) ? 'all' : 'selected'));
-    $approveScopeMode = !empty($approveScope['reporting_only'] ?? false)
+        : (!empty($listScope['all_departments'] ?? true) ? 'all' : 'selected')));
+    $approveScopeMode = (!empty($approveScope['reporting_only'] ?? false) && !empty($approveScope['own_invoices'] ?? false))
+        ? 'reporting_with_subordinate'
+        : (!empty($approveScope['reporting_only'] ?? false)
         ? 'reporting'
-        : (!empty($approveScope['all_departments'] ?? true) ? 'all' : 'selected');
+        : (!empty($approveScope['all_departments'] ?? true) ? 'all' : 'selected'));
 @endphp
 
 @if($listInvoicesPermissionId || $approveInvoicePermissionId)
 <div class="col-12 mt-3 pt-3 border-top">
     <div class="small font-weight-bold text-secondary mb-2">Invoice — department access</div>
     <p class="small text-muted mb-3">
-        For <strong>View Invoices</strong>, choose <em>Reporting Only</em>, <em>Own Invoices</em>, <em>All departments</em>, or <em>Selected departments</em>.
-        For <strong>Approve Invoice</strong>, choose <em>Reporting Only</em>, <em>All departments</em>, or <em>Selected departments</em>.
+        For <strong>View Invoices</strong>, choose <em>Reporting only (direct reportees)</em>, <em>Reporting + subordinates</em>, <em>Own Invoices</em>, <em>All departments</em>, or <em>Selected departments</em>.
+        For <strong>Approve Invoice</strong>, choose <em>Reporting only (direct reportees)</em>, <em>Reporting + subordinates</em>, <em>All departments</em>, or <em>Selected departments</em>.
         If you limit departments, pick at least one department for each permission you assign.
     </p>
 
@@ -34,7 +38,15 @@
                 name="invoice_department_scopes[list-invoices][scope_mode]"
                 value="reporting"
                 @checked($listScopeMode === 'reporting')>
-            <label class="custom-control-label" for="inv_scope_list_reporting">Reporting Only</label>
+            <label class="custom-control-label" for="inv_scope_list_reporting">Reporting only (direct reportees)</label>
+        </div>
+        <div class="custom-control custom-radio mb-2">
+            <input type="radio" class="custom-control-input js-invoice-scope-mode-list"
+                id="inv_scope_list_reporting_sub"
+                name="invoice_department_scopes[list-invoices][scope_mode]"
+                value="reporting_with_subordinate"
+                @checked($listScopeMode === 'reporting_with_subordinate')>
+            <label class="custom-control-label" for="inv_scope_list_reporting_sub">Reporting + subordinates</label>
         </div>
         <div class="custom-control custom-radio mb-2">
             <input type="radio" class="custom-control-input js-invoice-scope-mode-list"
@@ -89,7 +101,15 @@
                 name="invoice_department_scopes[approve-invoice][scope_mode]"
                 value="reporting"
                 @checked($approveScopeMode === 'reporting')>
-            <label class="custom-control-label" for="inv_scope_apr_reporting">Reporting Only</label>
+            <label class="custom-control-label" for="inv_scope_apr_reporting">Reporting only (direct reportees)</label>
+        </div>
+        <div class="custom-control custom-radio mb-2">
+            <input type="radio" class="custom-control-input js-invoice-scope-mode-approve"
+                id="inv_scope_apr_reporting_sub"
+                name="invoice_department_scopes[approve-invoice][scope_mode]"
+                value="reporting_with_subordinate"
+                @checked($approveScopeMode === 'reporting_with_subordinate')>
+            <label class="custom-control-label" for="inv_scope_apr_reporting_sub">Reporting + subordinates</label>
         </div>
         <div class="custom-control custom-radio mb-2">
             <input type="radio" class="custom-control-input js-invoice-scope-mode-approve"

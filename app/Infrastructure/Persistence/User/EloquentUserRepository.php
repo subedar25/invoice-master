@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserDesignation;
+use App\Support\UserDepartmentAuthorization;
 use Spatie\Permission\Models\Role;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -104,6 +105,36 @@ class EloquentUserRepository implements UserRepository
             $query->whereHas('organizations', function ($q) use ($currentOrganizationId) {
                 $q->where('organizations.id', $currentOrganizationId);
             });
+
+            if (! UserDepartmentAuthorization::userHasListInOrganization($authUser, $currentOrganizationId)) {
+                return new \Illuminate\Database\Eloquent\Collection();
+            }
+
+            if (UserDepartmentAuthorization::listReportingUsersOnly($authUser, $currentOrganizationId)) {
+                $reporteeIds = UserDepartmentAuthorization::reportingAndSubordinateUserIds($authUser);
+                if ($reporteeIds === []) {
+                    return new \Illuminate\Database\Eloquent\Collection();
+                }
+                $query->whereIn('id', $reporteeIds);
+            } elseif (UserDepartmentAuthorization::listOwnUsersOnly($authUser, $currentOrganizationId)) {
+                $directIds = User::query()
+                    ->where('reporting_manager_id', $authUser->id)
+                    ->pluck('id')
+                    ->map(fn ($id) => (int) $id)
+                    ->all();
+                if ($directIds === []) {
+                    return new \Illuminate\Database\Eloquent\Collection();
+                }
+                $query->whereIn('id', $directIds);
+            } else {
+                $restriction = UserDepartmentAuthorization::mergedListDepartmentRestriction($authUser, $currentOrganizationId);
+                if ($restriction === []) {
+                    return new \Illuminate\Database\Eloquent\Collection();
+                }
+                if (is_array($restriction)) {
+                    $query->whereIn('department_id', array_map('intval', $restriction));
+                }
+            }
         } elseif (! $isSystemUser) {
             $allowedOrgIds = $authUser->organizations()->pluck('organizations.id')->all();
             if (empty($allowedOrgIds)) {

@@ -220,7 +220,7 @@
                                             <option value="">Select reporting manager</option>
                                             @foreach($reportingManagers as $manager)
                                                 <option value="{{ $manager->id }}" {{ old('reporting_manager_id') == $manager->id ? 'selected' : '' }}>
-                                                    {{ trim($manager->first_name . ' ' . $manager->last_name) }}
+                                                    {{ trim($manager->first_name . ' ' . $manager->last_name) }}{{ $manager->designation?->name ? ' (' . $manager->designation->name . ')' : '' }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -357,6 +357,9 @@ $(function () {
             $rm.empty().append($('<option></option>').val('').text('Select reporting manager'));
             (res.managers || []).forEach(function (m) {
                 var label = $.trim((m.first_name || '') + ' ' + (m.last_name || ''));
+                if (m.designation_name) {
+                    label += ' (' + m.designation_name + ')';
+                }
                 $rm.append($('<option></option>').attr('value', m.id).text(label));
             });
             if (cur && $rm.find('option[value="' + cur + '"]').length) {

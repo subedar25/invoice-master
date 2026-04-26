@@ -91,11 +91,11 @@ class InvoiceDepartmentAuthorization
         $hasNonOwnScope = false;
         $hasReportingOnlyScope = false;
         foreach ($scopes as $scope) {
-            if ((bool) ($scope->own_invoices ?? false)) {
-                continue;
-            }
             if ((bool) ($scope->reporting_only ?? false)) {
                 $hasReportingOnlyScope = true;
+                continue;
+            }
+            if ((bool) ($scope->own_invoices ?? false)) {
                 continue;
             }
             if ($scope->all_departments) {
@@ -156,12 +156,12 @@ class InvoiceDepartmentAuthorization
 
         $hasOwnOnly = false;
         foreach ($scopes as $scope) {
+            if ((bool) ($scope->reporting_only ?? false)) {
+                return false;
+            }
             if ((bool) ($scope->own_invoices ?? false)) {
                 $hasOwnOnly = true;
                 continue;
-            }
-            if ((bool) ($scope->reporting_only ?? false)) {
-                return false;
             }
             if ((bool) $scope->all_departments) {
                 return false;
@@ -234,14 +234,102 @@ class InvoiceDepartmentAuthorization
     /**
      * @return array<int>
      */
-    public static function reportingUserIds(User $user): array
+    public static function reportingUserIds(User $user, bool $includeSubordinates = false): array
     {
-        return User::query()
+        $directIds = User::query()
             ->where('reporting_manager_id', $user->id)
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->values()
             ->all();
+
+        if (! $includeSubordinates || $directIds === []) {
+            return $directIds;
+        }
+
+        $all = $directIds;
+        $frontier = $directIds;
+        while ($frontier !== []) {
+            $next = User::query()
+                ->whereIn('reporting_manager_id', $frontier)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->values()
+                ->all();
+
+            $next = array_values(array_diff($next, $all));
+            if ($next === []) {
+                break;
+            }
+
+            $all = array_values(array_unique(array_merge($all, $next)));
+            $frontier = $next;
+        }
+
+        return $all;
+    }
+
+    public static function listReportingInvoicesIncludeSubordinates(User $user, ?int $organizationId): bool
+    {
+        if (! self::listReportingInvoicesOnly($user, $organizationId)) {
+            return false;
+        }
+
+        $listId = Permission::query()
+            ->where('name', self::LIST_INVOICES)
+            ->where('guard_name', 'web')
+            ->value('id');
+        if (! $listId || $organizationId === null) {
+            return false;
+        }
+
+        $orgRoles = $user->roles()
+            ->where('roles.is_active', true)
+            ->where('roles.organization_id', $organizationId)
+            ->get();
+
+        $scopes = RoleInvoiceDepartmentScope::query()
+            ->whereIn('role_id', $orgRoles->pluck('id'))
+            ->where('permission_id', $listId)
+            ->get();
+
+        return $scopes->contains(fn ($scope) => (bool) ($scope->reporting_only ?? false) && (bool) ($scope->own_invoices ?? false));
+    }
+
+    public static function approveReportingInvoicesIncludeSubordinates(User $user, ?int $organizationId): bool
+    {
+        if ($organizationId === null) {
+            return false;
+        }
+
+        if (self::systemUserMayApproveInvoice($user) || $user->hasDirectPermission(self::APPROVE_INVOICE)) {
+            return false;
+        }
+
+        $approveId = Permission::query()
+            ->where('name', self::APPROVE_INVOICE)
+            ->where('guard_name', 'web')
+            ->value('id');
+        if (! $approveId) {
+            return false;
+        }
+
+        $orgRoles = $user->roles()
+            ->where('roles.is_active', true)
+            ->where('roles.organization_id', $organizationId)
+            ->get();
+
+        $hasApproveInOrg = $orgRoles->contains(fn ($role) => $role->hasPermissionTo(self::APPROVE_INVOICE));
+        if (! $hasApproveInOrg) {
+            return false;
+        }
+
+        $scopes = RoleInvoiceDepartmentScope::query()
+            ->whereIn('role_id', $orgRoles->pluck('id'))
+            ->where('permission_id', $approveId)
+            ->get();
+
+        return $scopes->contains(fn ($scope) => (bool) ($scope->reporting_only ?? false) && (bool) ($scope->own_invoices ?? false));
     }
 
     public static function canApproveInvoice(
@@ -294,11 +382,12 @@ class InvoiceDepartmentAuthorization
                 ->first();
 
             if ($scope && (bool) ($scope->reporting_only ?? false)) {
-                if (
-                    $invoiceCreator
-                    && (int) ($invoiceCreator->reporting_manager_id ?? 0) === (int) $user->id
-                ) {
-                    return true;
+                $canIncludeSubordinates = (bool) ($scope->own_invoices ?? false);
+                if ($invoiceCreator) {
+                    $allowedCreatorIds = self::reportingUserIds($user, $canIncludeSubordinates);
+                    if (in_array((int) $invoiceCreator->id, $allowedCreatorIds, true)) {
+                        return true;
+                    }
                 }
 
                 continue;
@@ -339,7 +428,11 @@ class InvoiceDepartmentAuthorization
         if (
             self::listReportingInvoicesOnly($user, $organizationId)
             && $invoiceCreatedByUserId !== null
-            && in_array((int) $invoiceCreatedByUserId, self::reportingUserIds($user), true)
+            && in_array(
+                (int) $invoiceCreatedByUserId,
+                self::reportingUserIds($user, self::listReportingInvoicesIncludeSubordinates($user, $organizationId)),
+                true
+            )
         ) {
             return true;
         }

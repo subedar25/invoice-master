@@ -52,11 +52,15 @@ class EloquentRolesRepository implements RolesRepository
             $role->load('permissions');
             $permissionIdByName = Permission::query()
                 ->where('guard_name', 'web')
-                ->whereIn('name', ['list-invoices', 'approve-invoice'])
+                ->whereIn('name', ['list-users', 'list-invoices', 'approve-invoice'])
                 ->pluck('id', 'name')
                 ->map(fn ($id) => (int) $id)
                 ->all();
-            RoleInvoiceDepartmentScope::syncForRole($role, $data['invoice_department_scopes'] ?? [], $permissionIdByName);
+            $scopePayload = array_merge(
+                $data['invoice_department_scopes'] ?? [],
+                $data['user_department_scopes'] ?? []
+            );
+            RoleInvoiceDepartmentScope::syncForRole($role, $scopePayload, $permissionIdByName);
 
             // Ensure permission cache reflects new role assignments
             app(PermissionRegistrar::class)->forgetCachedPermissions();
@@ -102,11 +106,15 @@ class EloquentRolesRepository implements RolesRepository
             $role->load('permissions');
             $permissionIdByName = Permission::query()
                 ->where('guard_name', 'web')
-                ->whereIn('name', ['list-invoices', 'approve-invoice'])
+                ->whereIn('name', ['list-users', 'list-invoices', 'approve-invoice'])
                 ->pluck('id', 'name')
                 ->map(fn ($id) => (int) $id)
                 ->all();
-            RoleInvoiceDepartmentScope::syncForRole($role, $data['invoice_department_scopes'] ?? [], $permissionIdByName);
+            $scopePayload = array_merge(
+                $data['invoice_department_scopes'] ?? [],
+                $data['user_department_scopes'] ?? []
+            );
+            RoleInvoiceDepartmentScope::syncForRole($role, $scopePayload, $permissionIdByName);
 
             // Ensure permission cache reflects updated role assignments
             app(PermissionRegistrar::class)->forgetCachedPermissions();

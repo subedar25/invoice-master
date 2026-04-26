@@ -91,6 +91,11 @@
                                 @include('masterapp.roles.partials.invoice-department-scopes')
                             @endonce
                         @endif
+                        @if($moduleName === 'User Management')
+                            @once
+                                @include('masterapp.roles.partials.user-department-scopes')
+                            @endonce
+                        @endif
                     </div>
                 </div>
             @endforeach

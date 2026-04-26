@@ -22,6 +22,10 @@ class RolesStoreRequest extends FormRequest
                     $scopes[$key]['reporting_only'] = true;
                     $scopes[$key]['own_invoices'] = false;
                     $scopes[$key]['all_departments'] = false;
+                } elseif ($mode === 'reporting_with_subordinate') {
+                    $scopes[$key]['reporting_only'] = true;
+                    $scopes[$key]['own_invoices'] = true;
+                    $scopes[$key]['all_departments'] = false;
                 } elseif ($mode === 'own') {
                     $scopes[$key]['reporting_only'] = false;
                     $scopes[$key]['own_invoices'] = true;
@@ -40,18 +44,49 @@ class RolesStoreRequest extends FormRequest
                 $mode = (string) ($scopes[$key]['scope_mode'] ?? '');
                 if ($mode === 'reporting') {
                     $scopes[$key]['reporting_only'] = true;
+                    $scopes[$key]['own_invoices'] = false;
+                    $scopes[$key]['all_departments'] = false;
+                } elseif ($mode === 'reporting_with_subordinate') {
+                    $scopes[$key]['reporting_only'] = true;
+                    $scopes[$key]['own_invoices'] = true;
                     $scopes[$key]['all_departments'] = false;
                 } elseif ($mode === 'selected') {
                     $scopes[$key]['reporting_only'] = false;
+                    $scopes[$key]['own_invoices'] = false;
                     $scopes[$key]['all_departments'] = false;
                 } else {
                     $scopes[$key]['reporting_only'] = false;
+                    $scopes[$key]['own_invoices'] = false;
                     $scopes[$key]['all_departments'] = true;
                 }
                 unset($scopes[$key]['scope_mode']);
             }
         }
         $this->merge(['invoice_department_scopes' => $scopes]);
+
+        $userScopes = $this->input('user_department_scopes', []);
+        if (isset($userScopes['list-users'])) {
+            $mode = (string) ($userScopes['list-users']['scope_mode'] ?? '');
+            if ($mode === 'reporting_only') {
+                $userScopes['list-users']['reporting_only'] = true;
+                $userScopes['list-users']['all_departments'] = false;
+                $userScopes['list-users']['own_invoices'] = false;
+            } elseif ($mode === 'reporting_with_subordinate') {
+                $userScopes['list-users']['reporting_only'] = true;
+                $userScopes['list-users']['all_departments'] = false;
+                $userScopes['list-users']['own_invoices'] = true;
+            } elseif ($mode === 'selected') {
+                $userScopes['list-users']['reporting_only'] = false;
+                $userScopes['list-users']['own_invoices'] = false;
+                $userScopes['list-users']['all_departments'] = false;
+            } else {
+                $userScopes['list-users']['reporting_only'] = false;
+                $userScopes['list-users']['own_invoices'] = false;
+                $userScopes['list-users']['all_departments'] = true;
+            }
+            unset($userScopes['list-users']['scope_mode']);
+        }
+        $this->merge(['user_department_scopes' => $userScopes]);
     }
 
     /**
@@ -121,9 +156,17 @@ class RolesStoreRequest extends FormRequest
             'invoice_department_scopes.list-invoices.department_ids.*' => ['integer', $deptExists],
             'invoice_department_scopes.approve-invoice' => ['nullable', 'array'],
             'invoice_department_scopes.approve-invoice.all_departments' => ['nullable', 'boolean'],
+            'invoice_department_scopes.approve-invoice.own_invoices' => ['nullable', 'boolean'],
             'invoice_department_scopes.approve-invoice.reporting_only' => ['nullable', 'boolean'],
             'invoice_department_scopes.approve-invoice.department_ids' => ['nullable', 'array'],
             'invoice_department_scopes.approve-invoice.department_ids.*' => ['integer', $deptExists],
+            'user_department_scopes' => ['nullable', 'array'],
+            'user_department_scopes.list-users' => ['nullable', 'array'],
+            'user_department_scopes.list-users.all_departments' => ['nullable', 'boolean'],
+            'user_department_scopes.list-users.own_invoices' => ['nullable', 'boolean'],
+            'user_department_scopes.list-users.reporting_only' => ['nullable', 'boolean'],
+            'user_department_scopes.list-users.department_ids' => ['nullable', 'array'],
+            'user_department_scopes.list-users.department_ids.*' => ['integer', $deptExists],
         ];
     }
 
@@ -145,7 +188,7 @@ class RolesStoreRequest extends FormRequest
                 if (! $all && ! $own && ! $reporting && $depts === []) {
                     $validator->errors()->add(
                         'invoice_department_scopes.list-invoices',
-                        __('Choose Reporting Only, Own Invoices, All departments, or select at least one department for View Invoices.')
+                        __('Choose Reporting Only, View reportee and subordinates, Own Invoices, All departments, or select at least one department for View Invoices.')
                     );
                 }
             }
@@ -158,7 +201,21 @@ class RolesStoreRequest extends FormRequest
                 if (! $all && ! $reporting && $depts === []) {
                     $validator->errors()->add(
                         'invoice_department_scopes.approve-invoice',
-                        __('Choose Reporting Only, All departments, or select at least one department for Approve Invoice.')
+                        __('Choose Reporting Only, View reportee and subordinates, All departments, or select at least one department for Approve Invoice.')
+                    );
+                }
+            }
+
+            $listUsersId = (int) (Permission::query()->where('name', 'list-users')->where('guard_name', 'web')->value('id') ?? 0);
+            if ($listUsersId && in_array($listUsersId, $permissions, true)) {
+                $usr = $this->input('user_department_scopes.list-users', []);
+                $all = (bool) ($usr['all_departments'] ?? true);
+                $reporting = (bool) ($usr['reporting_only'] ?? false);
+                $depts = array_filter(array_map('intval', $usr['department_ids'] ?? []));
+                if (! $all && ! $reporting && $depts === []) {
+                    $validator->errors()->add(
+                        'user_department_scopes.list-users',
+                        __('Choose reporting mode, all departments, or select at least one department for View Users.')
                     );
                 }
             }

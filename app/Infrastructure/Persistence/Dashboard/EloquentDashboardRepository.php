@@ -225,6 +225,17 @@ class EloquentDashboardRepository implements DashboardRepository
             return;
         }
 
+        if (InvoiceDepartmentAuthorization::listReportingInvoicesOnly($user, $organizationId)) {
+            $includeSubordinates = InvoiceDepartmentAuthorization::listReportingInvoicesIncludeSubordinates($user, $organizationId);
+            $reportingUserIds = InvoiceDepartmentAuthorization::reportingUserIds($user, $includeSubordinates);
+            if ($reportingUserIds === []) {
+                $query->whereRaw('1 = 0');
+                return;
+            }
+            $query->whereIn('createdby_id', array_map('intval', $reportingUserIds));
+            return;
+        }
+
         $restriction = InvoiceDepartmentAuthorization::mergedListDepartmentRestriction($user, $organizationId);
         if ($restriction === null) {
             return;

@@ -16,6 +16,7 @@ use App\Http\Requests\MasterApp\Roles\RolesStoreRequest;
 use App\Http\Requests\MasterApp\Roles\RolesUpdateRequest;
 use App\Support\CurrentOrganization;
 use App\Support\InvoiceDepartmentAuthorization;
+use App\Support\UserDepartmentAuthorization;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 
@@ -136,7 +137,10 @@ class RoleController extends Controller
         $groupedPermissions = $service->getActiveAssignablePermissionsGrouped(auth()->user());
         $allDepartmentsForInvoiceScope = $service->getDepartmentRecordsForOrganization(CurrentOrganization::id());
         $invoiceDepartmentScopes = $this->defaultInvoiceDepartmentScopes();
+        $userDepartmentScopes = $this->defaultUserDepartmentScopes();
         $invoicePermissionIds = InvoiceDepartmentAuthorization::invoicePermissionIdsByName();
+        $userPermissionIds = UserDepartmentAuthorization::userPermissionIdsByName();
+        $listUsersPermissionId = $userPermissionIds['list-users'] ?? null;
         $listInvoicesPermissionId = $invoicePermissionIds['list-invoices'] ?? null;
         $approveInvoicePermissionId = $invoicePermissionIds['approve-invoice'] ?? null;
 
@@ -145,6 +149,8 @@ class RoleController extends Controller
             'departments',
             'allDepartmentsForInvoiceScope',
             'invoiceDepartmentScopes',
+            'userDepartmentScopes',
+            'listUsersPermissionId',
             'listInvoicesPermissionId',
             'approveInvoicePermissionId',
         ));
@@ -185,9 +191,13 @@ class RoleController extends Controller
 
         $allDepartmentsForInvoiceScope = $service->getDepartmentRecordsForOrganization(CurrentOrganization::id());
         $defaults = $this->defaultInvoiceDepartmentScopes();
+        $userDefaults = $this->defaultUserDepartmentScopes();
         $loaded = RoleInvoiceDepartmentScope::mapByPermissionNameForRole($role->id);
         $invoiceDepartmentScopes = array_replace_recursive($defaults, $loaded);
+        $userDepartmentScopes = array_replace_recursive($userDefaults, $loaded);
         $invoicePermissionIds = InvoiceDepartmentAuthorization::invoicePermissionIdsByName();
+        $userPermissionIds = UserDepartmentAuthorization::userPermissionIdsByName();
+        $listUsersPermissionId = $userPermissionIds['list-users'] ?? null;
         $listInvoicesPermissionId = $invoicePermissionIds['list-invoices'] ?? null;
         $approveInvoicePermissionId = $invoicePermissionIds['approve-invoice'] ?? null;
 
@@ -198,6 +208,8 @@ class RoleController extends Controller
             'departments',
             'allDepartmentsForInvoiceScope',
             'invoiceDepartmentScopes',
+            'userDepartmentScopes',
+            'listUsersPermissionId',
             'listInvoicesPermissionId',
             'approveInvoicePermissionId',
         ));
@@ -301,6 +313,21 @@ class RoleController extends Controller
                 'department_ids' => [],
             ],
             'approve-invoice' => [
+                'all_departments' => true,
+                'own_invoices' => false,
+                'reporting_only' => false,
+                'department_ids' => [],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, array{all_departments: bool, own_invoices: bool, reporting_only: bool, department_ids: array<int>}>
+     */
+    protected function defaultUserDepartmentScopes(): array
+    {
+        return [
+            'list-users' => [
                 'all_departments' => true,
                 'own_invoices' => false,
                 'reporting_only' => false,

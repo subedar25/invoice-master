@@ -1548,8 +1548,9 @@ class Invoices extends Component
         $user = auth()->user();
         $ownInvoicesOnly = InvoiceDepartmentAuthorization::listOwnInvoicesOnly($user, $orgId);
         $reportingOnly = InvoiceDepartmentAuthorization::listReportingInvoicesOnly($user, $orgId);
+        $reportingWithSubordinates = InvoiceDepartmentAuthorization::listReportingInvoicesIncludeSubordinates($user, $orgId);
         $reportingUserIds = $reportingOnly
-            ? InvoiceDepartmentAuthorization::reportingUserIds($user)
+            ? InvoiceDepartmentAuthorization::reportingUserIds($user, $reportingWithSubordinates)
             : null;
         $listDeptRestriction = InvoiceDepartmentAuthorization::mergedListDepartmentRestriction($user, $orgId);
         $listDeptRestrictionForQuery = $ownInvoicesOnly ? null : $listDeptRestriction;
