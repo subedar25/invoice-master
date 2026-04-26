@@ -296,6 +296,71 @@ class InvoiceDepartmentAuthorization
         return $scopes->contains(fn ($scope) => (bool) ($scope->reporting_only ?? false) && (bool) ($scope->own_invoices ?? false));
     }
 
+    /**
+     * @return null|array<int, string> null means no status restriction
+     */
+    public static function mergedListStatusRestriction(User $user, ?int $organizationId): ?array
+    {
+        if ($organizationId === null) {
+            return ['pending', 'in_process', 'approve', 'complete'];
+        }
+
+        if (self::systemUserMayListInvoices($user)) {
+            return null;
+        }
+
+        if ($user->hasDirectPermission(self::LIST_INVOICES)) {
+            return null;
+        }
+
+        $listId = Permission::query()
+            ->where('name', self::LIST_INVOICES)
+            ->where('guard_name', 'web')
+            ->value('id');
+        if (! $listId) {
+            return ['pending', 'in_process', 'approve', 'complete'];
+        }
+
+        $orgRoles = $user->roles()
+            ->where('roles.is_active', true)
+            ->where('roles.organization_id', $organizationId)
+            ->get();
+
+        $hasListInOrg = $orgRoles->contains(fn ($role) => $role->hasPermissionTo(self::LIST_INVOICES));
+        if (! $hasListInOrg) {
+            return ['pending', 'in_process', 'approve', 'complete'];
+        }
+
+        $scopes = RoleInvoiceDepartmentScope::query()
+            ->whereIn('role_id', $orgRoles->pluck('id'))
+            ->where('permission_id', $listId)
+            ->get();
+        if ($scopes->isEmpty()) {
+            return null;
+        }
+
+        $allowed = [];
+        $allStatuses = ['pending', 'in_process', 'approve', 'complete'];
+        foreach ($scopes as $scope) {
+            $statuses = array_values(array_unique(array_filter(array_map(
+                static fn ($s) => strtolower(trim((string) $s)),
+                $scope->statuses ?? $allStatuses
+            ))));
+            if ($statuses === []) {
+                $statuses = $allStatuses;
+            }
+            foreach ($statuses as $status) {
+                $allowed[$status] = true;
+            }
+        }
+
+        if ($allowed === []) {
+            return $allStatuses;
+        }
+
+        return array_values(array_intersect($allStatuses, array_keys($allowed)));
+    }
+
     public static function approveReportingInvoicesIncludeSubordinates(User $user, ?int $organizationId): bool
     {
         if ($organizationId === null) {

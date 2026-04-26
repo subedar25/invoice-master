@@ -1552,6 +1552,13 @@ class Invoices extends Component
         $reportingUserIds = $reportingOnly
             ? InvoiceDepartmentAuthorization::reportingUserIds($user, $reportingWithSubordinates)
             : null;
+        $statusRestriction = InvoiceDepartmentAuthorization::mergedListStatusRestriction($user, $orgId);
+        $effectiveFilterStatuses = $this->filterStatuses;
+        if (is_array($statusRestriction)) {
+            $effectiveFilterStatuses = $effectiveFilterStatuses === []
+                ? $statusRestriction
+                : array_values(array_intersect($statusRestriction, $effectiveFilterStatuses));
+        }
         $listDeptRestriction = InvoiceDepartmentAuthorization::mergedListDepartmentRestriction($user, $orgId);
         $listDeptRestrictionForQuery = $ownInvoicesOnly ? null : $listDeptRestriction;
 
@@ -1571,7 +1578,7 @@ class Invoices extends Component
             'invoices' => $this->invoice()->paginateForList(
                 $this->organization_id,
                 $this->search,
-                $this->filterStatuses,
+                $effectiveFilterStatuses,
                 $ownInvoicesOnly ? [] : $this->filterDepartmentIds,
                 $this->filterOutletIds,
                 $this->perPage,

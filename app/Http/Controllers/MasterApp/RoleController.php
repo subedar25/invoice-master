@@ -311,12 +311,14 @@ class RoleController extends Controller
                 'own_invoices' => false,
                 'reporting_only' => false,
                 'department_ids' => [],
+                'statuses' => ['pending', 'in_process', 'approve', 'complete'],
             ],
             'approve-invoice' => [
                 'all_departments' => true,
                 'own_invoices' => false,
                 'reporting_only' => false,
                 'department_ids' => [],
+                'statuses' => [],
             ],
         ];
     }

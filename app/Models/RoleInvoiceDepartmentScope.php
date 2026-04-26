@@ -14,6 +14,7 @@ class RoleInvoiceDepartmentScope extends Model
         'own_invoices',
         'reporting_only',
         'department_ids',
+        'statuses',
     ];
 
     protected $casts = [
@@ -21,6 +22,7 @@ class RoleInvoiceDepartmentScope extends Model
         'own_invoices' => 'boolean',
         'reporting_only' => 'boolean',
         'department_ids' => 'array',
+        'statuses' => 'array',
     ];
 
     public function role(): BelongsTo
@@ -34,7 +36,7 @@ class RoleInvoiceDepartmentScope extends Model
     }
 
     /**
-     * @param  array<string, array{all_departments?: bool, own_invoices?: bool, reporting_only?: bool, department_ids?: array<int>|null}>  $scopesByPermissionName
+     * @param  array<string, array{all_departments?: bool, own_invoices?: bool, reporting_only?: bool, department_ids?: array<int>|null, statuses?: array<int, string>|null}>  $scopesByPermissionName
      */
     public static function syncForRole(Role $role, array $scopesByPermissionName, array $permissionIdByName): void
     {
@@ -58,6 +60,12 @@ class RoleInvoiceDepartmentScope extends Model
             $ids = isset($payload['department_ids']) && is_array($payload['department_ids'])
                 ? array_values(array_unique(array_filter(array_map('intval', $payload['department_ids']))))
                 : [];
+            $statuses = isset($payload['statuses']) && is_array($payload['statuses'])
+                ? array_values(array_unique(array_filter(array_map(
+                    static fn ($s) => strtolower(trim((string) $s)),
+                    $payload['statuses']
+                ))))
+                : [];
 
             static::query()->create([
                 'role_id' => $role->id,
@@ -66,12 +74,15 @@ class RoleInvoiceDepartmentScope extends Model
                 'own_invoices' => $ownOnly,
                 'reporting_only' => $reportingOnly,
                 'department_ids' => ($ownOnly || $reportingOnly || $all) ? null : $ids,
+                'statuses' => $permName === 'list-invoices'
+                    ? ($statuses === [] ? ['pending', 'in_process', 'approve', 'complete'] : $statuses)
+                    : null,
             ]);
         }
     }
 
     /**
-     * @return array<string, array{all_departments: bool, own_invoices: bool, reporting_only: bool, department_ids: array<int>}>
+     * @return array<string, array{all_departments: bool, own_invoices: bool, reporting_only: bool, department_ids: array<int>, statuses: array<int, string>}>
      */
     public static function mapByPermissionNameForRole(int $roleId): array
     {
@@ -91,6 +102,10 @@ class RoleInvoiceDepartmentScope extends Model
                 'own_invoices' => (bool) ($row->own_invoices ?? false),
                 'reporting_only' => (bool) ($row->reporting_only ?? false),
                 'department_ids' => array_values(array_map('intval', $row->department_ids ?? [])),
+                'statuses' => array_values(array_unique(array_filter(array_map(
+                    static fn ($s) => strtolower(trim((string) $s)),
+                    $row->statuses ?? ['pending', 'in_process', 'approve', 'complete']
+                )))),
             ];
         }
 

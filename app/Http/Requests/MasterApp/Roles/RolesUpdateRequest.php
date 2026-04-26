@@ -61,6 +61,18 @@ class RolesUpdateRequest extends FormRequest
                 }
                 unset($scopes[$key]['scope_mode']);
             }
+
+            if ($key === 'list-invoices') {
+                $allowedStatuses = ['pending', 'in_process', 'approve', 'complete'];
+                $statuses = isset($scopes[$key]['statuses']) && is_array($scopes[$key]['statuses'])
+                    ? array_values(array_unique(array_filter(array_map(
+                        static fn ($s) => strtolower(trim((string) $s)),
+                        $scopes[$key]['statuses']
+                    ))))
+                    : [];
+                $statuses = array_values(array_intersect($allowedStatuses, $statuses));
+                $scopes[$key]['statuses'] = $statuses === [] ? $allowedStatuses : $statuses;
+            }
         }
         $this->merge(['invoice_department_scopes' => $scopes]);
 
@@ -117,6 +129,8 @@ class RolesUpdateRequest extends FormRequest
             'invoice_department_scopes.list-invoices.reporting_only' => ['nullable', 'boolean'],
             'invoice_department_scopes.list-invoices.department_ids' => ['nullable', 'array'],
             'invoice_department_scopes.list-invoices.department_ids.*' => ['integer', $deptExists],
+            'invoice_department_scopes.list-invoices.statuses' => ['nullable', 'array'],
+            'invoice_department_scopes.list-invoices.statuses.*' => ['string', Rule::in(['pending', 'in_process', 'approve', 'complete'])],
             'invoice_department_scopes.approve-invoice' => ['nullable', 'array'],
             'invoice_department_scopes.approve-invoice.all_departments' => ['nullable', 'boolean'],
             'invoice_department_scopes.approve-invoice.own_invoices' => ['nullable', 'boolean'],

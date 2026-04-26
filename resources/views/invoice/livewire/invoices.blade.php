@@ -265,12 +265,12 @@
                                                     @can('view-payment-history')
                                                     <a href="#" wire:click.prevent="openPaymentHistoryModal({{ $invoice->id }})" class="action-icon text-info" title="Payment history"><i class="fas fa-history"></i></a>
                                                     @endcan
-                                                    @can('edit-invoice')
                                                     @if($invoicePending > 0)
                                                     @can('make-payment')
                                                     <a href="#" wire:click.prevent="openPaymentModal({{ $invoice->id }})" class="action-icon text-success" title="Record payment"><i class="fas fa-money-check-alt"></i></a>
                                                     @endcan
                                                     @endif
+                                                    @can('edit-invoice')
                                                     @if($this->canEditRow($invoice))
                                                     <a href="#" wire:click.prevent="openEditModal({{ $invoice->id }})" class="action-icon"><i class="fa fa-edit"></i></a>
                                                     @endif

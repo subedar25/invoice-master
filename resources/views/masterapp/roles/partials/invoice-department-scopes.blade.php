@@ -15,6 +15,16 @@
         : (!empty($approveScope['reporting_only'] ?? false)
         ? 'reporting'
         : (!empty($approveScope['all_departments'] ?? true) ? 'all' : 'selected'));
+    $invoiceStatusOptions = [
+        'pending' => 'Pending',
+        'in_process' => 'In Process',
+        'approve' => 'Approve',
+        'complete' => 'Complete',
+    ];
+    $listStatuses = array_values(array_unique(array_map(
+        static fn ($s) => strtolower((string) $s),
+        $listScope['statuses'] ?? array_keys($invoiceStatusOptions)
+    )));
 @endphp
 
 @if($listInvoicesPermissionId || $approveInvoicePermissionId)
@@ -85,6 +95,19 @@
             @empty
                 <span class="text-muted small">No departments in this organization.</span>
             @endforelse
+        </div>
+        <div class="mt-3 pl-2 border-left ml-1">
+            <div class="small font-weight-bold text-muted mb-2">Invoice statuses visible in list</div>
+            @foreach($invoiceStatusOptions as $statusValue => $statusLabel)
+                <div class="custom-control custom-checkbox mb-1">
+                    <input type="checkbox" class="custom-control-input"
+                        id="inv_list_status_{{ $statusValue }}"
+                        name="invoice_department_scopes[list-invoices][statuses][]"
+                        value="{{ $statusValue }}"
+                        @checked(in_array($statusValue, $listStatuses, true))>
+                    <label class="custom-control-label font-weight-normal" for="inv_list_status_{{ $statusValue }}">{{ $statusLabel }}</label>
+                </div>
+            @endforeach
         </div>
     </div>
     @endif
