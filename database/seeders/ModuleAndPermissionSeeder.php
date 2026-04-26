@@ -26,7 +26,6 @@ class ModuleAndPermissionSeeder extends Seeder
                     // ['name' => 'delete-user', 'display_name' => 'Delete User','slug' => 'delete-user'],
                     ['name' => 'edit-email', 'display_name' => 'Edit Email','slug' => 'edit-email'],
                     ['name' => 'list-users', 'display_name' => 'View Users','slug' => 'list-users'],
-                    ['name' => 'list-driver', 'display_name' => 'View Driver','slug' => 'list-driver'],
                    // ['name' => 'list-wordpress-user', 'display_name' => 'View WordPress User', 'slug' => 'list-wordpress-user'],
                     //create active user,drivers, wordpress permissions
                     ['name' => 'active-deactive', 'display_name' => 'Active-Deactive User','slug' => 'active-deactive'],
@@ -315,6 +314,12 @@ class ModuleAndPermissionSeeder extends Seeder
                 );
             }
         }
+
+        // Remove deprecated permissions that should no longer appear in role forms.
+        Permission::query()
+            ->where('guard_name', $guardName)
+            ->whereIn('name', ['list-driver'])
+            ->delete();
 
     }
 }
