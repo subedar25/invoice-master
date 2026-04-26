@@ -4,20 +4,6 @@
 </div>
 
 <div class="form-group">
-    <label for="department_id">Department</label>
-    <select id="department_id" name="department_id" class="form-control">
-        <option value="" @if(!isset($role) || empty($role->department_id)) selected @endif>Choose a department...</option>
-        @if(isset($departments))
-            @foreach($departments as $id => $name)
-                <option value="{{ $id }}" @if(isset($role) && $role->department_id == $id) selected @endif>
-                    {{ $name }}
-                </option>
-            @endforeach
-        @endif
-    </select>
-</div>
-
-<div class="form-group">
     <label for="is_active">Active Status</label>
     <select id="is_active" name="is_active" class="form-control">
         <option value="1" @if(!isset($role) || (isset($role) && $role->is_active)) selected @endif>Active</option>
